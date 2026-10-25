@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "logix"
+version = "0.1.0"
+description = "Verified execution for AI-generated plans."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Logix contributors" }]
+keywords = ["ai", "agents", "verification", "tool-calling", "security"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+
+    "Typing :: Typed",
+]
+
+# Core has ZERO third-party runtime dependencies. This is load-bearing:
+# see docs/system-design.md §3 and tests/pydantic/test_core_without_pydantic.py.
+dependencies = []
+
+[project.optional-dependencies]
+pydantic = ["pydantic>=2,<3"]
+ai = []  
+mcp = ["fastmcp>=4,<5"]                              # NEW
+                     # provider adapters use lazy imports; no hard dep
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "hypothesis>=6",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "pydantic>=2,<3",  
+    "fastmcp>=4,<5",                                 # NEW (for tests/mcp)
+
+           # for tests/pydantic + tests/adapters
+]
+all = ["logix[pydantic,ai,dev]"]
+
+[project.urls]
+Homepage = "https://github.com/logix-dev/logix"
+Documentation = "https://github.com/logix-dev/logix/blob/main/docs/"
+Changelog = "https://github.com/logix-dev/logix/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/logix", "src/logix_pydantic", "src/logix_ai",    "src/logix_mcp",]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "tests/",
+    "docs/",
+    "examples/",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+]
+
+# ---------------------------------------------------------------------------
+# Tooling
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+markers = [
+    "security: security-boundary test (docs/system-design.md §3)",
+    "conformance: adapter conformance kit (tests/adapters/contract.py)",
+    "fuzz: property-based test",
+]
+filterwarnings = ["error"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]  # line-length enforced by formatter
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011"]  # allow bare assert in tests
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]
+warn_unreachable = true
