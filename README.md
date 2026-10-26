@@ -1,6 +1,3 @@
-## `README.md`
-
-```markdown
 # Logix
 
 **Verified execution for AI-generated plans.**
@@ -277,4 +274,3 @@ MIT. See `LICENSE`.
 
 > The developer declares what is possible and what is permitted. The AI
 > chooses what to attempt. Logix decides what actually happens.
-```

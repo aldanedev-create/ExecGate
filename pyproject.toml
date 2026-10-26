@@ -31,7 +31,7 @@ dependencies = []
 [project.optional-dependencies]
 pydantic = ["pydantic>=2,<3"]
 ai = []  
-mcp = ["fastmcp>=4,<5"]                              # NEW
+mcp = ["fastmcp>=4,<5"]
                      # provider adapters use lazy imports; no hard dep
 dev = [
     "pytest>=8",
@@ -42,17 +42,17 @@ dev = [
     "mypy>=1.10",
     "pydantic>=2,<3",  
     "fastmcp>=4,<5",    
-    "build>=1.2",          # NEW
-    "twine>=5",                                # NEW (for tests/mcp)
+    "build>=1.2",
+    "twine>=5",
 
            # for tests/pydantic + tests/adapters
 ]
-all = ["logiq[pydantic,ai,dev]"]
+all = ["logiq[pydantic,mcp,dev]"]
 
 [project.urls]
-Homepage = "https://github.com/logiq-dev/logiq"
-Documentation = "https://github.com/logix-dev/logiq/blob/main/docs/"
-Changelog = "https://github.com/logix-dev/logiq/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/aldanedev-create/Logix"
+Documentation = "https://github.com/aldanedev-create/Logix/blob/main/docs/"
+Changelog = "https://github.com/aldanedev-create/Logix/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/logiq", "src/logiq_pydantic", "src/logiq_ai",    "src/logix_mcp",]

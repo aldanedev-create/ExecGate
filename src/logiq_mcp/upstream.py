@@ -93,7 +93,9 @@ def wrap_upstream_tool(
         raise ValueError(f"upstream tool has invalid name: {name!r}")
 
     description = getattr(tool, "description", "") or ""
-    input_schema_dict = getattr(tool, "inputSchema", None)
+    input_schema_dict = getattr(tool, "input_schema", None)
+    if input_schema_dict is None:  # older FastMCP / MCP SDK v1 objects
+        input_schema_dict = getattr(tool, "inputSchema", None)
     if not isinstance(input_schema_dict, dict):
         raise ValueError(
             f"upstream tool {name!r} has no inputSchema dict"
