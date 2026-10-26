@@ -14,10 +14,10 @@ import pytest
 from logiq import Logix
 from logiq.plans import DEFAULT_LIMITS, PlanLimits
 
-
 # ---------------------------------------------------------------------------
 # max_bytes
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.security
 def test_max_bytes_enforced(logix):
@@ -51,6 +51,7 @@ def test_max_bytes_via_parse_directly():
 # max_steps
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.security
 def test_max_steps_enforced(logix):
     invoked = []
@@ -62,12 +63,12 @@ def test_max_steps_enforced(logix):
 
     logix.limits(max_steps=2)
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": f"s{i}", "call": "op", "with": {"x": i}} for i in range(5)
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [{"id": f"s{i}", "call": "op", "with": {"x": i}} for i in range(5)],
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "INVALID_PLAN"
     assert any("max_steps" in e.message for e in result.errors)
@@ -82,19 +83,22 @@ def test_max_steps_boundary_accepted(logix):
 
     logix.limits(max_steps=2)
     # Exactly at limit — should succeed.
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "op", "with": {"x": 1}},
-            {"id": "b", "call": "op", "with": {"x": 2}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "op", "with": {"x": 1}},
+                {"id": "b", "call": "op", "with": {"x": 2}},
+            ],
+        }
+    )
     assert result.ok
 
 
 # ---------------------------------------------------------------------------
 # max_depth
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.security
 def test_max_depth_enforced(logix):
@@ -122,6 +126,7 @@ def test_max_depth_enforced(logix):
 # Engine defaults
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.security
 def test_engine_uses_documented_defaults():
     logix = Logix()
@@ -144,6 +149,7 @@ def test_engine_limits_override_is_isolated():
 # max_invocations — documented gap
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.security
 def test_max_invocations_field_exists():
     """The field is present for forward compatibility. It is NOT enforced
@@ -156,6 +162,7 @@ def test_max_invocations_field_exists():
 # ---------------------------------------------------------------------------
 # Ordering guarantee: limits fire at parse, before any handler
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.security
 def test_limits_fire_before_verification_and_execution(logix):
@@ -172,12 +179,14 @@ def test_limits_fire_before_verification_and_execution(logix):
 
     # Two steps exceeds the limit; both are valid capabilities, but
     # parse_plan rejects before either can be dispatched.
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "op", "with": {"x": 1}},
-            {"id": "b", "call": "op", "with": {"x": 2}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "op", "with": {"x": 1}},
+                {"id": "b", "call": "op", "with": {"x": 2}},
+            ],
+        }
+    )
     assert not result.ok
     assert invoked == []

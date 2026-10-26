@@ -54,9 +54,7 @@ def main() -> int:
         for lineno, mod in _top_level_imports(path):
             if mod in stdlib or mod == "logiq" or mod in SIBLINGS:
                 continue
-            offenders.append(
-                f"  {path.relative_to(ROOT)}:{lineno}: non-stdlib import {mod!r}"
-            )
+            offenders.append(f"  {path.relative_to(ROOT)}:{lineno}: non-stdlib import {mod!r}")
 
     if offenders:
         print(
@@ -66,8 +64,7 @@ def main() -> int:
         for line in offenders:
             print(line, file=sys.stderr)
         print(
-            "\nThe core must have zero third-party runtime deps "
-            "(docs/system-design.md §3).",
+            "\nThe core must have zero third-party runtime deps (docs/system-design.md §3).",
             file=sys.stderr,
         )
         return 1

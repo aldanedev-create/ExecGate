@@ -18,19 +18,16 @@ adapter through the public engine API.
 from __future__ import annotations
 
 import json
-import typing
 
 import pytest
-from pydantic import BaseModel, Field
 
-from logiq.annotation_inspect import inspect_capability, find_unsupported_annotations
+from logiq.annotation_inspect import find_unsupported_annotations, inspect_capability
 from logiq.schemas import (
     DictType,
     FloatType,
     IntType,
     ListType,
     NoneType,
-    SchemaInferenceError,
     StrType,
     UnionType,
     infer_input_schema,
@@ -45,11 +42,12 @@ from logiq_pydantic import (
     normalize_validation_error,
     transform_signature,
 )
-
+from pydantic import BaseModel, Field
 
 # ---------------------------------------------------------------------------
 # Shared models
 # ---------------------------------------------------------------------------
+
 
 class Address(BaseModel):
     city: str
@@ -70,6 +68,7 @@ class LineItem(BaseModel):
 # is_pydantic_model
 # ---------------------------------------------------------------------------
 
+
 def test_is_pydantic_model_positive():
     assert is_pydantic_model(Order)
     assert is_pydantic_model(Address)
@@ -89,6 +88,7 @@ def test_is_pydantic_model_rejects_primitives():
 # transform_signature — direct model
 # ---------------------------------------------------------------------------
 
+
 def test_transform_direct_model_parameter():
     def prepare(order: Order) -> dict[str, int]:
         return {"ok": 1}
@@ -105,6 +105,7 @@ def test_transform_direct_model_parameter():
 def test_transform_makes_signature_inferable():
     """Before transform, a Pydantic model is unsupported by the native
     inferencer. After transform, the whole signature passes."""
+
     def prepare(order: Order) -> dict[str, int]:
         return {"ok": 1}
 
@@ -134,8 +135,9 @@ def test_transform_preserves_non_model_annotations():
 # transform_signature — containers and unions
 # ---------------------------------------------------------------------------
 
+
 def test_transform_optional_model():
-    def f(order: typing.Optional[Order] = None) -> dict[str, int]:
+    def f(order: Order | None = None) -> dict[str, int]:
         return {"ok": 1}
 
     info = inspect_capability(f)
@@ -173,7 +175,7 @@ def test_transform_dict_of_models():
 
 
 def test_transform_union_of_models():
-    def f(item: typing.Union[Order, Address]) -> dict[str, int]:
+    def f(item: Order | Address) -> dict[str, int]:
         return {"ok": 1}
 
     info = inspect_capability(f)
@@ -189,6 +191,7 @@ def test_transform_union_of_models():
 # transform_signature — output
 # ---------------------------------------------------------------------------
 
+
 def test_transform_output_model():
     def op(x: int) -> Order:
         return Order(id=1, total=0.0, address=Address(city="x", postcode="y"))
@@ -203,20 +206,30 @@ def test_transform_output_model():
 # PydanticType.validate
 # ---------------------------------------------------------------------------
 
+
 def test_pydantic_type_validate_valid():
     pt = PydanticType(Order)
-    assert pt.validate({
-        "id": 1, "total": 5.0,
-        "address": {"city": "x", "postcode": "y"},
-    }) == []
+    assert (
+        pt.validate(
+            {
+                "id": 1,
+                "total": 5.0,
+                "address": {"city": "x", "postcode": "y"},
+            }
+        )
+        == []
+    )
 
 
 def test_pydantic_type_validate_invalid_type():
     pt = PydanticType(Order)
-    errors = pt.validate({
-        "id": "not-an-int", "total": 5.0,
-        "address": {"city": "x", "postcode": "y"},
-    })
+    errors = pt.validate(
+        {
+            "id": "not-an-int",
+            "total": 5.0,
+            "address": {"city": "x", "postcode": "y"},
+        }
+    )
     assert len(errors) >= 1
     # Path points into the field, not the whole object.
     assert any("id" in e.path for e in errors)
@@ -230,10 +243,13 @@ def test_pydantic_type_validate_missing_field():
 
 def test_pydantic_type_validate_constraint():
     pt = PydanticType(Order)
-    errors = pt.validate({
-        "id": 1, "total": -1.0,  # violates ge=0.0
-        "address": {"city": "x", "postcode": "y"},
-    })
+    errors = pt.validate(
+        {
+            "id": 1,
+            "total": -1.0,  # violates ge=0.0
+            "address": {"city": "x", "postcode": "y"},
+        }
+    )
     assert len(errors) >= 1
 
 
@@ -242,11 +258,13 @@ def test_pydantic_type_errors_drop_input_value():
     drop it (it may be sensitive)."""
     sensitive = "PII-987-65-4321"
     pt = PydanticType(Order)
-    errors = pt.validate({
-        "id": sensitive,  # wrong type, contains PII
-        "total": 5.0,
-        "address": {"city": "x", "postcode": "y"},
-    })
+    errors = pt.validate(
+        {
+            "id": sensitive,  # wrong type, contains PII
+            "total": 5.0,
+            "address": {"city": "x", "postcode": "y"},
+        }
+    )
     for e in errors:
         assert sensitive not in e.message
 
@@ -254,6 +272,7 @@ def test_pydantic_type_errors_drop_input_value():
 # ---------------------------------------------------------------------------
 # PydanticType.to_json_schema
 # ---------------------------------------------------------------------------
+
 
 def test_pydantic_type_json_schema_matches_model():
     pt = PydanticType(Order)
@@ -269,6 +288,7 @@ def test_model_to_logix_type_returns_pydantic_type():
 # ---------------------------------------------------------------------------
 # PydanticType.walk
 # ---------------------------------------------------------------------------
+
 
 def test_walk_simple_field():
     pt = PydanticType(Order)
@@ -305,6 +325,7 @@ def test_walk_list_of_models_returns_none():
     inferable. A ``$ref`` into ``items.0.amount`` would be rejected at
     verify time. Applications that need this should declare the model's
     fields as plain JSON via a schema adapter."""
+
     class OrderWithItems(BaseModel):
         items: list[LineItem]
 
@@ -316,9 +337,12 @@ def test_walk_list_of_models_returns_none():
 # normalize_validation_error
 # ---------------------------------------------------------------------------
 
+
 def test_normalize_validation_error():
     pt = PydanticType(Order)
-    with pytest.raises(Exception):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
         # Force a pydantic.ValidationError by direct adapter call.
         pt._adapter.validate_python({"id": "bad"})
     try:
@@ -333,6 +357,7 @@ def test_normalize_validation_error():
 # End-to-end through the engine
 # ---------------------------------------------------------------------------
 
+
 def test_register_with_model_and_run(logix):
     received: list[Order] = []
 
@@ -341,15 +366,18 @@ def test_register_with_model_and_run(logix):
         received.append(order)
         return {"ok": 1}
 
-    result = logix.run({
-        "call": "prepare",
-        "with": {
-            "order": {
-                "id": 1, "total": 5.0,
-                "address": {"city": "x", "postcode": "y"},
+    result = logix.run(
+        {
+            "call": "prepare",
+            "with": {
+                "order": {
+                    "id": 1,
+                    "total": 5.0,
+                    "address": {"city": "x", "postcode": "y"},
+                },
             },
-        },
-    })
+        }
+    )
     assert result.ok
     assert len(received) == 1
     assert isinstance(received[0], Order)  # MODEL mode is the default
@@ -364,10 +392,12 @@ def test_invalid_model_input_rejected_before_handler(logix):
         invoked.append(1)
         return {"ok": 1}
 
-    result = logix.run({
-        "call": "prepare",
-        "with": {"order": {"id": "not-an-int"}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare",
+            "with": {"order": {"id": "not-an-int"}},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
     assert invoked == []
@@ -390,10 +420,12 @@ def test_ref_into_pydantic_typed_output(logix):
     """$ref into a step whose output schema is a Pydantic model works
     because (a) walk resolves the field and (b) the executor normalizes
     the model to a dict before storing it in step_outputs."""
+
     @logix.capability
     def get_order(order_id: int) -> Order:
         return Order(
-            id=order_id, total=50.0,
+            id=order_id,
+            total=50.0,
             address=Address(city="x", postcode="y"),
         )
 
@@ -401,15 +433,19 @@ def test_ref_into_pydantic_typed_output(logix):
     def refund(order_id: int, amount: float) -> dict[str, int]:
         return {"ok": 1}
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "o", "call": "get_order", "with": {"order_id": 1}},
-            {"id": "r", "call": "refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "o", "call": "get_order", "with": {"order_id": 1}},
+                {
+                    "id": "r",
+                    "call": "refund",
+                    "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+                },
+            ],
+        }
+    )
     assert result.ok, result.errors
     assert result.value["r"] == {"ok": 1}
 
@@ -418,7 +454,8 @@ def test_ref_into_nested_pydantic_field(logix):
     @logix.capability
     def get_order(order_id: int) -> Order:
         return Order(
-            id=order_id, total=50.0,
+            id=order_id,
+            total=50.0,
             address=Address(city="Berlin", postcode="10115"),
         )
 
@@ -426,12 +463,13 @@ def test_ref_into_nested_pydantic_field(logix):
     def note(city: str) -> dict[str, int]:
         return {"ok": 1}
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "o", "call": "get_order", "with": {"order_id": 1}},
-            {"id": "n", "call": "note",
-             "with": {"city": {"$ref": "o.address.city"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "o", "call": "get_order", "with": {"order_id": 1}},
+                {"id": "n", "call": "note", "with": {"city": {"$ref": "o.address.city"}}},
+            ],
+        }
+    )
     assert result.ok, result.errors

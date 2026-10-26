@@ -8,8 +8,6 @@ argument validation are the verifier's job.
 
 from __future__ import annotations
 
-import pytest
-
 from logiq.errors import Error
 from logiq.plans import (
     CanonicalPlan,
@@ -27,6 +25,7 @@ def _errors(result) -> list[Error]:
 # ---------------------------------------------------------------------------
 # Success cases
 # ---------------------------------------------------------------------------
+
 
 def test_single_call():
     result = parse_plan({"call": "add", "with": {"a": 1, "b": 2}})
@@ -76,17 +75,22 @@ def test_json_string_input():
 # Structural errors
 # ---------------------------------------------------------------------------
 
+
 def test_missing_call_and_steps():
     errors = _errors(parse_plan({}))
     assert any("either 'call' or 'steps'" in e.message for e in errors)
 
 
 def test_both_call_and_steps():
-    errors = _errors(parse_plan({
-        "call": "x",
-        "with": {},
-        "steps": [{"id": "s", "call": "y", "with": {}}],
-    }))
+    errors = _errors(
+        parse_plan(
+            {
+                "call": "x",
+                "with": {},
+                "steps": [{"id": "s", "call": "y", "with": {}}],
+            }
+        )
+    )
     assert any("both" in e.message for e in errors)
 
 
@@ -142,6 +146,7 @@ def test_step_missing_call():
 # Version
 # ---------------------------------------------------------------------------
 
+
 def test_unsupported_version_rejected():
     plan = {"version": "999", "steps": []}
     errors = _errors(parse_plan(plan))
@@ -151,6 +156,7 @@ def test_unsupported_version_rejected():
 # ---------------------------------------------------------------------------
 # Forward references
 # ---------------------------------------------------------------------------
+
 
 def test_forward_ref_rejected():
     plan = {
@@ -176,6 +182,7 @@ def test_self_ref_rejected():
 # ---------------------------------------------------------------------------
 # Limits
 # ---------------------------------------------------------------------------
+
 
 def test_max_steps_exceeded():
     plan = {

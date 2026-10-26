@@ -37,6 +37,7 @@ class TestAnthropicAdapter(AdapterContractMixin):
 # Provider-specific behaviors
 # ---------------------------------------------------------------------------
 
+
 def test_name():
     assert AnthropicAdapter().name == "anthropic"
 
@@ -52,19 +53,23 @@ def test_format_tools_shape():
 
 def test_parse_accepts_content_list_directly():
     adapter = AnthropicAdapter()
-    plan = adapter.parse_proposal([
-        {"type": "tool_use", "name": "get_order", "input": {"order_id": 1}},
-    ])
+    plan = adapter.parse_proposal(
+        [
+            {"type": "tool_use", "name": "get_order", "input": {"order_id": 1}},
+        ]
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 1}}
 
 
 def test_parse_accepts_single_tool_use_block():
     adapter = AnthropicAdapter()
-    plan = adapter.parse_proposal({
-        "type": "tool_use",
-        "name": "get_order",
-        "input": {"order_id": 2},
-    })
+    plan = adapter.parse_proposal(
+        {
+            "type": "tool_use",
+            "name": "get_order",
+            "input": {"order_id": 2},
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 2}}
 
 
@@ -72,22 +77,26 @@ def test_parse_skips_text_blocks():
     """A response with a text block followed by tool_use must find the
     tool_use, not choke on the text."""
     adapter = AnthropicAdapter()
-    plan = adapter.parse_proposal({
-        "content": [
-            {"type": "text", "text": "Let me look that up."},
-            {"type": "tool_use", "name": "get_order", "input": {"order_id": 3}},
-        ],
-    })
+    plan = adapter.parse_proposal(
+        {
+            "content": [
+                {"type": "text", "text": "Let me look that up."},
+                {"type": "tool_use", "name": "get_order", "input": {"order_id": 3}},
+            ],
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 3}}
 
 
 def test_parse_handles_missing_input_as_empty_dict():
     adapter = AnthropicAdapter()
-    plan = adapter.parse_proposal({
-        "type": "tool_use",
-        "name": "noop",
-        # no "input" key
-    })
+    plan = adapter.parse_proposal(
+        {
+            "type": "tool_use",
+            "name": "noop",
+            # no "input" key
+        }
+    )
     assert plan == {"call": "noop", "with": {}}
 
 

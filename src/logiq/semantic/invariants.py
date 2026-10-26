@@ -20,10 +20,13 @@ See ``docs/semantic-layer.md`` and ADR-0004.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from logiq.errors import (
-    Error, authorization_failed, policy_rejected,
+    Error,
+    authorization_failed,
+    policy_rejected,
 )
 from logiq.policies import Allow, Decision, Deny, RequireApproval
 
@@ -51,7 +54,7 @@ class InvariantRegistry:
             raise TypeError("check must be callable")
         self._checks[capability] = check
 
-    def get(self, capability: str) -> "InvariantCheck | None":
+    def get(self, capability: str) -> InvariantCheck | None:
         return self._checks.get(capability)
 
     def names(self) -> list[str]:
@@ -62,8 +65,8 @@ def run_invariants(
     registry: InvariantRegistry,
     capability: str,
     args: dict[str, Any],
-    context: "ExecutionContext",
-) -> "tuple[Decision | None, Error | None]":
+    context: ExecutionContext,
+) -> tuple[Decision | None, Error | None]:
     """
     Run the invariant attached to ``capability``, if any.
 
@@ -99,12 +102,14 @@ def run_invariants(
     )
 
 
-def decision_to_error(decision: Decision) -> "Error | None":
+def decision_to_error(decision: Decision) -> Error | None:
     """Convert a non-Allow decision into a structured Error."""
     if isinstance(decision, Allow):
         return None
     if isinstance(decision, Deny):
-        return policy_rejected(decision.message, details={"code": decision.code, **decision.details})
+        return policy_rejected(
+            decision.message, details={"code": decision.code, **decision.details}
+        )
     if isinstance(decision, RequireApproval):
         # APPROVAL_REQUIRED is produced by the approval layer; this is a
         # signal to route there, not an error on its own.

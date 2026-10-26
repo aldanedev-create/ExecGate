@@ -30,7 +30,6 @@ from logiq.results import Result
 from logiq.schemas.types import (
     AnyType,
     BoolType,
-    FloatType,
     IntType,
     ListType,
     LiteralType,
@@ -58,6 +57,7 @@ __all__ = [
 # ToolSpec -> MCP tool definition
 # ---------------------------------------------------------------------------
 
+
 def tool_spec_to_mcp_dict(spec: ToolSpec) -> dict[str, Any]:
     """
     Convert a ``ToolSpec`` to an MCP ``tools/list`` entry.
@@ -75,6 +75,7 @@ def tool_spec_to_mcp_dict(spec: ToolSpec) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # MCP call -> neutral plan
 # ---------------------------------------------------------------------------
+
 
 def from_mcp_call(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
     """
@@ -99,6 +100,7 @@ def from_mcp_call(name: str, arguments: dict[str, Any] | None) -> dict[str, Any]
 # ---------------------------------------------------------------------------
 # Result -> MCP response
 # ---------------------------------------------------------------------------
+
 
 def result_to_mcp_response(result: Result) -> Any:
     """
@@ -140,6 +142,7 @@ def format_errors_for_mcp(errors: tuple[Error, ...]) -> str:
 # MCP CallToolResult -> plain value (for the proxy)
 # ---------------------------------------------------------------------------
 
+
 def extract_mcp_result_value(call_result: Any) -> Any:
     """
     Extract a JSON-compatible value from an MCP ``CallToolResult``.
@@ -175,6 +178,7 @@ def extract_mcp_result_value(call_result: Any) -> Any:
 # MCP inputSchema (JSON Schema) -> Logix ObjectType
 # ---------------------------------------------------------------------------
 
+
 def mcp_schema_to_logix(schema: dict[str, Any]) -> ObjectType:
     """
     Convert an MCP ``inputSchema`` (JSON Schema) to a Logix ``ObjectType``.
@@ -204,14 +208,11 @@ def mcp_schema_to_logix(schema: dict[str, Any]) -> ObjectType:
     and let the operator handle the specific tool.
     """
     if not isinstance(schema, dict):
-        raise ValueError(
-            f"MCP inputSchema must be a dict, got {type(schema).__name__}"
-        )
+        raise ValueError(f"MCP inputSchema must be a dict, got {type(schema).__name__}")
 
     if schema.get("type") != "object":
         raise ValueError(
-            f"MCP inputSchema must have type='object' at the top level; "
-            f"got {schema.get('type')!r}"
+            f"MCP inputSchema must have type='object' at the top level; got {schema.get('type')!r}"
         )
 
     _reject_unsupported(schema, path="$")
@@ -235,12 +236,27 @@ def mcp_schema_to_logix(schema: dict[str, Any]) -> ObjectType:
 
 
 _UNSUPPORTED_KEYS = (
-    "$ref", "$defs", "definitions",
-    "oneOf", "allOf", "not", "if", "then", "else",
+    "$ref",
+    "$defs",
+    "definitions",
+    "oneOf",
+    "allOf",
+    "not",
+    "if",
+    "then",
+    "else",
     "patternProperties",
-    "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
-    "minLength", "maxLength", "pattern", "format",
-    "minItems", "maxItems", "uniqueItems",
+    "minimum",
+    "maximum",
+    "exclusiveMinimum",
+    "exclusiveMaximum",
+    "minLength",
+    "maxLength",
+    "pattern",
+    "format",
+    "minItems",
+    "maxItems",
+    "uniqueItems",
 )
 
 
@@ -262,10 +278,7 @@ def _reject_unsupported(schema: dict[str, Any], *, path: str) -> None:
 def _prop_schema_to_type(schema: Any, *, path: str) -> Type:
     """Translate one property's JSON Schema into a Logix ``Type``."""
     if not isinstance(schema, dict):
-        raise ValueError(
-            f"property at {path} must be a schema dict, got "
-            f"{type(schema).__name__}"
-        )
+        raise ValueError(f"property at {path} must be a schema dict, got {type(schema).__name__}")
 
     # enum -> LiteralType
     if "enum" in schema:
@@ -282,17 +295,16 @@ def _prop_schema_to_type(schema: Any, *, path: str) -> Type:
             raise ValueError(f"anyOf at {path} must be a non-empty list")
         _reject_unsupported({k: v for k, v in schema.items() if k != "anyOf"}, path=path)
         return UnionType(
-            members=tuple(_prop_schema_to_type(m, path=f"{path}.anyOf[{i}]")
-                          for i, m in enumerate(members))
+            members=tuple(
+                _prop_schema_to_type(m, path=f"{path}.anyOf[{i}]") for i, m in enumerate(members)
+            )
         )
 
     _reject_unsupported(schema, path=path)
 
     json_type = schema.get("type")
     if json_type is None:
-        raise ValueError(
-            f"property at {path} has no type; cannot map to a Logix Type"
-        )
+        raise ValueError(f"property at {path} has no type; cannot map to a Logix Type")
 
     if json_type == "integer":
         return IntType()
@@ -314,22 +326,18 @@ def _prop_schema_to_type(schema: Any, *, path: str) -> Type:
         required = frozenset(schema.get("required") or [])
         additional = schema.get("additionalProperties", True) is not False
         return ObjectType(
-            fields={
-                k: _prop_schema_to_type(v, path=f"{path}.{k}")
-                for k, v in properties.items()
-            },
+            fields={k: _prop_schema_to_type(v, path=f"{path}.{k}") for k, v in properties.items()},
             required=required,
             additional=additional,
         )
 
-    raise ValueError(
-        f"property at {path} has unsupported type {json_type!r}"
-    )
+    raise ValueError(f"property at {path} has unsupported type {json_type!r}")
 
 
 # ---------------------------------------------------------------------------
 # SchemaError -> Error helper (used by proxy startup validation)
 # ---------------------------------------------------------------------------
+
 
 def schema_errors_to_errors(
     schema_errors: list[SchemaError],
@@ -340,7 +348,4 @@ def schema_errors_to_errors(
     Convert ``SchemaError`` objects (from the schema engine) into the
     ``Error`` type that flows through the public API.
     """
-    return [
-        Error(code=code, message=se.message, path=se.path)
-        for se in schema_errors
-    ]
+    return [Error(code=code, message=se.message, path=se.path) for se in schema_errors]

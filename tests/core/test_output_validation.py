@@ -8,14 +8,10 @@ value passes.
 
 from __future__ import annotations
 
-import pytest
-
-from logiq import Logix
-
-
 # ---------------------------------------------------------------------------
 # Matching output
 # ---------------------------------------------------------------------------
+
 
 def test_matching_int_output(logix):
     @logix.capability
@@ -51,6 +47,7 @@ def test_matching_none_output(logix):
 # Mismatched output
 # ---------------------------------------------------------------------------
 
+
 def test_mismatched_output_rejected(logix):
     @logix.capability
     def bad(x: int) -> int:
@@ -73,6 +70,7 @@ def test_wrong_dict_shape_rejected(logix):
 
 def test_bool_is_not_int_in_output(logix):
     """Same strict semantics apply to output validation."""
+
     @logix.capability
     def bad(x: int) -> int:
         return True  # type: ignore[return-value]
@@ -85,6 +83,7 @@ def test_bool_is_not_int_in_output(logix):
 # ---------------------------------------------------------------------------
 # No output schema declared
 # ---------------------------------------------------------------------------
+
 
 def test_no_return_annotation_skips_output_validation(logix):
     @logix.capability
@@ -99,6 +98,7 @@ def test_no_return_annotation_skips_output_validation(logix):
 # ---------------------------------------------------------------------------
 # Handler raises
 # ---------------------------------------------------------------------------
+
 
 def test_handler_exception_produces_handler_failed(logix):
     @logix.capability

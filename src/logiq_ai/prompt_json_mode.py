@@ -60,7 +60,7 @@ def build(
     instructions = _INSTRUCTIONS_STRICT if strict else _INSTRUCTIONS_LENIENT
 
     parts: list[str] = []
-    if system:
+    if system and system.strip():
         parts.append(system.strip())
     parts.append(capabilities_block)
     parts.append(instructions)

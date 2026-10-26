@@ -23,20 +23,34 @@ verify time; ``execute()`` re-earns the dynamic guarantees.
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING, Any
 
-from logiq._internal import canonical_hash, freeze
+from logiq._internal import canonical_hash
 from logiq.capabilities import Capability, Registry
 from logiq.context import ExecutionContext
 from logiq.errors import (
-    Error, invalid_reference, schema_validation_failed, unknown_capability,
+    Error,
+    invalid_reference,
+    schema_validation_failed,
+    unknown_capability,
 )
 from logiq.ir import VerifiedStep, _construct_verified_plan
 from logiq.plans import CanonicalPlan, CanonicalStep
-from logiq.plans.references import Reference, is_reference, parse_reference
+from logiq.plans.references import is_reference, parse_reference
 from logiq.schemas import (
-    AnyType, BoolType, DictType, FloatType, IntType, ListType,
-    LiteralType, NoneType, ObjectType, StrType, Type, UnionType,
+    AnyType,
+    BoolType,
+    DictType,
+    FloatType,
+    IntType,
+    ListType,
+    LiteralType,
+    NoneType,
+    ObjectType,
+    StrType,
+    Type,
+    UnionType,
 )
 from logiq.schemas.validate import ConstrainedType
 
@@ -83,9 +97,8 @@ def verify_plan(
     if not isinstance(plan, CanonicalPlan):
         # Caller error — the engine always hands us a CanonicalPlan.
         from logiq.errors import invalid_plan
-        return None, [invalid_plan(
-            f"verifier requires a CanonicalPlan; got {type(plan).__name__}"
-        )]
+
+        return None, [invalid_plan(f"verifier requires a CanonicalPlan; got {type(plan).__name__}")]
 
     errors: list[Error] = []
 
@@ -102,10 +115,12 @@ def verify_plan(
         try:
             cap = registry.get(step.capability)
         except KeyError:
-            errors.append(unknown_capability(
-                step.capability,
-                path=_step_path(plan, idx),
-            ))
+            errors.append(
+                unknown_capability(
+                    step.capability,
+                    path=_step_path(plan, idx),
+                )
+            )
             continue
         steps_by_id[step_id] = (step, cap, idx)
 
@@ -201,6 +216,7 @@ def verify_plan(
 # Argument validation (schema + references)
 # ---------------------------------------------------------------------------
 
+
 def _validate_arguments(
     *,
     plan: CanonicalPlan,
@@ -219,19 +235,23 @@ def _validate_arguments(
     # Required fields present.
     for required_name in schema.required:
         if required_name not in step.arguments:
-            errors.append(schema_validation_failed(
-                f"missing required field {required_name!r}",
-                path=f"{path_prefix}.{required_name}",
-            ))
+            errors.append(
+                schema_validation_failed(
+                    f"missing required field {required_name!r}",
+                    path=f"{path_prefix}.{required_name}",
+                )
+            )
 
     # Unknown fields rejected (ObjectType.additional is False by default,
     # but we check here explicitly so the error names the step).
     unknown = set(step.arguments.keys()) - set(schema.fields.keys())
     for name in sorted(unknown):
-        errors.append(schema_validation_failed(
-            f"unknown argument {name!r}",
-            path=f"{path_prefix}.{name}",
-        ))
+        errors.append(
+            schema_validation_failed(
+                f"unknown argument {name!r}",
+                path=f"{path_prefix}.{name}",
+            )
+        )
 
     # Each present argument: validate literal or check reference type.
     for arg_name, arg_value in step.arguments.items():
@@ -255,9 +275,12 @@ def _validate_arguments(
         # re-validates at run time (the schema might accept the same value
         # here and there — this is a "fail fast" static check).
         for schema_err in dest_type.validate(arg_value, arg_path):
-            errors.append(schema_validation_failed(
-                schema_err.message, path=schema_err.path,
-            ))
+            errors.append(
+                schema_validation_failed(
+                    schema_err.message,
+                    path=schema_err.path,
+                )
+            )
 
     return errors
 
@@ -335,6 +358,7 @@ def _walk_type_path(root: Type, path: tuple[str, ...]) -> Type | None:
         current = nxt
     return current
 
+
 def _assignable(src: Type, dst: Type) -> bool:
     """
     Pragmatic structural assignability.
@@ -395,18 +419,30 @@ def _assignable(src: Type, dst: Type) -> bool:
 
 def _type_name(t: Type) -> str:
     """Human-readable name of a Type, for error messages."""
-    if isinstance(t, IntType):        return "int"
-    if isinstance(t, FloatType):      return "float"
-    if isinstance(t, StrType):        return "str"
-    if isinstance(t, BoolType):       return "bool"
-    if isinstance(t, NoneType):       return "None"
-    if isinstance(t, AnyType):        return "Any"
-    if isinstance(t, ListType):       return f"list[{_type_name(t.item_type)}]"
-    if isinstance(t, DictType):       return f"dict[str, {_type_name(t.value_type)}]"
-    if isinstance(t, ObjectType):     return "object"
-    if isinstance(t, LiteralType):    return f"Literal[{', '.join(map(repr, t.values))}]"
-    if isinstance(t, UnionType):      return " | ".join(_type_name(m) for m in t.members)
-    if isinstance(t, ConstrainedType): return _type_name(t.base)
+    if isinstance(t, IntType):
+        return "int"
+    if isinstance(t, FloatType):
+        return "float"
+    if isinstance(t, StrType):
+        return "str"
+    if isinstance(t, BoolType):
+        return "bool"
+    if isinstance(t, NoneType):
+        return "None"
+    if isinstance(t, AnyType):
+        return "Any"
+    if isinstance(t, ListType):
+        return f"list[{_type_name(t.item_type)}]"
+    if isinstance(t, DictType):
+        return f"dict[str, {_type_name(t.value_type)}]"
+    if isinstance(t, ObjectType):
+        return "object"
+    if isinstance(t, LiteralType):
+        return f"Literal[{', '.join(map(repr, t.values))}]"
+    if isinstance(t, UnionType):
+        return " | ".join(_type_name(m) for m in t.members)
+    if isinstance(t, ConstrainedType):
+        return _type_name(t.base)
     # PydanticType or an adapter-defined type
     return type(t).__name__
 
@@ -414,6 +450,7 @@ def _type_name(t: Type) -> str:
 # ---------------------------------------------------------------------------
 # Dependency graph
 # ---------------------------------------------------------------------------
+
 
 def _dependency_order(
     plan: CanonicalPlan,
@@ -475,15 +512,18 @@ def _dependency_order(
         # A cycle. This should be unreachable given the parser's guarantee,
         # but report it clearly if it happens.
         from logiq.errors import dependency_cycle
+
         cyclic = sorted(set(edges) - set(order))
-        return [], [dependency_cycle(
-            f"cycle detected among steps: {cyclic}",
-        )]
+        return [], [
+            dependency_cycle(
+                f"cycle detected among steps: {cyclic}",
+            )
+        ]
 
     return order, []
 
 
-def _iter_refs(args: dict[str, Any], prefix: str = ""):
+def _iter_refs(args: Mapping[str, Any], prefix: str = "") -> Iterator[tuple[str, Any]]:
     """Yield (path, value) for every $ref in a nested argument map."""
     for k, v in args.items():
         child_prefix = f"{prefix}.{k}" if prefix else k

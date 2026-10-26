@@ -38,7 +38,9 @@ ROOT = Path(__file__).resolve().parent.parent
 def _git_clean() -> bool:
     result = subprocess.run(
         ["git", "status", "--porcelain"],
-        cwd=ROOT, capture_output=True, text=True,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         print("WARN: not a git repo, skipping clean-tree check", file=sys.stderr)
@@ -58,24 +60,22 @@ def _run(label: str, cmd: list[str]) -> int:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--test", action="store_true",
-                        help="upload to TestPyPI instead of PyPI")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="build and check only; do not upload")
-    parser.add_argument("--skip-preflight", action="store_true",
-                        help="skip preflight.py")
-    parser.add_argument("--force", action="store_true",
-                        help="allow publish from a dirty working tree")
-    parser.add_argument("--yes", action="store_true",
-                        help="skip the confirmation prompt")
+    parser.add_argument("--test", action="store_true", help="upload to TestPyPI instead of PyPI")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="build and check only; do not upload"
+    )
+    parser.add_argument("--skip-preflight", action="store_true", help="skip preflight.py")
+    parser.add_argument(
+        "--force", action="store_true", help="allow publish from a dirty working tree"
+    )
+    parser.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
     args = parser.parse_args(argv)
 
     target_name = "TestPyPI" if args.test else "PyPI"
 
     if not args.force and not _git_clean():
         print(
-            "FAIL: git working tree is dirty. Commit or stash first, "
-            "or pass --force.",
+            "FAIL: git working tree is dirty. Commit or stash first, or pass --force.",
             file=sys.stderr,
         )
         return 1
@@ -93,9 +93,12 @@ def main(argv: list[str]) -> int:
         print("FAIL: dist/ is empty after build", file=sys.stderr)
         return 1
 
-    _run("twine check", [sys.executable, "-m", "twine", "check", "dist/*"]
-         if False else [sys.executable, "-m", "twine", "check",
-                        *map(str, dist.iterdir())])
+    _run(
+        "twine check",
+        [sys.executable, "-m", "twine", "check", "dist/*"]
+        if False
+        else [sys.executable, "-m", "twine", "check", *map(str, dist.iterdir())],
+    )
 
     if args.dry_run:
         print(f"\ndry-run: would upload to {target_name}. Files in dist/:")

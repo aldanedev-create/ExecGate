@@ -47,18 +47,13 @@ class GeminiAdapter:
             name = call["name"]
             args = call.get("args", {})
         except (KeyError, TypeError) as e:
-            raise AdapterError(
-                f"malformed Gemini functionCall: missing name ({e})"
-            ) from e
+            raise AdapterError(f"malformed Gemini functionCall: missing name ({e})") from e
 
         if not isinstance(name, str) or not name:
-            raise AdapterError(
-                f"Gemini functionCall has invalid name: {name!r}"
-            )
+            raise AdapterError(f"Gemini functionCall has invalid name: {name!r}")
         if not isinstance(args, dict):
             raise AdapterError(
-                f"Gemini functionCall.args must be an object, got "
-                f"{type(args).__name__}"
+                f"Gemini functionCall.args must be an object, got {type(args).__name__}"
             )
         return {"call": name, "with": args}
 

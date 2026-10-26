@@ -50,29 +50,57 @@ ROOT = Path(__file__).resolve().parent.parent
 # Scanning configuration
 # ---------------------------------------------------------------------------
 
-SCAN_EXTENSIONS = frozenset({
-    ".py", ".md", ".toml", ".yaml", ".yml", ".json",
-    ".cfg", ".ini", ".txt", ".rst", ".sh", ".ps1",
-})
+SCAN_EXTENSIONS = frozenset(
+    {
+        ".py",
+        ".md",
+        ".toml",
+        ".yaml",
+        ".yml",
+        ".json",
+        ".cfg",
+        ".ini",
+        ".txt",
+        ".rst",
+        ".sh",
+        ".ps1",
+    }
+)
 
-SKIP_DIR_NAMES = frozenset({
-    ".git", "__pycache__", ".pytest_cache", ".ruff_cache",
-    ".mypy_cache", ".hypothesis", "htmlcov", "dist", "build",
-    ".venv", "venv", "site-packages", "node_modules", ".idea",
-    ".vscode",
-})
+SKIP_DIR_NAMES = frozenset(
+    {
+        ".git",
+        "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".mypy_cache",
+        ".hypothesis",
+        "htmlcov",
+        "dist",
+        "build",
+        ".venv",
+        "venv",
+        "site-packages",
+        "node_modules",
+        ".idea",
+        ".vscode",
+    }
+)
 
 # Skip these — one-time rename tools; don't self-modify
-SKIP_FILES = frozenset({
-    "scripts/rename_to_logiq.py",
-    "scripts/fix_rename_misses.py",
-    "scripts/fix_all_logix_rename.py",
-})
+SKIP_FILES = frozenset(
+    {
+        "scripts/rename_to_logiq.py",
+        "scripts/fix_rename_misses.py",
+        "scripts/fix_all_logix_rename.py",
+    }
+)
 
 
 # ---------------------------------------------------------------------------
 # Fix rules
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class FixRule:
@@ -161,14 +189,13 @@ PYTEST_RULES = [
     ),
 ]
 
-ALL_RULES: list[FixRule] = (
-    PATH_RULES + MODULE_RULES + PIP_RULES + PYPROJECT_RULES + PYTEST_RULES
-)
+ALL_RULES: list[FixRule] = PATH_RULES + MODULE_RULES + PIP_RULES + PYPROJECT_RULES + PYTEST_RULES
 
 
 # ---------------------------------------------------------------------------
 # File selection
 # ---------------------------------------------------------------------------
+
 
 def should_scan(path: Path) -> bool:
     if any(part in SKIP_DIR_NAMES for part in path.parts):
@@ -190,6 +217,7 @@ def scan_files() -> list[Path]:
 # Rule application
 # ---------------------------------------------------------------------------
 
+
 def apply_rules(text: str) -> tuple[str, list[str]]:
     """Apply all FixRules. Return (new_text, descriptions_of_matches)."""
     applied: list[str] = []
@@ -203,11 +231,13 @@ def apply_rules(text: str) -> tuple[str, list[str]]:
 
 def has_bare_import(text: str) -> bool:
     """True if ``text`` contains ``import logix`` (bare, not ``from``)."""
-    return bool(re.search(
-        r"^\s*import logix(?:$|\s*[,;]|\s+as\b)",
-        text,
-        re.MULTILINE,
-    ))
+    return bool(
+        re.search(
+            r"^\s*import logix(?:$|\s*[,;]|\s+as\b)",
+            text,
+            re.MULTILINE,
+        )
+    )
 
 
 def deep_fix_bare_imports(text: str) -> tuple[str, int]:
@@ -224,9 +254,9 @@ def deep_fix_bare_imports(text: str) -> tuple[str, int]:
         stripped = line.lstrip()
 
         # Preserve variable definitions/bindings
-        is_binding = (
-            re.match(r"logix\s*=", stripped) and "==" not in stripped
-        ) or re.match(r"(?:for|with|as)\s+logix\b", stripped)
+        is_binding = (re.match(r"logix\s*=", stripped) and "==" not in stripped) or re.match(
+            r"(?:for|with|as)\s+logix\b", stripped
+        )
         if is_binding:
             new_lines.append(line)
             continue
@@ -248,7 +278,7 @@ _CRITICAL_RES = [
     re.compile(r"""(['"])src/logix"""),
     re.compile(r"\bfrom logix(?=[\s.])"),
     re.compile(r"""(['"])logix\.[a-zA-Z]"""),  # "logix.engine" etc.
-    re.compile(r"""(['"\[]\s*)logix\["""),      # "logix[all]"
+    re.compile(r"""(['"\[]\s*)logix\["""),  # "logix[all]"
     re.compile(r'^name = "logix"', re.MULTILINE),
     re.compile(r"\bimport logix(?=[\s.,]|$)"),
 ]
@@ -259,7 +289,9 @@ _PRESERVED_RES = [
     re.compile(r"^\s*logix\s*="),
     # Decorator / method on variable
     re.compile(r"^\s*@logix\.\w+"),
-    re.compile(r"\blogix\.(run|verify|execute|capability|registry|tools|schemas|authorize|require_approval|grounding|policy|context|limits|audit|explain|dry_run)\b"),
+    re.compile(
+        r"\blogix\.(run|verify|execute|capability|registry|tools|schemas|authorize|require_approval|grounding|policy|context|limits|audit|explain|dry_run)\b"
+    ),
     # Class name (capital L)
     re.compile(r"\bLogix\b"),
     # Prose: "Logix" the product, "the logix library"
@@ -311,12 +343,15 @@ def remaining_occurrences(path: Path) -> list[tuple[int, str, str]]:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dry-run", action="store_true",
-                        help="show what would change; do not modify files")
-    parser.add_argument("--check", action="store_true",
-                        help="CI mode: exit 1 if any CRITICAL reference remains")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="show what would change; do not modify files"
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="CI mode: exit 1 if any CRITICAL reference remains"
+    )
     args = parser.parse_args(argv)
 
     files = scan_files()
@@ -362,7 +397,9 @@ def main(argv: list[str]) -> int:
     # ---- Phase 2: report remaining -------------------------------------
     print("\n=== Remaining occurrences ===")
     by_category: dict[str, list[tuple[Path, int, str]]] = {
-        "CRITICAL": [], "REVIEW": [], "PRESERVED": [],
+        "CRITICAL": [],
+        "REVIEW": [],
+        "PRESERVED": [],
     }
 
     for path in files:

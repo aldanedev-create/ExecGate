@@ -40,6 +40,7 @@ def _real_verified_plan():
 # Error
 # ---------------------------------------------------------------------------
 
+
 def test_error_accepts_valid_code():
     e = Error(code=INVALID_PLAN, message="x")
     assert e.code == INVALID_PLAN
@@ -75,6 +76,7 @@ def test_error_path_optional():
 # ---------------------------------------------------------------------------
 # Result
 # ---------------------------------------------------------------------------
+
 
 def test_result_ok_with_errors_rejected():
     e = Error(code=INVALID_PLAN, message="m")
@@ -126,6 +128,7 @@ def test_result_to_dict_includes_errors():
 # VerificationReport
 # ---------------------------------------------------------------------------
 
+
 def test_report_ok_without_verified_plan_rejected():
     with pytest.raises(ValueError, match="must carry a VerifiedPlan"):
         VerificationReport(ok=True)
@@ -172,14 +175,13 @@ def test_report_to_dict():
 # Trace
 # ---------------------------------------------------------------------------
 
+
 def test_trace_to_dict():
     trace = Trace(
         execution_id="abc",
         plan_version="1",
         verification_duration_ms=1.5,
-        steps=(
-            StepTrace(step_id="s", capability="c", status="ok", duration_ms=0.5),
-        ),
+        steps=(StepTrace(step_id="s", capability="c", status="ok", duration_ms=0.5),),
     )
     d = trace.to_dict()
     assert d["execution_id"] == "abc"

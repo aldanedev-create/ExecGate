@@ -7,4 +7,4 @@ kept here, and ``tests/mcp`` is deliberately *not* a package: a package
 named ``mcp`` would shadow the real ``mcp`` library that FastMCP imports.
 """
 
-from mcp_support import fake_order_tools  # noqa: F401  (fixture re-export)
+from .mcp_support import fake_order_tools, mcp_available  # noqa: F401

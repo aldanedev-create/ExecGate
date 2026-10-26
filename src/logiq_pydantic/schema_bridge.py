@@ -15,14 +15,13 @@ import typing
 from typing import Any
 
 import pydantic
-from pydantic import BaseModel, TypeAdapter
-
 from logiq.schemas.types import UNION_ORIGINS, SchemaError, Type
+from pydantic import BaseModel, TypeAdapter
 
 __all__ = ["PydanticType", "model_to_json_schema", "model_to_logix_type"]
 
 
-def model_to_logix_type(model_cls: type[BaseModel]) -> "PydanticType":
+def model_to_logix_type(model_cls: type[BaseModel]) -> PydanticType:
     """Wrap a Pydantic model class as a Logix ``Type``."""
     return PydanticType(model_cls)
 
@@ -56,9 +55,7 @@ class PydanticType:
 
     def __init__(self, model_cls: type[BaseModel]) -> None:
         if not (isinstance(model_cls, type) and issubclass(model_cls, BaseModel)):
-            raise TypeError(
-                f"PydanticType requires a BaseModel subclass, got {model_cls!r}"
-            )
+            raise TypeError(f"PydanticType requires a BaseModel subclass, got {model_cls!r}")
         self._model_cls = model_cls
         self._adapter = TypeAdapter(model_cls)
 
@@ -74,7 +71,7 @@ class PydanticType:
     def to_json_schema(self) -> dict[str, Any]:
         return self._model_cls.model_json_schema()
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         """
         Resolve a field name to its Logix ``Type`` for verify-time
         reference type-checking.
@@ -104,6 +101,7 @@ class PydanticType:
 
         # Fall back to native inference for primitives and containers.
         from logiq.schemas.infer import _annotation_to_type
+
         try:
             return _annotation_to_type(annotation)
         except Exception:
@@ -147,6 +145,7 @@ class PydanticType:
 # ---------------------------------------------------------------------------
 # Error translation
 # ---------------------------------------------------------------------------
+
 
 def _translate_errors(exc: pydantic.ValidationError, base_path: str) -> list[SchemaError]:
     """

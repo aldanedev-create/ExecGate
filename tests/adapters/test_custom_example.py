@@ -32,6 +32,7 @@ class TestCustomExampleAdapter(AdapterContractMixin):
 # Provider-specific behaviors
 # ---------------------------------------------------------------------------
 
+
 def test_name():
     assert ExampleAdapter().name == "example"
 
@@ -43,7 +44,9 @@ def test_format_tools_shape():
     assert len(formatted) == 2
     for entry in formatted:
         assert set(entry.keys()) == {
-            "tool_name", "tool_description", "args_schema",
+            "tool_name",
+            "tool_description",
+            "args_schema",
         }
 
 
@@ -62,17 +65,21 @@ def test_parse_rejects_missing_chosen_tool():
 def test_parse_rejects_invalid_tool_name():
     adapter = ExampleAdapter()
     with pytest.raises(AdapterError):
-        adapter.parse_proposal({
-            "chosen_tool": {"tool_name": "", "tool_args": {}},
-        })
+        adapter.parse_proposal(
+            {
+                "chosen_tool": {"tool_name": "", "tool_args": {}},
+            }
+        )
 
 
 def test_parse_rejects_non_dict_tool_args():
     adapter = ExampleAdapter()
     with pytest.raises(AdapterError):
-        adapter.parse_proposal({
-            "chosen_tool": {"tool_name": "get_order", "tool_args": "oops"},
-        })
+        adapter.parse_proposal(
+            {
+                "chosen_tool": {"tool_name": "get_order", "tool_args": "oops"},
+            }
+        )
 
 
 def test_parse_defaults_missing_tool_args_to_empty_dict():
@@ -84,6 +91,7 @@ def test_parse_defaults_missing_tool_args_to_empty_dict():
 # ---------------------------------------------------------------------------
 # Documentation fixture: unregistered
 # ---------------------------------------------------------------------------
+
 
 def test_example_adapter_is_not_registered():
     """Per its docstring, ``ExampleAdapter`` is a reference template only.

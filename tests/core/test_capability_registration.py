@@ -10,13 +10,12 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
 from logiq.capabilities import Registry, build_capability
-
 
 # ---------------------------------------------------------------------------
 # Decorator forms
 # ---------------------------------------------------------------------------
+
 
 def test_bare_decorator_registers_and_returns_original(logix):
     def add(a: int, b: int) -> int:
@@ -69,6 +68,7 @@ def test_explicit_description_overrides_docstring(logix):
 # Programmatic registration
 # ---------------------------------------------------------------------------
 
+
 def test_register_method(logix):
     def greet(name: str) -> str:
         "Say hello."
@@ -106,6 +106,7 @@ def test_unregister(logix):
 # ---------------------------------------------------------------------------
 # Error cases
 # ---------------------------------------------------------------------------
+
 
 def test_duplicate_name_rejected(logix):
     @logix.capability
@@ -198,6 +199,7 @@ def test_class_rejected():
 # Attributes
 # ---------------------------------------------------------------------------
 
+
 def test_idempotent_field(logix):
     @logix.capability(idempotent=True)
     def charge(order_id: int, amount: float) -> dict[str, int]:
@@ -219,6 +221,7 @@ def test_require_approval_after_registration(logix):
 # ---------------------------------------------------------------------------
 # Snapshot hash
 # ---------------------------------------------------------------------------
+
 
 def test_snapshot_hash_changes_on_registration():
     reg = Registry()

@@ -23,9 +23,20 @@ from logiq.schemas.constraints import (
     SUPPORTED_CONSTRAINTS,
 )
 from logiq.schemas.types import (
-    AnyType, BoolType, DictType, FloatType, IntType, ListType,
-    LiteralType, NoneType, ObjectType, StrType, Type, UnionType,
-    UNION_ORIGINS, is_type_instance,
+    UNION_ORIGINS,
+    AnyType,
+    BoolType,
+    DictType,
+    FloatType,
+    IntType,
+    ListType,
+    LiteralType,
+    NoneType,
+    ObjectType,
+    StrType,
+    Type,
+    UnionType,
+    is_type_instance,
 )
 from logiq.schemas.unsupported import describe_unsupported
 from logiq.schemas.validate import ConstrainedType
@@ -36,7 +47,7 @@ class SchemaInferenceError(ValueError):
 
 
 def infer_input_schema(
-    parameters: "tuple[Any, ...]",
+    parameters: tuple[Any, ...],
     *,
     namespace: dict[str, Any] | None = None,
 ) -> ObjectType:
@@ -90,9 +101,7 @@ def infer_input_schema(
         fields[param.name] = field_type
 
     if problems:
-        raise SchemaInferenceError(
-            "unsupported annotations:\n  " + "\n  ".join(problems)
-        )
+        raise SchemaInferenceError("unsupported annotations:\n  " + "\n  ".join(problems))
 
     return ObjectType(fields=fields, required=frozenset(required))
 
@@ -101,7 +110,7 @@ def infer_output_schema(
     return_annotation: Any,
     *,
     namespace: dict[str, Any] | None = None,
-) -> "Type | None":
+) -> Type | None:
     """
     Build the output ``Type``, or None when the return is unannotated.
 
@@ -110,19 +119,18 @@ def infer_output_schema(
     callers that need a contract must annotate the return.
     """
     import inspect
+
     if return_annotation is inspect.Signature.empty:
         return None
 
     annotation = _resolve(return_annotation, namespace)
 
     if is_type_instance(annotation):
-        return annotation
+        return annotation  # type: ignore[no-any-return]
 
     problems = describe_unsupported(annotation)
     if problems:
-        raise SchemaInferenceError(
-            "unsupported return annotation:\n  " + "\n  ".join(problems)
-        )
+        raise SchemaInferenceError("unsupported return annotation:\n  " + "\n  ".join(problems))
     return _annotation_to_type(annotation)
 
 
@@ -130,10 +138,11 @@ def infer_output_schema(
 # Annotation -> Type
 # ---------------------------------------------------------------------------
 
+
 def _annotation_to_type(annotation: Any) -> Type:
     # Already a resolved Type (adapter transformed it, e.g. PydanticType).
     if is_type_instance(annotation):
-        return annotation
+        return annotation  # type: ignore[no-any-return]
 
     if annotation is int:
         return IntType()
@@ -180,9 +189,7 @@ def _annotated(args: tuple[Any, ...]) -> Type:
         if isinstance(meta, SUPPORTED_CONSTRAINTS):
             constraints.append(meta)
         else:
-            raise SchemaInferenceError(
-                f"unsupported constraint on Annotated: {meta!r}"
-            )
+            raise SchemaInferenceError(f"unsupported constraint on Annotated: {meta!r}")
     if constraints:
         return ConstrainedType(base=base, constraints=tuple(constraints))
     return base
@@ -192,7 +199,7 @@ def _resolve(annotation: Any, namespace: dict[str, Any] | None) -> Any:
     """Resolve a string annotation using the given namespace, if any."""
     if isinstance(annotation, str) and namespace is not None:
         try:
-            return eval(annotation, namespace)  # noqa: S307 — namespace is app-controlled
+            return eval(annotation, namespace)
         except Exception:
             return annotation
     return annotation

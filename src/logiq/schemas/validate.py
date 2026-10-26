@@ -18,7 +18,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from logiq.schemas.constraints import SUPPORTED_CONSTRAINTS
 from logiq.schemas.types import SchemaError, Type
 
 
@@ -42,6 +41,9 @@ class ConstrainedType:
         for constraint in self.constraints:
             schema.update(constraint.to_json_schema_fragment())
         return schema
+
+    def walk(self, segment: str) -> Type | None:
+        return self.base.walk(segment)
 
 
 def validate_input(schema: Type, value: Any) -> list[SchemaError]:

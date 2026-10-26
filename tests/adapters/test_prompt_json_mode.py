@@ -20,10 +20,10 @@ import pytest
 from logiq.tools import ToolSpec
 from logiq_ai.prompt_json_mode import build
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def sample_specs() -> list[ToolSpec]:
@@ -62,6 +62,7 @@ def sample_specs() -> list[ToolSpec]:
 # Basic shape
 # ---------------------------------------------------------------------------
 
+
 def test_build_returns_string(sample_specs):
     prompt = build(sample_specs)
     assert isinstance(prompt, str)
@@ -85,6 +86,7 @@ def test_build_has_capabilities_header(sample_specs):
 # Every capability appears with its schema
 # ---------------------------------------------------------------------------
 
+
 def test_build_includes_every_capability_name(sample_specs):
     prompt = build(sample_specs)
     for spec in sample_specs:
@@ -104,9 +106,7 @@ def test_build_includes_every_input_schema(sample_specs):
     for spec in sample_specs:
         # Every property name appears in the prompt.
         for prop in spec.input_schema.get("properties", {}):
-            assert prop in prompt, (
-                f"argument {prop!r} of {spec.name!r} missing from prompt"
-            )
+            assert prop in prompt, f"argument {prop!r} of {spec.name!r} missing from prompt"
 
 
 def test_build_includes_required_fields(sample_specs):
@@ -137,6 +137,7 @@ def test_build_omits_output_schema_when_absent():
 # ---------------------------------------------------------------------------
 # Effects and approval metadata
 # ---------------------------------------------------------------------------
+
 
 def test_build_includes_effects(sample_specs):
     prompt = build(sample_specs)
@@ -175,6 +176,7 @@ def test_build_omits_approval_when_none():
 # Instruction variant: strict vs lenient
 # ---------------------------------------------------------------------------
 
+
 def test_build_default_is_strict(sample_specs):
     prompt = build(sample_specs)
     # The strict instructions include the "__no_op__" escape hatch.
@@ -203,6 +205,7 @@ def test_build_both_variants_require_call_shape(sample_specs):
 # System prefix
 # ---------------------------------------------------------------------------
 
+
 def test_build_prepends_system_text(sample_specs):
     prompt = build(sample_specs, system="You are a support agent.")
     assert prompt.startswith("You are a support agent.")
@@ -230,6 +233,7 @@ def test_build_empty_system_no_prefix(sample_specs):
 # ---------------------------------------------------------------------------
 # JSON Schema embedding is valid JSON
 # ---------------------------------------------------------------------------
+
 
 def test_build_embeds_valid_json_schema_blocks(sample_specs):
     """Every ```json ... ``` fenced block must be valid JSON. This proves
@@ -260,6 +264,7 @@ def test_build_input_schema_round_trips(sample_specs):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _extract_json_blocks(prompt: str) -> list[str]:
     """Extract content between ```json and ``` markers."""

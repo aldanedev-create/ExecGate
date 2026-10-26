@@ -27,7 +27,6 @@ from logiq.plans.references import (
     resolve_reference,
 )
 
-
 # ---------------------------------------------------------------------------
 # Strategies
 # ---------------------------------------------------------------------------
@@ -79,6 +78,7 @@ _results_dict = st.dictionaries(_identifier, _results_value, max_size=5)
 # parse_reference: never crashes, always returns Reference or Error
 # ---------------------------------------------------------------------------
 
+
 @settings(
     max_examples=300,
     deadline=None,
@@ -99,6 +99,7 @@ def test_parse_reference_never_crashes(value):
 # parse_reference: valid refs round-trip
 # ---------------------------------------------------------------------------
 
+
 @settings(max_examples=200, deadline=None)
 @given(ref_dict=_valid_ref_dict())
 def test_valid_ref_round_trips(ref_dict):
@@ -106,8 +107,7 @@ def test_valid_ref_round_trips(ref_dict):
     to the same string via ``as_string()``."""
     result = parse_reference(ref_dict)
     assert isinstance(result, Reference), (
-        f"valid $ref {ref_dict!r} rejected: "
-        f"{result.message if isinstance(result, Error) else '?'}"
+        f"valid $ref {ref_dict!r} rejected: {result.message if isinstance(result, Error) else '?'}"
     )
     assert result.as_string() == ref_dict["$ref"]
 
@@ -122,36 +122,39 @@ def test_is_reference_true_for_valid(ref_dict):
 # parse_reference: structurally invalid refs always produce Error
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("bad_input", [
-    None,
-    True,
-    False,
-    0,
-    1,
-    -1,
-    0.0,
-    "",
-    "string",
-    [],
-    [1, 2],
-    {},
-    {"not_ref": "x"},
-    {"$ref": None},
-    {"$ref": 42},
-    {"$ref": ""},
-    {"$ref": "a", "extra": 1},       # extra keys = not a reference
-    {"$ref": "123bad"},              # invalid step id
-    {"$ref": "a."},                  # trailing empty segment
-    {"$ref": ".a"},                  # leading empty segment
-    {"$ref": "a..b"},                # empty segment in middle
-    {"$ref": "a.b-c"},               # invalid segment characters
-    {"$ref": "a.!"},                 # invalid segment
-])
+
+@pytest.mark.parametrize(
+    "bad_input",
+    [
+        None,
+        True,
+        False,
+        0,
+        1,
+        -1,
+        0.0,
+        "",
+        "string",
+        [],
+        [1, 2],
+        {},
+        {"not_ref": "x"},
+        {"$ref": None},
+        {"$ref": 42},
+        {"$ref": ""},
+        {"$ref": "a", "extra": 1},  # extra keys = not a reference
+        {"$ref": "123bad"},  # invalid step id
+        {"$ref": "a."},  # trailing empty segment
+        {"$ref": ".a"},  # leading empty segment
+        {"$ref": "a..b"},  # empty segment in middle
+        {"$ref": "a.b-c"},  # invalid segment characters
+        {"$ref": "a.!"},  # invalid segment
+    ],
+)
 def test_invalid_ref_rejected(bad_input):
     result = parse_reference(bad_input)
     assert isinstance(result, Error), (
-        f"malformed $ref {bad_input!r} unexpectedly accepted as "
-        f"{type(result).__name__}"
+        f"malformed $ref {bad_input!r} unexpectedly accepted as {type(result).__name__}"
     )
     assert result.code == "INVALID_REFERENCE"
 
@@ -159,6 +162,7 @@ def test_invalid_ref_rejected(bad_input):
 # ---------------------------------------------------------------------------
 # resolve_reference: never crashes for valid input types
 # ---------------------------------------------------------------------------
+
 
 @settings(max_examples=200, deadline=None)
 @given(
@@ -179,6 +183,7 @@ def test_resolve_reference_never_crashes(step_id, path, results):
 # resolve_reference: missing step always yields Error
 # ---------------------------------------------------------------------------
 
+
 @settings(max_examples=100, deadline=None)
 @given(
     step_id=_identifier,
@@ -194,6 +199,7 @@ def test_resolve_missing_step_returns_error(step_id, path):
 # ---------------------------------------------------------------------------
 # resolve_reference: successful paths return the value
 # ---------------------------------------------------------------------------
+
 
 @settings(max_examples=100, deadline=None)
 @given(
@@ -236,6 +242,7 @@ def test_resolve_list_index_returns_value(index, value, step_id):
 # ---------------------------------------------------------------------------
 # resolve_reference: missing key/index always yields Error
 # ---------------------------------------------------------------------------
+
 
 @settings(max_examples=100, deadline=None)
 @given(

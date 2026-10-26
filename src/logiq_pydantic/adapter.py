@@ -20,8 +20,6 @@ import typing
 from typing import Any
 
 import pydantic
-from pydantic import BaseModel
-
 from logiq.annotation_inspect import ParameterInfo, SignatureInfo
 from logiq.schemas.infer import _annotation_to_type
 from logiq.schemas.types import (
@@ -33,6 +31,7 @@ from logiq.schemas.types import (
     is_type_instance,
 )
 from logiq_pydantic.schema_bridge import PydanticType
+from pydantic import BaseModel
 
 HAS_PYDANTIC = True
 
@@ -152,7 +151,7 @@ def normalize_validation_error(exc: pydantic.ValidationError) -> list[dict[str, 
     ]
 
 
-def _loc_to_path(loc: tuple) -> str:
+def _loc_to_path(loc: tuple[Any, ...]) -> str:
     path = "$"
     for part in loc:
         if isinstance(part, int):
@@ -183,7 +182,4 @@ class PydanticAdapter:
 def _contains_pydantic(annotation: Any) -> bool:
     if is_pydantic_model(annotation):
         return True
-    for arg in typing.get_args(annotation):
-        if _contains_pydantic(arg):
-            return True
-    return False
+    return any(_contains_pydantic(arg) for arg in typing.get_args(annotation))

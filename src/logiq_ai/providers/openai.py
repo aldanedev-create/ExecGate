@@ -52,28 +52,22 @@ class OpenAIAdapter:
             arguments = tool_call["function"]["arguments"]
         except (KeyError, TypeError) as e:
             raise AdapterError(
-                f"malformed OpenAI tool call: missing function.name or "
-                f"function.arguments ({e})"
+                f"malformed OpenAI tool call: missing function.name or function.arguments ({e})"
             ) from e
 
         if not isinstance(name, str) or not name:
-            raise AdapterError(
-                f"OpenAI tool call has invalid function.name: {name!r}"
-            )
+            raise AdapterError(f"OpenAI tool call has invalid function.name: {name!r}")
 
         if isinstance(arguments, str):
             try:
                 parsed_args = json.loads(arguments) if arguments else {}
             except json.JSONDecodeError as e:
-                raise AdapterError(
-                    f"OpenAI function.arguments is not valid JSON: {e}"
-                ) from e
+                raise AdapterError(f"OpenAI function.arguments is not valid JSON: {e}") from e
         elif isinstance(arguments, dict):
             parsed_args = arguments
         else:
             raise AdapterError(
-                f"OpenAI function.arguments has unexpected type: "
-                f"{type(arguments).__name__}"
+                f"OpenAI function.arguments has unexpected type: {type(arguments).__name__}"
             )
 
         if not isinstance(parsed_args, dict):
@@ -88,6 +82,7 @@ class OpenAIAdapter:
 # ---------------------------------------------------------------------------
 # Response shape walking
 # ---------------------------------------------------------------------------
+
 
 def _extract_first_tool_call(raw: Any) -> dict[str, Any] | None:
     """

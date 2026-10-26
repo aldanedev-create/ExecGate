@@ -14,7 +14,7 @@ guarantees redaction (see ``_internal/redaction.py``).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from logiq.errors import Error
@@ -29,7 +29,7 @@ class StepTrace:
 
     step_id: str
     capability: str
-    status: str                       # "ok" | "failed" | "skipped" | "cancelled"
+    status: str  # "ok" | "failed" | "skipped" | "cancelled"
     duration_ms: float
     error_code: str | None = None
 
@@ -85,15 +85,26 @@ class Result:
             raise ValueError("ok=False must have at least one error")
 
     @classmethod
-    def success(cls, value: Any, *, trace: Trace | None = None) -> "Result":
-        return cls(ok=True, value=value, errors=(), trace=trace,
-                   execution_id=trace.execution_id if trace else "")
+    def success(cls, value: Any, *, trace: Trace | None = None) -> Result:
+        return cls(
+            ok=True,
+            value=value,
+            errors=(),
+            trace=trace,
+            execution_id=trace.execution_id if trace else "",
+        )
 
     @classmethod
-    def failure(cls, errors: "list[Error] | tuple[Error, ...]",
-                *, trace: Trace | None = None) -> "Result":
-        return cls(ok=False, value=None, errors=tuple(errors), trace=trace,
-                   execution_id=trace.execution_id if trace else "")
+    def failure(
+        cls, errors: list[Error] | tuple[Error, ...], *, trace: Trace | None = None
+    ) -> Result:
+        return cls(
+            ok=False,
+            value=None,
+            errors=tuple(errors),
+            trace=trace,
+            execution_id=trace.execution_id if trace else "",
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -110,7 +121,7 @@ class VerificationReport:
     """Outcome of ``verify()``."""
 
     ok: bool
-    verified_plan: "VerifiedPlan | None" = None
+    verified_plan: VerifiedPlan | None = None
     errors: tuple[Error, ...] = ()
 
     def __post_init__(self) -> None:
@@ -122,18 +133,16 @@ class VerificationReport:
             raise ValueError("ok=False must have at least one error")
 
     @classmethod
-    def success(cls, verified_plan: "VerifiedPlan") -> "VerificationReport":
+    def success(cls, verified_plan: VerifiedPlan) -> VerificationReport:
         return cls(ok=True, verified_plan=verified_plan, errors=())
 
     @classmethod
-    def failure(cls, errors: "list[Error] | tuple[Error, ...]") -> "VerificationReport":
+    def failure(cls, errors: list[Error] | tuple[Error, ...]) -> VerificationReport:
         return cls(ok=False, verified_plan=None, errors=tuple(errors))
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "ok": self.ok,
-            "verified_plan": (
-                self.verified_plan.serialize() if self.verified_plan else None
-            ),
+            "verified_plan": (self.verified_plan.serialize() if self.verified_plan else None),
             "errors": [e.to_dict() for e in self.errors],
         }

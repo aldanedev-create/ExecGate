@@ -47,19 +47,13 @@ class AnthropicAdapter:
             name = block["name"]
             tool_input = block.get("input", {})
         except (KeyError, TypeError) as e:
-            raise AdapterError(
-                f"malformed Anthropic tool_use block: missing name "
-                f"({e})"
-            ) from e
+            raise AdapterError(f"malformed Anthropic tool_use block: missing name ({e})") from e
 
         if not isinstance(name, str) or not name:
-            raise AdapterError(
-                f"Anthropic tool_use block has invalid name: {name!r}"
-            )
+            raise AdapterError(f"Anthropic tool_use block has invalid name: {name!r}")
         if not isinstance(tool_input, dict):
             raise AdapterError(
-                f"Anthropic tool_use.input must be an object, got "
-                f"{type(tool_input).__name__}"
+                f"Anthropic tool_use.input must be an object, got {type(tool_input).__name__}"
             )
         return {"call": name, "with": tool_input}
 

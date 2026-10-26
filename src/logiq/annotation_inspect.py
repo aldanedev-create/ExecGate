@@ -30,23 +30,25 @@ from __future__ import annotations
 
 import inspect
 import typing
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from logiq.schemas.unsupported import describe_unsupported
 
 __all__ = [
     "ParameterInfo",
     "SignatureInfo",
-    "inspect_capability",
     "extract_description",
     "find_unsupported_annotations",
+    "inspect_capability",
 ]
 
 
 # ---------------------------------------------------------------------------
 # Data types (public contract; see docs/api-reference.md)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class ParameterInfo:
@@ -85,6 +87,7 @@ class SignatureInfo:
 # inspect_capability
 # ---------------------------------------------------------------------------
 
+
 def inspect_capability(fn: Callable[..., Any]) -> SignatureInfo:
     """
     Read a capability function's signature and docstring.
@@ -101,9 +104,7 @@ def inspect_capability(fn: Callable[..., Any]) -> SignatureInfo:
         unbound method, async).
     """
     if not callable(fn):
-        raise TypeError(
-            f"@logiq.capability requires a callable, got {type(fn).__name__}"
-        )
+        raise TypeError(f"@logiq.capability requires a callable, got {type(fn).__name__}")
     if inspect.isclass(fn):
         raise TypeError(
             f"@logiq.capability requires a function, not a class "
@@ -119,9 +120,7 @@ def inspect_capability(fn: Callable[..., Any]) -> SignatureInfo:
     try:
         sig = inspect.signature(fn)
     except (TypeError, ValueError) as e:
-        raise TypeError(
-            f"cannot inspect signature of {_display_name(fn)}: {e}"
-        ) from e
+        raise TypeError(f"cannot inspect signature of {_display_name(fn)}: {e}") from e
 
     params = list(sig.parameters.values())
 
@@ -183,6 +182,7 @@ def inspect_capability(fn: Callable[..., Any]) -> SignatureInfo:
 # extract_description
 # ---------------------------------------------------------------------------
 
+
 def extract_description(
     fn: Callable[..., Any],
     *,
@@ -197,9 +197,7 @@ def extract_description(
     """
     if override is not None:
         if not isinstance(override, str):
-            raise TypeError(
-                f"description override must be a string, got {type(override).__name__}"
-            )
+            raise TypeError(f"description override must be a string, got {type(override).__name__}")
         return override
     return inspect.getdoc(fn) or ""
 
@@ -207,6 +205,7 @@ def extract_description(
 # ---------------------------------------------------------------------------
 # find_unsupported_annotations
 # ---------------------------------------------------------------------------
+
 
 def find_unsupported_annotations(info: SignatureInfo) -> list[str]:
     """
@@ -255,6 +254,7 @@ def find_unsupported_annotations(info: SignatureInfo) -> list[str]:
 # ---------------------------------------------------------------------------
 # Internals
 # ---------------------------------------------------------------------------
+
 
 def _display_name(fn: Any) -> str:
     """Best-effort human name for error messages."""

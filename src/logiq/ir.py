@@ -15,12 +15,12 @@ lives here but is called only by ``logiq.verifier``.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
-
-__all__ = ["VerifiedStep", "VerifiedPlan"]  # _construct_verified_plan is private
+__all__ = ["VerifiedPlan", "VerifiedStep"]  # _construct_verified_plan is private
 
 
 @dataclass(frozen=True)

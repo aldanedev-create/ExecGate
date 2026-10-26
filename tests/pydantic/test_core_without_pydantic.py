@@ -17,8 +17,6 @@ from __future__ import annotations
 import subprocess
 import sys
 
-import pytest
-
 
 def _run(code: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
@@ -32,6 +30,7 @@ def _run(code: str) -> subprocess.CompletedProcess[str]:
 # ---------------------------------------------------------------------------
 # Core works without Pydantic
 # ---------------------------------------------------------------------------
+
 
 def test_import_logix_without_pydantic():
     code = """
@@ -119,6 +118,7 @@ print('ok')
 # Importing logiq_pydantic raises a clear error
 # ---------------------------------------------------------------------------
 
+
 def test_import_logix_pydantic_raises_clear_error():
     code = """
 import sys
@@ -143,8 +143,10 @@ except ImportError as e:
 # In-process: core behaviors work fine regardless of pydantic availability
 # ---------------------------------------------------------------------------
 
+
 def test_non_model_capability_works_in_process(logix):
     """Sanity — the non-Pydantic path works in the normal test process."""
+
     @logix.capability
     def add(a: int, b: int) -> int:
         return a + b

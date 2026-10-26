@@ -29,11 +29,11 @@ See ``docs/system-design.md §8``.
 
 from __future__ import annotations
 
-import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from re import Pattern
 from types import MappingProxyType
-from typing import Any, Iterable, Mapping, Pattern
-
+from typing import Any
 
 REDACTED = "[REDACTED]"
 
@@ -41,21 +41,41 @@ REDACTED = "[REDACTED]"
 # Names whose *values* are sensitive regardless of path. Case-insensitive by
 # default. Names are matched exactly against dict keys; use paths for
 # targeted redaction in nested structures.
-DEFAULT_SENSITIVE_KEYS: frozenset[str] = frozenset({
-    # auth
-    "password", "passwd", "pwd",
-    "token", "access_token", "refresh_token", "id_token",
-    "api_key", "apikey", "secret", "client_secret",
-    "authorization", "auth_header",
-    "session", "session_key", "session_id",
-    "private_key", "signing_key",
-    # pii
-    "credit_card", "card_number", "cvv", "cvc",
-    "ssn", "social_security_number",
-    "date_of_birth", "dob",
-    # internal
-    "secret_key", "encryption_key",
-})
+DEFAULT_SENSITIVE_KEYS: frozenset[str] = frozenset(
+    {
+        # auth
+        "password",
+        "passwd",
+        "pwd",
+        "token",
+        "access_token",
+        "refresh_token",
+        "id_token",
+        "api_key",
+        "apikey",
+        "secret",
+        "client_secret",
+        "authorization",
+        "auth_header",
+        "session",
+        "session_key",
+        "session_id",
+        "private_key",
+        "signing_key",
+        # pii
+        "credit_card",
+        "card_number",
+        "cvv",
+        "cvc",
+        "ssn",
+        "social_security_number",
+        "date_of_birth",
+        "dob",
+        # internal
+        "secret_key",
+        "encryption_key",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -80,14 +100,15 @@ class Redactor:
     redact_paths: frozenset[str] = frozenset()
     case_insensitive: bool = True
     replacement: str = REDACTED
-    patterns: tuple["Pattern[str]", ...] = ()
+    patterns: tuple[Pattern[str], ...] = ()
 
-    _lower_keys: frozenset[str] = field(default=None, init=False, repr=False)  # type: ignore[assignment]
+    _lower_keys: frozenset[str] = field(default_factory=frozenset, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if self.case_insensitive:
             object.__setattr__(
-                self, "_lower_keys",
+                self,
+                "_lower_keys",
                 frozenset(k.lower() for k in self.sensitive_keys),
             )
         else:
@@ -113,9 +134,10 @@ DEFAULT_REDACTOR = Redactor()
 # Public entry point
 # ---------------------------------------------------------------------------
 
+
 def redact(
     value: Any,
-    redactor: "Redactor | None" = None,
+    redactor: Redactor | None = None,
     *,
     path: str = "",
 ) -> Any:
@@ -135,10 +157,7 @@ def redact(
         return _redact_mapping(value, r, path)
     if isinstance(value, (list, tuple, set, frozenset)):
         items = list(value)
-        return [
-            _redact_value(v, r, f"{path}[{i}]")
-            for i, v in enumerate(items)
-        ]
+        return [_redact_value(v, r, f"{path}[{i}]") for i, v in enumerate(items)]
     return _redact_value(value, r, path)
 
 
@@ -151,8 +170,7 @@ def _redact_mapping(
     for k, v in value.items():
         child_path = f"{path}.{k}" if path else str(k)
         if isinstance(k, str) and (
-            redactor.should_redact_key(k)
-            or redactor.should_redact_path(child_path)
+            redactor.should_redact_key(k) or redactor.should_redact_path(child_path)
         ):
             out[k] = redactor.replacement
         else:
@@ -165,10 +183,7 @@ def _redact_value(value: Any, redactor: Redactor, path: str) -> Any:
         return _redact_mapping(value, redactor, path)
     if isinstance(value, (list, tuple, set, frozenset)):
         items = list(value)
-        return [
-            _redact_value(v, redactor, f"{path}[{i}]")
-            for i, v in enumerate(items)
-        ]
+        return [_redact_value(v, redactor, f"{path}[{i}]") for i, v in enumerate(items)]
     if isinstance(value, str) and redactor.patterns:
         for pattern in redactor.patterns:
             value = pattern.sub(redactor.replacement, value)
@@ -179,9 +194,10 @@ def _redact_value(value: Any, redactor: Redactor, path: str) -> Any:
 # Convenience for error details
 # ---------------------------------------------------------------------------
 
+
 def redact_details(
     details: Mapping[str, Any],
-    redactor: "Redactor | None" = None,
+    redactor: Redactor | None = None,
 ) -> dict[str, Any]:
     """
     Redact an error ``details`` map before it goes into a public error.

@@ -17,7 +17,7 @@ from typing import Any
 from logiq.schemas.types import Type
 
 
-def to_json_schema(schema: "Type | None") -> dict[str, Any]:
+def to_json_schema(schema: Type | None) -> dict[str, Any]:
     """Convert a ``Type`` to a JSON Schema dict. ``None`` means ``{}``."""
     if schema is None:
         return {}
@@ -26,7 +26,7 @@ def to_json_schema(schema: "Type | None") -> dict[str, Any]:
 
 def capability_json_schema(
     input_schema: Type,
-    output_schema: "Type | None",
+    output_schema: Type | None,
 ) -> dict[str, Any]:
     """The full description published to the AI catalog for one capability."""
     return {

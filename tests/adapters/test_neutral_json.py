@@ -9,8 +9,6 @@ the foundation of "works with any AI that emits JSON".
 
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from logiq_ai import (
@@ -32,6 +30,7 @@ class TestNeutralJSONAdapter(AdapterContractMixin):
 # ---------------------------------------------------------------------------
 # Provider-specific behaviors
 # ---------------------------------------------------------------------------
+
 
 def test_name():
     assert NeutralJSONAdapter().name == "json"
@@ -69,6 +68,7 @@ def test_parse_proposal_passes_through_unchanged():
 # Registry fallback
 # ---------------------------------------------------------------------------
 
+
 def test_get_adapter_json_returns_neutral():
     adapter = get_adapter("json")
     assert isinstance(adapter, NeutralJSONAdapter)
@@ -91,10 +91,10 @@ def test_get_adapter_case_insensitive():
 
 
 def test_get_adapter_known_providers():
-    from logiq_ai.providers.openai import OpenAIAdapter
     from logiq_ai.providers.anthropic import AnthropicAdapter
     from logiq_ai.providers.gemini import GeminiAdapter
     from logiq_ai.providers.local import LocalAdapter
+    from logiq_ai.providers.openai import OpenAIAdapter
 
     assert isinstance(get_adapter("openai"), OpenAIAdapter)
     assert isinstance(get_adapter("anthropic"), AnthropicAdapter)

@@ -11,12 +11,10 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from logiq import Allow, Deny, Logix
 from logiq_mcp.proxy import LogixMCPProxy
 
-from mcp_support import FakeMCPClient, mcp_available
+from .mcp_support import FakeMCPClient, mcp_available
 
 
 @mcp_available
@@ -36,8 +34,7 @@ def test_invariant_denies_before_forwarding(fake_order_tools):
 
             result = await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
             )
             assert not result.ok
             assert result.errors[0].code == "POLICY_REJECTED"
@@ -64,8 +61,7 @@ def test_invariant_allow_permits_forwarding(fake_order_tools):
 
             result = await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
             )
             assert result.ok
             assert len(client.calls) == 1
@@ -88,6 +84,7 @@ def test_invariant_sees_correct_arguments(fake_order_tools):
     async def run():
         await proxy.startup()
         try:
+
             def capture(args, ctx):
                 seen_args.append(dict(args))
                 return Allow()
@@ -96,8 +93,7 @@ def test_invariant_sees_correct_arguments(fake_order_tools):
 
             await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 502, "amount": 42.5}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 502, "amount": 42.5}},
             )
             assert seen_args == [{"order_id": 502, "amount": 42.5}]
         finally:
@@ -116,6 +112,7 @@ def test_invariant_crashing_denies_forwarding(fake_order_tools):
     async def run():
         await proxy.startup()
         try:
+
             def crash(args, ctx):
                 raise RuntimeError("state store down")
 
@@ -123,8 +120,7 @@ def test_invariant_crashing_denies_forwarding(fake_order_tools):
 
             result = await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
             )
             assert not result.ok
             assert result.errors[0].code == "AUTHORIZATION_FAILED"

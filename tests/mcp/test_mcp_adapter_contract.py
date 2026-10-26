@@ -26,7 +26,6 @@ from logiq.errors import (
 from logiq.results import Result
 from logiq.schemas import (
     BoolType,
-    FloatType,
     IntType,
     ListType,
     LiteralType,
@@ -47,16 +46,16 @@ from logiq_mcp.adapter import (
     tool_spec_to_mcp_dict,
 )
 
-from mcp_support import (
+from .mcp_support import (
     FakeCallToolResult,
     FakeTextContent,
     mcp_available,
 )
 
-
 # ---------------------------------------------------------------------------
 # tool_spec_to_mcp_dict
 # ---------------------------------------------------------------------------
+
 
 def test_tool_spec_to_mcp_dict_shape():
     spec = ToolSpec(
@@ -88,6 +87,7 @@ def test_tool_spec_to_mcp_dict_preserves_schema():
 # from_mcp_call
 # ---------------------------------------------------------------------------
 
+
 def test_from_mcp_call_basic():
     plan = from_mcp_call("get_order", {"order_id": 502})
     assert plan == {"call": "get_order", "with": {"order_id": 502}}
@@ -115,6 +115,7 @@ def test_from_mcp_call_does_not_set_verified():
 # ---------------------------------------------------------------------------
 # format_errors_for_mcp
 # ---------------------------------------------------------------------------
+
 
 def test_format_errors_single():
     e = Error(code=SCHEMA_VALIDATION_FAILED, message="bad input", path="x")
@@ -144,6 +145,7 @@ def test_format_errors_no_path_omits_parenthetical():
 # result_to_mcp_response
 # ---------------------------------------------------------------------------
 
+
 def test_result_success_returns_value():
     result = Result.success({"ok": 1})
     assert result_to_mcp_response(result) == {"ok": 1}
@@ -171,6 +173,7 @@ def test_result_failure_raises_tool_error():
 # extract_mcp_result_value
 # ---------------------------------------------------------------------------
 
+
 def test_extract_none_result():
     assert extract_mcp_result_value(None) is None
 
@@ -186,10 +189,12 @@ def test_extract_plain_text_fallback():
 
 
 def test_extract_multiple_text_blocks_joined():
-    result = FakeCallToolResult(content=[
-        FakeTextContent(text='{"a":'),
-        FakeTextContent(text=' 1}'),
-    ])
+    result = FakeCallToolResult(
+        content=[
+            FakeTextContent(text='{"a":'),
+            FakeTextContent(text=" 1}"),
+        ]
+    )
     assert extract_mcp_result_value(result) == {"a": 1}
 
 
@@ -199,6 +204,7 @@ def test_extract_empty_content():
 
 def test_extract_no_content_attribute():
     """A result object without a ``content`` attribute returns None."""
+
     class Empty:
         pass
 
@@ -208,6 +214,7 @@ def test_extract_no_content_attribute():
 # ---------------------------------------------------------------------------
 # schema_errors_to_errors
 # ---------------------------------------------------------------------------
+
 
 def test_schema_errors_to_errors():
     from logiq.schemas import SchemaError
@@ -225,6 +232,7 @@ def test_schema_errors_to_errors():
 # ---------------------------------------------------------------------------
 # mcp_schema_to_logix — supported shapes
 # ---------------------------------------------------------------------------
+
 
 def test_schema_object_primitives():
     schema = {
@@ -263,6 +271,7 @@ def test_schema_array_without_items_is_any_item():
     }
     obj = mcp_schema_to_logix(schema)
     from logiq.schemas import AnyType
+
     assert isinstance(obj.fields["xs"], ListType)
     assert isinstance(obj.fields["xs"].item_type, AnyType)
 
@@ -330,6 +339,7 @@ def test_schema_additional_properties_explicit_false():
 # mcp_schema_to_logix — unsupported shapes rejected
 # ---------------------------------------------------------------------------
 
+
 def test_schema_rejects_non_dict():
     with pytest.raises(ValueError, match="must be a dict"):
         mcp_schema_to_logix("not a dict")  # type: ignore[arg-type]
@@ -340,13 +350,32 @@ def test_schema_rejects_non_object_top_level():
         mcp_schema_to_logix({"type": "string"})
 
 
-@pytest.mark.parametrize("unsupported_key", [
-    "$ref", "$defs", "definitions", "oneOf", "allOf", "not",
-    "if", "then", "else", "patternProperties",
-    "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
-    "minLength", "maxLength", "pattern", "format",
-    "minItems", "maxItems", "uniqueItems",
-])
+@pytest.mark.parametrize(
+    "unsupported_key",
+    [
+        "$ref",
+        "$defs",
+        "definitions",
+        "oneOf",
+        "allOf",
+        "not",
+        "if",
+        "then",
+        "else",
+        "patternProperties",
+        "minimum",
+        "maximum",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+        "minLength",
+        "maxLength",
+        "pattern",
+        "format",
+        "minItems",
+        "maxItems",
+        "uniqueItems",
+    ],
+)
 def test_schema_rejects_unsupported_keywords(unsupported_key):
     schema = {
         "type": "object",

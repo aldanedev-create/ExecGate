@@ -19,12 +19,12 @@ import pytest
 from logiq import Deny, Logix
 from logiq_mcp.server import LogixMCPServer
 
-from mcp_support import mcp_available
-
+from .mcp_support import mcp_available
 
 # ---------------------------------------------------------------------------
 # Success path
 # ---------------------------------------------------------------------------
+
 
 @mcp_available
 def test_handler_returns_value_on_success():
@@ -74,6 +74,7 @@ def test_handler_returns_none():
 # ---------------------------------------------------------------------------
 # Failure path — ToolError
 # ---------------------------------------------------------------------------
+
 
 @mcp_available
 def test_handler_raises_on_schema_failure():
@@ -169,6 +170,7 @@ def test_handler_raises_on_handler_exception():
 # Handler naming
 # ---------------------------------------------------------------------------
 
+
 @mcp_available
 def test_handler_name_is_capability_name():
     """FastMCP reads ``handler.__name__`` for tool dispatch; it must be
@@ -187,6 +189,7 @@ def test_handler_name_is_capability_name():
 # ---------------------------------------------------------------------------
 # Context factory
 # ---------------------------------------------------------------------------
+
 
 @mcp_available
 def test_context_factory_is_called_per_invocation():
@@ -234,6 +237,7 @@ def test_context_factory_sees_principal():
     def capture_ctx(args, ctx):
         captured.append(ctx)
         from logiq import Allow
+
         return Allow()
 
     logix.authorize(op, check=capture_ctx)

@@ -33,7 +33,7 @@ from enum import Enum
 from typing import Any, Protocol
 
 
-class IdempotencyStatus(str, Enum):
+class IdempotencyStatus(str, Enum):  # noqa: UP042
     RESERVED = "reserved"
     REPLAY = "replay"
     CONFLICT = "conflict"

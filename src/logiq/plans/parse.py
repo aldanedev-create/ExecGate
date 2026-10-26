@@ -20,14 +20,14 @@ See ``docs/plan-format.md`` and ``docs/system-design.md §2``.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
 from types import MappingProxyType
+from typing import Any
 
 from logiq.errors import Error, invalid_plan
 from logiq.plans.limits import DEFAULT_LIMITS, PlanLimits
-from logiq.plans.references import is_reference, parse_reference, Reference
-
+from logiq.plans.references import is_reference, parse_reference
 
 SUPPORTED_PLAN_VERSIONS = frozenset({"1"})
 
@@ -65,11 +65,12 @@ class CanonicalPlan:
 # Public entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_plan(
     plan: Any,
     *,
     limits: PlanLimits = DEFAULT_LIMITS,
-) -> "CanonicalPlan | list[Error]":
+) -> CanonicalPlan | list[Error]:
     """
     Parse an untrusted plan into a ``CanonicalPlan`` or a list of errors.
 
@@ -86,7 +87,6 @@ def parse_plan(
               "with": {"order_id": {"$ref": "order.id"}}},
          ]}
     """
-    errors: list[Error] = []
 
     # 1. Accept a JSON string for convenience; the adapter path also uses this.
     if isinstance(plan, str):
@@ -104,9 +104,7 @@ def parse_plan(
     except ValueError as e:
         return [invalid_plan(str(e))]
     except Exception as e:
-        return [invalid_plan(
-            f"plan could not be serialized: {type(e).__name__}: {e}"
-        )]
+        return [invalid_plan(f"plan could not be serialized: {type(e).__name__}: {e}")]
 
     if not isinstance(plan, dict):
         return [invalid_plan(f"plan must be a JSON object, got {type(plan).__name__}")]
@@ -139,7 +137,8 @@ def parse_plan(
 # Single-call form
 # ---------------------------------------------------------------------------
 
-def _parse_single(plan: dict[str, Any], limits: PlanLimits) -> "CanonicalPlan | list[Error]":
+
+def _parse_single(plan: dict[str, Any], limits: PlanLimits) -> CanonicalPlan | list[Error]:
     try:
         limits.check_steps(1)
     except ValueError as e:
@@ -169,16 +168,19 @@ def _parse_single(plan: dict[str, Any], limits: PlanLimits) -> "CanonicalPlan | 
 # Multi-step form
 # ---------------------------------------------------------------------------
 
-def _parse_multi(plan: dict[str, Any], limits: PlanLimits) -> "CanonicalPlan | list[Error]":
+
+def _parse_multi(plan: dict[str, Any], limits: PlanLimits) -> CanonicalPlan | list[Error]:
     errors: list[Error] = []
 
     version = plan.get("version", "1")
     if not isinstance(version, str) or version not in SUPPORTED_PLAN_VERSIONS:
-        return [invalid_plan(
-            f"unsupported plan version: {version!r}",
-            path="version",
-            supported=sorted(SUPPORTED_PLAN_VERSIONS),
-        )]
+        return [
+            invalid_plan(
+                f"unsupported plan version: {version!r}",
+                path="version",
+                supported=sorted(SUPPORTED_PLAN_VERSIONS),
+            )
+        ]
 
     steps_raw = plan["steps"]
     if not isinstance(steps_raw, list):
@@ -196,54 +198,64 @@ def _parse_multi(plan: dict[str, Any], limits: PlanLimits) -> "CanonicalPlan | l
         step_err_prefix = f"steps[{idx}]"
 
         if not isinstance(step_raw, dict):
-            errors.append(invalid_plan(
-                f"step must be an object, got {type(step_raw).__name__}",
-                path=step_err_prefix,
-            ))
+            errors.append(
+                invalid_plan(
+                    f"step must be an object, got {type(step_raw).__name__}",
+                    path=step_err_prefix,
+                )
+            )
             continue
 
         unknown = set(step_raw.keys()) - _STEP_KEYS
         if unknown:
-            errors.append(invalid_plan(
-                f"unknown step fields: {sorted(unknown)}",
-                path=step_err_prefix,
-            ))
+            errors.append(
+                invalid_plan(
+                    f"unknown step fields: {sorted(unknown)}",
+                    path=step_err_prefix,
+                )
+            )
             continue
 
         step_id = step_raw.get("id")
         if not isinstance(step_id, str) or not step_id:
-            errors.append(invalid_plan(
-                "'id' must be a non-empty string",
-                path=f"{step_err_prefix}.id",
-            ))
+            errors.append(
+                invalid_plan(
+                    "'id' must be a non-empty string",
+                    path=f"{step_err_prefix}.id",
+                )
+            )
             continue
         if step_id in seen_ids:
-            errors.append(invalid_plan(
-                f"duplicate step id: {step_id!r}",
-                path=f"{step_err_prefix}.id",
-            ))
+            errors.append(
+                invalid_plan(
+                    f"duplicate step id: {step_id!r}",
+                    path=f"{step_err_prefix}.id",
+                )
+            )
             continue
         seen_ids.add(step_id)
 
         call = step_raw.get("call")
         if not isinstance(call, str) or not call:
-            errors.append(invalid_plan(
-                "'call' must be a non-empty string",
-                path=f"{step_err_prefix}.call",
-            ))
+            errors.append(
+                invalid_plan(
+                    "'call' must be a non-empty string",
+                    path=f"{step_err_prefix}.call",
+                )
+            )
             continue
 
         args = step_raw.get("with", {})
         if not isinstance(args, dict):
-            errors.append(invalid_plan(
-                "'with' must be an object",
-                path=f"{step_err_prefix}.with",
-            ))
+            errors.append(
+                invalid_plan(
+                    "'with' must be an object",
+                    path=f"{step_err_prefix}.with",
+                )
+            )
             continue
 
-        ref_errors = _validate_refs_in_args(
-            args, path=f"{step_err_prefix}.with", step_id=step_id
-        )
+        ref_errors = _validate_refs_in_args(args, path=f"{step_err_prefix}.with", step_id=step_id)
         if ref_errors:
             errors.extend(ref_errors)
             continue
@@ -264,11 +276,13 @@ def _parse_multi(plan: dict[str, Any], limits: PlanLimits) -> "CanonicalPlan | l
                 order_errors.append(ref)
                 continue
             if ref.step_id not in earlier_ids:
-                order_errors.append(invalid_plan(
-                    f"$ref points to a non-earlier step: {ref.step_id!r}",
-                    path=f"steps[{step.id}].with{ref_path}",
-                    details={"step_id": ref.step_id, "ref": ref.as_string()},
-                ))
+                order_errors.append(
+                    invalid_plan(
+                        f"$ref points to a non-earlier step: {ref.step_id!r}",
+                        path=f"steps[{step.id}].with{ref_path}",
+                        details={"step_id": ref.step_id, "ref": ref.as_string()},
+                    )
+                )
         earlier_ids.add(step.id)
 
     if order_errors:
@@ -280,6 +294,7 @@ def _parse_multi(plan: dict[str, Any], limits: PlanLimits) -> "CanonicalPlan | l
 # ---------------------------------------------------------------------------
 # Reference validation within an argument map
 # ---------------------------------------------------------------------------
+
 
 def _validate_refs_in_args(
     args: Mapping[str, Any],
@@ -310,7 +325,7 @@ def _validate_refs_in_args(
     return errors
 
 
-def _iter_refs(value: Any, prefix: str = ""):
+def _iter_refs(value: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
     """Yield (path_suffix, value) for every ``$ref`` value in a nested structure."""
     if is_reference(value):
         yield prefix, value

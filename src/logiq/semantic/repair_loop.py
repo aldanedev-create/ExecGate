@@ -36,32 +36,39 @@ See ``docs/semantic-layer.md`` and the spec's p.11 requirement.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 from logiq.errors import (
-    APPROVAL_REQUIRED, AUTHORIZATION_FAILED, POLICY_REJECTED, Error,
-    policy_rejected,
+    APPROVAL_REQUIRED,
+    AUTHORIZATION_FAILED,
+    POLICY_REJECTED,
+    Error,
 )
 
 if TYPE_CHECKING:
     from logiq.capabilities import Registry
 
 
-_REFUSAL_CODES: frozenset[str] = frozenset({
-    POLICY_REJECTED, AUTHORIZATION_FAILED, APPROVAL_REQUIRED,
-})
+_REFUSAL_CODES: frozenset[str] = frozenset(
+    {
+        POLICY_REJECTED,
+        AUTHORIZATION_FAILED,
+        APPROVAL_REQUIRED,
+    }
+)
 
 
-class RepairState(str, Enum):
+class RepairState(str, Enum):  # noqa: UP042
     ALLOWED = "allowed"
     EXHAUSTED = "exhausted"
     REFUSED = "refused"
 
 
 @dataclass(frozen=True)
-class RepairRefused(Exception):
+class RepairRefused(Exception):  # noqa: N818
     """Raised by ``RepairLoop.check_proposal`` when a repair is a reroute."""
 
     reason: str
@@ -80,7 +87,7 @@ class RepairLoop:
     max_attempts: int = 3
     """Total attempts allowed. Includes the first proposal."""
 
-    registry: "Registry | None" = None
+    registry: Registry | None = None
     """Used to classify capabilities by effect class for reroute detection."""
 
     _attempts: int = field(default=0, init=False)
@@ -90,7 +97,7 @@ class RepairLoop:
 
     # -- public API -------------------------------------------------------
 
-    def check_proposal(self, capabilities: "Iterable[str]") -> RepairState:
+    def check_proposal(self, capabilities: Iterable[str]) -> RepairState:
         """
         Check whether a proposal that calls ``capabilities`` may proceed.
 
@@ -109,7 +116,7 @@ class RepairLoop:
 
         return RepairState.ALLOWED
 
-    def record_outcome(self, errors: "tuple[Error, ...] | list[Error]") -> None:
+    def record_outcome(self, errors: tuple[Error, ...] | list[Error]) -> None:
         """Record the result of an attempt. Called after every ``logiq.run``."""
         self._attempts += 1
         self._last_errors = tuple(errors)
@@ -141,7 +148,7 @@ class RepairLoop:
 
     # -- internals --------------------------------------------------------
 
-    def _effect_of(self, capability: str) -> "str | None":
+    def _effect_of(self, capability: str) -> str | None:
         if self.registry is None:
             return None
         try:
@@ -151,7 +158,7 @@ class RepairLoop:
         return getattr(cap, "effects", None)
 
 
-def assert_repair_allowed(loop: RepairLoop, capabilities: "Iterable[str]") -> None:
+def assert_repair_allowed(loop: RepairLoop, capabilities: Iterable[str]) -> None:
     """
     Convenience for application code:
 
@@ -164,6 +171,4 @@ def assert_repair_allowed(loop: RepairLoop, capabilities: "Iterable[str]") -> No
     if state is RepairState.EXHAUSTED:
         raise RepairRefused("repair attempts exhausted")
     if state is RepairState.REFUSED:
-        raise RepairRefused(
-            "proposal would reroute around a prior policy or authorization refusal"
-        )
+        raise RepairRefused("proposal would reroute around a prior policy or authorization refusal")

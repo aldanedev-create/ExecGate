@@ -12,9 +12,10 @@ recheck window (see ``docs/system-design.md §5``).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -43,9 +44,9 @@ class ExecutionContext:
         # a single ExecutionContext object is immutable.
         object.__setattr__(self, "extra", MappingProxyType(dict(self.extra)))
         if not isinstance(self.roles, frozenset):
-            object.__setattr__(self, "roles", frozenset(self.roles))
+            object.__setattr__(self, "roles", frozenset(self.roles))  # type: ignore[unreachable]
 
-    def with_roles(self, *roles: str) -> "ExecutionContext":
+    def with_roles(self, *roles: str) -> ExecutionContext:
         """Return a copy with additional roles (for tests and fixtures)."""
         return ExecutionContext(
             principal=self.principal,

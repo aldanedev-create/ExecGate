@@ -12,7 +12,6 @@ README's ``-> dict:`` example does not yet work end-to-end.
 
 from __future__ import annotations
 
-import inspect
 import typing
 
 import pytest
@@ -45,6 +44,7 @@ def _infer(fn):
 # Input schemas
 # ---------------------------------------------------------------------------
 
+
 def test_simple_int_parameters():
     def add(a: int, b: int) -> int:
         return a + b
@@ -66,7 +66,7 @@ def test_default_makes_parameter_optional():
 
 
 def test_optional_parameter():
-    def f(x: typing.Optional[int] = None) -> int:
+    def f(x: int | None = None) -> int:
         return 0
 
     inp, _ = _infer(f)
@@ -79,7 +79,7 @@ def test_optional_parameter():
 
 
 def test_optional_with_non_none_default():
-    def f(x: typing.Optional[int] = 5) -> int:
+    def f(x: int | None = 5) -> int:
         return 0
 
     inp, _ = _infer(f)
@@ -108,9 +108,7 @@ def test_nested_list_of_dicts():
         return 0
 
     inp, _ = _infer(f)
-    assert inp.fields["items"] == ListType(
-        item_type=DictType(value_type=IntType())
-    )
+    assert inp.fields["items"] == ListType(item_type=DictType(value_type=IntType()))
 
 
 def test_literal():
@@ -123,6 +121,7 @@ def test_literal():
 
 def test_dict_with_any_value_rejected():
     """typing.Any is not a validation contract (ADR-0003)."""
+
     def f(m: dict[str, typing.Any]) -> int:
         return 0
 
@@ -149,6 +148,7 @@ def test_unannotated_parameter_raises():
 # ---------------------------------------------------------------------------
 # Return schemas
 # ---------------------------------------------------------------------------
+
 
 def test_no_return_annotation_yields_none():
     def f(x: int):
@@ -195,10 +195,11 @@ def test_unsupported_return_annotation():
 # Nullable mismatch
 # ---------------------------------------------------------------------------
 
+
 def test_default_none_without_optional_rejected():
     # Default is None, but annotation is int (not Optional[int]).
     # This is rejected: the default does not match the schema.
-    def f(x: int = None) -> int:  # type: ignore[assignment]
+    def f(x: int = None) -> int:  # type: ignore[assignment]  # noqa: RUF013
         return 0
 
     with pytest.raises(SchemaInferenceError, match="does not allow None"):

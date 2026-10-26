@@ -28,6 +28,7 @@ class TestLocalAdapter(AdapterContractMixin):
 # Provider-specific behaviors
 # ---------------------------------------------------------------------------
 
+
 def test_name():
     assert LocalAdapter().name == "local"
 
@@ -62,9 +63,11 @@ def test_parse_accepts_llamacpp_content_field():
 
 def test_parse_accepts_openai_compatible_choices():
     adapter = LocalAdapter()
-    plan = adapter.parse_proposal({
-        "choices": [{"message": {"content": '{"call": "x", "with": {}}'}}],
-    })
+    plan = adapter.parse_proposal(
+        {
+            "choices": [{"message": {"content": '{"call": "x", "with": {}}'}}],
+        }
+    )
     assert plan == {"call": "x", "with": {}}
 
 
@@ -83,7 +86,7 @@ def test_rejects_invalid_json():
 def test_rejects_json_array():
     adapter = LocalAdapter()
     with pytest.raises(AdapterError, match="must be a JSON object"):
-        adapter.parse_proposal({"response": '[1, 2, 3]'})
+        adapter.parse_proposal({"response": "[1, 2, 3]"})
 
 
 def test_rejects_no_text_field():

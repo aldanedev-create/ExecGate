@@ -61,13 +61,15 @@ class ExecutionRecorder:
         error_code: str | None = None,
     ) -> None:
         """Record one step. Appends a ``StepTrace`` to ``self.steps``."""
-        self.steps.append(StepTrace(
-            step_id=step_id,
-            capability=capability,
-            status=status,
-            duration_ms=duration_ms,
-            error_code=error_code,
-        ))
+        self.steps.append(
+            StepTrace(
+                step_id=step_id,
+                capability=capability,
+                status=status,
+                duration_ms=duration_ms,
+                error_code=error_code,
+            )
+        )
 
     def finish(self) -> Trace:
         """Return a ``Trace`` built from the recorded steps."""

@@ -20,8 +20,6 @@ clear warning rather than silently passing.
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 from logiq import Deny, Logix
@@ -29,11 +27,11 @@ from logiq_mcp import LogixMCPServer
 
 from .conftest import mcp_available
 
-
 # If pytest-asyncio is not installed, skip the whole file with a clear
 # message rather than error on unknown asyncio markers.
 try:
     import pytest_asyncio  # noqa: F401
+
     HAS_PYTEST_ASYNCIO = True
 except ImportError:
     HAS_PYTEST_ASYNCIO = False
@@ -50,6 +48,7 @@ pytestmark = [
 # ---------------------------------------------------------------------------
 # Helper: build a server with a standard capability set
 # ---------------------------------------------------------------------------
+
 
 def _server_with_capabilities() -> tuple[LogixMCPServer, Logix]:
     logix = Logix()
@@ -79,12 +78,14 @@ def _server_with_capabilities() -> tuple[LogixMCPServer, Logix]:
 
 def _client(server: LogixMCPServer):
     from fastmcp import Client
+
     return Client(server.mcp)
 
 
 # ---------------------------------------------------------------------------
 # tools/list
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_tools_list_returns_all_capabilities():
@@ -118,7 +119,7 @@ async def test_tools_list_input_schemas():
         tools = await client.list_tools()
 
     by_name = {t.name: t for t in tools}
-    add_schema = by_name["add"].inputSchema
+    add_schema = by_name["add"].input_schema
     assert add_schema["type"] == "object"
     # Every FastMCP version we've seen surfaces at least the property keys.
     assert "properties" in add_schema or add_schema == {}
@@ -127,6 +128,7 @@ async def test_tools_list_input_schemas():
 # ---------------------------------------------------------------------------
 # tools/call: success
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_call_add_returns_value():
@@ -154,16 +156,25 @@ async def test_call_get_order_returns_dict():
 # tools/call: failures surface as MCP error results
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_unknown_tool_rejected():
     server, _ = _server_with_capabilities()
     async with _client(server) as client:
         result = await client.call_tool(
-            "does_not_exist", {}, raise_on_error=False,
+            "does_not_exist",
+            {},
+            raise_on_error=False,
         )
 
     assert result.is_error
-    assert "UNKNOWN_CAPABILITY" in result.content[0].text
+    # FastMCP intercepts unknown tools before dispatching to the handler,
+    # so the error message is FastMCP's ("Unknown tool: ..."), not Logiq's
+    # UNKNOWN_CAPABILITY. Either way, the handler was never invoked and
+    # the tool does not exist. Accept both forms.
+    text = result.content[0].text
+    assert "does_not_exist" in text
+    assert "Unknown tool" in text or "UNKNOWN_CAPABILITY" in text
 
 
 @pytest.mark.asyncio
@@ -171,7 +182,9 @@ async def test_wrong_type_rejected():
     server, _ = _server_with_capabilities()
     async with _client(server) as client:
         result = await client.call_tool(
-            "add", {"a": "not-an-int", "b": 3}, raise_on_error=False,
+            "add",
+            {"a": "not-an-int", "b": 3},
+            raise_on_error=False,
         )
 
     assert result.is_error
@@ -183,7 +196,9 @@ async def test_extra_arg_rejected():
     server, _ = _server_with_capabilities()
     async with _client(server) as client:
         result = await client.call_tool(
-            "add", {"a": 1, "b": 2, "c": 3}, raise_on_error=False,
+            "add",
+            {"a": 1, "b": 2, "c": 3},
+            raise_on_error=False,
         )
 
     assert result.is_error
@@ -224,7 +239,9 @@ async def test_invariant_deny_rejected():
 
     async with _client(server) as client:
         result = await client.call_tool(
-            "get_order", {"order_id": 1}, raise_on_error=False,
+            "get_order",
+            {"order_id": 1},
+            raise_on_error=False,
         )
 
     assert result.is_error
@@ -234,6 +251,7 @@ async def test_invariant_deny_rejected():
 # ---------------------------------------------------------------------------
 # Failures do not invoke handlers
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_unknown_tool_does_not_invoke_handler():
@@ -265,7 +283,9 @@ async def test_schema_failure_does_not_invoke_handler():
     server = LogixMCPServer(logix, name="test")
     async with _client(server) as client:
         await client.call_tool(
-            "add", {"a": "wrong", "b": 1}, raise_on_error=False,
+            "add",
+            {"a": "wrong", "b": 1},
+            raise_on_error=False,
         )
 
     assert invoked == []
@@ -274,6 +294,7 @@ async def test_schema_failure_does_not_invoke_handler():
 # ---------------------------------------------------------------------------
 # context_factory flows through the wire
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_context_factory_sets_principal():
@@ -288,11 +309,13 @@ async def test_context_factory_sets_principal():
     def capture(args, ctx):
         captured.append(ctx.principal)
         from logiq import Allow
+
         return Allow()
 
     logix.authorize("op", check=capture)
     server = LogixMCPServer(
-        logix, name="test",
+        logix,
+        name="test",
         context_factory=lambda: logix.context(principal="alice"),
     )
 

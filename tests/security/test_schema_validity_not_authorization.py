@@ -32,10 +32,12 @@ def test_valid_schema_does_not_grant_authorization(logix):
     # Schema-valid args, but authorization says no.
     logix.authorize(refund, check=lambda args, ctx: Deny("FORBIDDEN", "no"))
 
-    result = logix.run({
-        "call": "refund",
-        "with": {"order_id": 1, "amount": 5.0},
-    })
+    result = logix.run(
+        {
+            "call": "refund",
+            "with": {"order_id": 1, "amount": 5.0},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "POLICY_REJECTED"
     assert invoked == []
@@ -63,14 +65,16 @@ def test_authorization_is_context_dependent(logix):
 
     # Alice: allowed.
     r_alice = logix.run(
-        {"call": "read_account", "with": {"account_id": 1}}, context=alice,
+        {"call": "read_account", "with": {"account_id": 1}},
+        context=alice,
     )
     assert r_alice.ok
     assert invoked == [1]
 
     # Bob: same schema-valid plan, rejected.
     r_bob = logix.run(
-        {"call": "read_account", "with": {"account_id": 1}}, context=bob,
+        {"call": "read_account", "with": {"account_id": 1}},
+        context=bob,
     )
     assert not r_bob.ok
     assert r_bob.errors[0].code == "POLICY_REJECTED"
@@ -93,10 +97,12 @@ def test_authorization_runs_after_schema_not_instead_of(logix):
     # Schema-invalid input: rejected by schema, authorize never runs
     # (and even if it did, it would return Allow, so we know the outcome
     # is due to schema).
-    result = logix.run({
-        "call": "refund",
-        "with": {"order_id": "not-an-int", "amount": 5.0},
-    })
+    result = logix.run(
+        {
+            "call": "refund",
+            "with": {"order_id": "not-an-int", "amount": 5.0},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
     assert invoked == []

@@ -67,7 +67,8 @@ def _replace_version(path: Path, regex: re.Pattern[str], new: str) -> None:
     text = path.read_text(encoding="utf-8")
     new_text, n = regex.subn(
         lambda m: m.group(0).replace(m.group(1), new),
-        text, count=1,
+        text,
+        count=1,
     )
     if n != 1:
         raise SystemExit(f"FAIL: could not update version in {path}")
@@ -80,23 +81,17 @@ def _update_changelog(new_version: str, date: str) -> None:
     unreleased_re = re.compile(r"^## \[Unreleased\]\s*$", re.MULTILINE)
     m = unreleased_re.search(text)
     if not m:
-        raise SystemExit(
-            "FAIL: CHANGELOG.md has no '## [Unreleased]' header; "
-            "refusing to guess."
-        )
+        raise SystemExit("FAIL: CHANGELOG.md has no '## [Unreleased]' header; refusing to guess.")
     # Find the next '## [' after Unreleased (or EOF).
-    after = text[m.end():]
+    after = text[m.end() :]
     next_release = re.search(r"^## \[", after, re.MULTILINE)
     body_end = m.end() + (next_release.start() if next_release else len(after))
-    body = text[m.end():body_end].strip()
+    body = text[m.end() : body_end].strip()
 
     replacement = (
-        "## [Unreleased]\n\n"
-        "_(no changes yet)_\n\n"
-        f"## [{new_version}] - {date}\n\n"
-        f"{body}\n\n"
+        f"## [Unreleased]\n\n_(no changes yet)_\n\n## [{new_version}] - {date}\n\n{body}\n\n"
     )
-    new_text = text[:m.start()] + replacement + text[body_end:]
+    new_text = text[: m.start()] + replacement + text[body_end:]
     CHANGELOG.write_text(new_text, encoding="utf-8")
 
 
@@ -176,7 +171,7 @@ def main(argv: list[str]) -> int:
         )
     else:
         print("\nlocal commit and tag created; push when ready:")
-        print(f"  git push origin main && git push --tags")
+        print("  git push origin main && git push --tags")
 
     return 0
 

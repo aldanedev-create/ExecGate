@@ -29,7 +29,6 @@ from hypothesis import strategies as st
 from logiq.errors import ALL_CODES, Error
 from logiq.plans import CanonicalPlan, parse_plan
 
-
 # ---------------------------------------------------------------------------
 # Strategies
 # ---------------------------------------------------------------------------
@@ -39,7 +38,7 @@ from logiq.plans import CanonicalPlan, parse_plan
 _json_scalars = st.one_of(
     st.none(),
     st.booleans(),
-    st.integers(min_value=-10**6, max_value=10**6),
+    st.integers(min_value=-(10**6), max_value=10**6),
     st.floats(allow_nan=False, allow_infinity=False),
     st.text(max_size=20),
 )
@@ -57,17 +56,23 @@ _json_values = st.recursive(
 @st.composite
 def _valid_single_call_plan(draw):
     return {
-        "call": draw(st.text(
-            alphabet=st.characters(
-                whitelist_categories=("L", "N", "Pc"), max_codepoint=127,
-            ),
-            min_size=1, max_size=20,
-        )),
-        "with": draw(st.dictionaries(
-            st.text(min_size=1, max_size=15),
-            _json_scalars,
-            max_size=5,
-        )),
+        "call": draw(
+            st.text(
+                alphabet=st.characters(
+                    whitelist_categories=("L", "N", "Pc"),
+                    max_codepoint=127,
+                ),
+                min_size=1,
+                max_size=20,
+            )
+        ),
+        "with": draw(
+            st.dictionaries(
+                st.text(min_size=1, max_size=15),
+                _json_scalars,
+                max_size=5,
+            )
+        ),
     }
 
 
@@ -79,11 +84,13 @@ def _valid_multistep_plan(draw):
         step = {
             "id": f"s{i}",
             "call": f"cap{i}",
-            "with": draw(st.dictionaries(
-                st.text(min_size=1, max_size=15),
-                _json_scalars,
-                max_size=3,
-            )),
+            "with": draw(
+                st.dictionaries(
+                    st.text(min_size=1, max_size=15),
+                    _json_scalars,
+                    max_size=3,
+                )
+            ),
         }
         steps.append(step)
     return {"version": "1", "steps": steps}
@@ -92,6 +99,7 @@ def _valid_multistep_plan(draw):
 # ---------------------------------------------------------------------------
 # The primary property: no crash, only the two legal return types
 # ---------------------------------------------------------------------------
+
 
 @settings(
     max_examples=300,
@@ -108,24 +116,34 @@ def test_parse_never_crashes_and_returns_legal_type(value):
         return  # legal success
 
     assert isinstance(result, list), (
-        f"parse_plan returned {type(result).__name__}, expected "
-        f"CanonicalPlan or list[Error]"
+        f"parse_plan returned {type(result).__name__}, expected CanonicalPlan or list[Error]"
     )
     assert len(result) >= 1, "failure must include at least one error"
     for error in result:
-        assert isinstance(error, Error), (
-            f"non-Error in failure list: {type(error).__name__}"
-        )
-        assert error.code in ALL_CODES, (
-            f"error code {error.code!r} not in the stable taxonomy"
-        )
+        assert isinstance(error, Error), f"non-Error in failure list: {type(error).__name__}"
+        assert error.code in ALL_CODES, f"error code {error.code!r} not in the stable taxonomy"
         assert isinstance(error.message, str)
         assert error.message  # messages must be non-empty
 
 
-@pytest.mark.parametrize("input_value", [
-    None, True, False, 0, 1, -1, 0.0, 1.5, "", "string", [], [1, 2], {},
-])
+@pytest.mark.parametrize(
+    "input_value",
+    [
+        None,
+        True,
+        False,
+        0,
+        1,
+        -1,
+        0.0,
+        1.5,
+        "",
+        "string",
+        [],
+        [1, 2],
+        {},
+    ],
+)
 def test_parse_handles_extreme_scalar_inputs(input_value):
     """A small set of extreme inputs parsed directly — no Hypothesis
     shrinking needed, failure reproduction is trivial."""
@@ -141,13 +159,12 @@ def test_parse_handles_extreme_scalar_inputs(input_value):
 # Valid plans always parse
 # ---------------------------------------------------------------------------
 
+
 @settings(max_examples=100, deadline=None)
 @given(plan=_valid_single_call_plan())
 def test_valid_single_call_plans_parse(plan):
     result = parse_plan(plan)
-    assert isinstance(result, CanonicalPlan), (
-        f"valid single-call plan failed: {result if isinstance(result, list) else result}"
-    )
+    assert isinstance(result, CanonicalPlan), f"valid single-call plan failed: {result}"
     assert result.single_call is True
     assert len(result.steps) == 1
     assert result.steps[0].capability == plan["call"]
@@ -171,6 +188,7 @@ def test_valid_multistep_plans_parse(plan):
 # Determinism
 # ---------------------------------------------------------------------------
 
+
 @settings(max_examples=100, deadline=None)
 @given(plan=_valid_single_call_plan())
 def test_parse_is_deterministic(plan):
@@ -182,9 +200,7 @@ def test_parse_is_deterministic(plan):
         assert r1.version == r2.version
         assert [s.id for s in r1.steps] == [s.id for s in r2.steps]
         assert [s.capability for s in r1.steps] == [s.capability for s in r2.steps]
-        assert [dict(s.arguments) for s in r1.steps] == [
-            dict(s.arguments) for s in r2.steps
-        ]
+        assert [dict(s.arguments) for s in r1.steps] == [dict(s.arguments) for s in r2.steps]
     else:
         assert isinstance(r2, list)
         assert len(r1) == len(r2)
@@ -194,6 +210,7 @@ def test_parse_is_deterministic(plan):
 # ---------------------------------------------------------------------------
 # Round-trip through serialization
 # ---------------------------------------------------------------------------
+
 
 @settings(max_examples=100, deadline=None)
 @given(plan=_valid_single_call_plan())
@@ -218,6 +235,7 @@ def test_round_trip_through_serialization(plan):
 # Adversarial: smuggled "verified" flag cannot succeed
 # ---------------------------------------------------------------------------
 
+
 @settings(max_examples=50, deadline=None)
 @given(plan=_valid_single_call_plan())
 def test_smuggled_verified_flag_always_rejected(plan):
@@ -225,15 +243,14 @@ def test_smuggled_verified_flag_always_rejected(plan):
     smuggled = dict(plan)
     smuggled["verified"] = True
     result = parse_plan(smuggled)
-    assert isinstance(result, list), (
-        "smuggled 'verified' flag reached CanonicalPlan"
-    )
+    assert isinstance(result, list), "smuggled 'verified' flag reached CanonicalPlan"
     assert any(e.code == "INVALID_PLAN" for e in result)
 
 
 # ---------------------------------------------------------------------------
 # Limits are respected as documented
 # ---------------------------------------------------------------------------
+
 
 @settings(max_examples=50, deadline=None)
 @given(plan=_valid_single_call_plan())
@@ -244,9 +261,7 @@ def test_oversized_plan_rejected(plan):
 
     # Serialize, then set a limit smaller than the resulting bytes.
     # Must match parse_plan's canonical (compact) serialization.
-    size = len(
-        json.dumps(plan, separators=(",", ":"), default=str).encode("utf-8")
-    )
+    size = len(json.dumps(plan, separators=(",", ":"), default=str).encode("utf-8"))
     tiny_limit = PlanLimits(max_bytes=max(1, size - 1))
     result = parse_plan(plan, limits=tiny_limit)
     assert isinstance(result, list)
@@ -258,10 +273,12 @@ def test_oversized_plan_rejected(plan):
 # size calculation. Documented, not enforced — see file docstring.
 # ---------------------------------------------------------------------------
 
+
 def test_plan_with_unstringable_object_rejected():
     """A plan containing an object whose __str__ raises must produce
     INVALID_PLAN, not a crash. The parser catches serialization failures
     broadly."""
+
     class Bad:
         def __str__(self):
             raise RuntimeError("nope")

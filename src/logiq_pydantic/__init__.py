@@ -19,14 +19,11 @@ try:
     import pydantic
 except ImportError as e:  # pragma: no cover — tested via test_core_without_pydantic
     raise ImportError(
-        "logiq_pydantic requires pydantic; install with: "
-        "pip install \"logiq[pydantic]\""
+        'logiq_pydantic requires pydantic; install with: pip install "logiq[pydantic]"'
     ) from e
 
 if int(pydantic.VERSION.split(".", 1)[0]) != 2:
-    raise ImportError(
-        f"logiq_pydantic requires pydantic>=2,<3; got {pydantic.VERSION}"
-    )
+    raise ImportError(f"logiq_pydantic requires pydantic>=2,<3; got {pydantic.VERSION}")
 
 from logiq_pydantic.adapter import (
     HAS_PYDANTIC,

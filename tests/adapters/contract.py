@@ -38,7 +38,6 @@ import pytest
 from logiq.tools import ToolSpec
 from logiq_ai import AdapterError, ProviderAdapter
 
-
 # ---------------------------------------------------------------------------
 # Shared sample data
 # ---------------------------------------------------------------------------
@@ -82,6 +81,7 @@ EXPECTED_NORMALIZED_PLAN: dict = {
 # ---------------------------------------------------------------------------
 # The mixin
 # ---------------------------------------------------------------------------
+
 
 class AdapterContractMixin:
     """
@@ -129,8 +129,7 @@ class AdapterContractMixin:
         serialized = json.dumps(formatted, default=str)
         for spec in SAMPLE_SPECS:
             assert spec.name in serialized, (
-                f"capability name {spec.name!r} not found in "
-                f"format_tools output: {serialized}"
+                f"capability name {spec.name!r} not found in format_tools output: {serialized}"
             )
 
     def test_format_tools_includes_argument_names(self, adapter):
@@ -151,15 +150,13 @@ class AdapterContractMixin:
     def test_roundtrip_normalizes_to_expected_plan(self, adapter):
         normalized = adapter.parse_proposal(self.sample_proposal())
         assert normalized == self.expected_normalized_plan(), (
-            f"adapter produced {normalized!r}, expected "
-            f"{self.expected_normalized_plan()!r}"
+            f"adapter produced {normalized!r}, expected {self.expected_normalized_plan()!r}"
         )
 
     def test_parse_proposal_returns_plain_dict(self, adapter):
         normalized = adapter.parse_proposal(self.sample_proposal())
         assert type(normalized) is dict, (
-            f"parse_proposal must return a plain dict, got "
-            f"{type(normalized).__name__}"
+            f"parse_proposal must return a plain dict, got {type(normalized).__name__}"
         )
 
     def test_parse_proposal_rejects_non_object(self, adapter):
@@ -175,7 +172,8 @@ class AdapterContractMixin:
             adapter.parse_proposal(42)
 
     def test_parse_proposal_does_not_strip_unknown_top_level_fields(
-        self, adapter,
+        self,
+        adapter,
     ):
         """
         If a proposal's shape contains a ``verified: true`` marker, the
@@ -203,6 +201,7 @@ class AdapterContractMixin:
 
         # If it normalized, the result must not be directly executable.
         from logiq.plans import parse_plan
+
         # Invariant: a smuggled marker must never reach an *accepted* plan.
         # Fresh-output adapters drop it (no key to reject); passthrough
         # adapters keep it and parse_plan must reject it.

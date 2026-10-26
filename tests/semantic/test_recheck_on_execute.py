@@ -9,8 +9,6 @@ replay, deny, or escalate to approval.
 
 from __future__ import annotations
 
-import pytest
-
 from logiq import Allow, Deny, RequireApproval
 from logiq.approval import issue
 from logiq.context import ExecutionContext
@@ -34,6 +32,7 @@ def _empty_invariants() -> InvariantRegistry:
 # Baseline: all clear
 # ---------------------------------------------------------------------------
 
+
 def test_all_clear_proceeds():
     result = recheck_step(
         capability="cap",
@@ -49,11 +48,15 @@ def test_all_clear_proceeds():
 # Invariants
 # ---------------------------------------------------------------------------
 
+
 def test_deny_returns_deny():
     reg = InvariantRegistry()
     reg.add("cap", lambda args, ctx: Deny("REASON", "not allowed"))
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=reg,
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=reg,
     )
     assert result.status is RecheckStatus.DENY
     assert result.error.code == "POLICY_REJECTED"
@@ -63,7 +66,10 @@ def test_allow_falls_through():
     reg = InvariantRegistry()
     reg.add("cap", lambda args, ctx: Allow())
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=reg,
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=reg,
     )
     assert result.status is RecheckStatus.PROCEED
 
@@ -75,7 +81,10 @@ def test_invariant_exception_returns_deny():
     reg = InvariantRegistry()
     reg.add("cap", crash)
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=reg,
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=reg,
     )
     assert result.status is RecheckStatus.DENY
     assert result.error.code == "AUTHORIZATION_FAILED"
@@ -87,7 +96,10 @@ def test_require_approval_from_invariant_falls_through_to_approval():
     reg = InvariantRegistry()
     reg.add("cap", lambda args, ctx: RequireApproval("needs review"))
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=reg,
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=reg,
         # approval_required_flag not set, but the invariant sets it.
     )
     assert result.status is RecheckStatus.APPROVAL_REQUIRED
@@ -103,7 +115,10 @@ def test_require_approval_with_valid_token_proceeds():
     token = issue(capability="cap", args=args, context=ctx, issuer="human:alice")
 
     result = recheck_step(
-        capability="cap", args=args, context=ctx, invariants=reg,
+        capability="cap",
+        args=args,
+        context=ctx,
+        invariants=reg,
         approval_token=token,
     )
     assert result.status is RecheckStatus.PROCEED
@@ -113,9 +128,13 @@ def test_require_approval_with_valid_token_proceeds():
 # Approval
 # ---------------------------------------------------------------------------
 
+
 def test_approval_required_no_token():
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         approval_required_flag=True,
     )
     assert result.status is RecheckStatus.APPROVAL_REQUIRED
@@ -128,8 +147,12 @@ def test_approval_required_valid_token():
     token = issue(capability="cap", args=args, context=ctx, issuer="human:alice")
 
     result = recheck_step(
-        capability="cap", args=args, context=ctx, invariants=_empty_invariants(),
-        approval_required_flag=True, approval_token=token,
+        capability="cap",
+        args=args,
+        context=ctx,
+        invariants=_empty_invariants(),
+        approval_required_flag=True,
+        approval_token=token,
     )
     assert result.status is RecheckStatus.PROCEED
 
@@ -140,8 +163,12 @@ def test_approval_required_mismatched_token():
     token = issue(capability="cap", args=wrong_args, context=ctx, issuer="human:alice")
 
     result = recheck_step(
-        capability="cap", args={"x": 1}, context=ctx, invariants=_empty_invariants(),
-        approval_required_flag=True, approval_token=token,
+        capability="cap",
+        args={"x": 1},
+        context=ctx,
+        invariants=_empty_invariants(),
+        approval_required_flag=True,
+        approval_token=token,
     )
     assert result.status is RecheckStatus.APPROVAL_REQUIRED
 
@@ -149,7 +176,10 @@ def test_approval_required_mismatched_token():
 def test_approval_not_required_token_ignored():
     """When approval is not required, a token is not consumed."""
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         approval_required_flag=False,
         approval_token=None,
     )
@@ -160,10 +190,14 @@ def test_approval_not_required_token_ignored():
 # Idempotency
 # ---------------------------------------------------------------------------
 
+
 def test_idempotency_fresh_reserves():
     store = InMemoryIdempotencyStore()
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         idempotency_store=store,
         idempotency_key="k1",
         idempotency_args_hash="h1",
@@ -177,7 +211,10 @@ def test_idempotency_replay_after_commit():
     store.commit("k1", {"cached": "value"})
 
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         idempotency_store=store,
         idempotency_key="k1",
         idempotency_args_hash="h1",
@@ -192,7 +229,10 @@ def test_idempotency_conflict_on_different_hash():
     store.commit("k1", "old result")
 
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         idempotency_store=store,
         idempotency_key="k1",
         idempotency_args_hash="h2",
@@ -206,7 +246,10 @@ def test_idempotency_conflict_in_flight():
     store.check_and_reserve("k1", "h1")  # reserved but not committed
 
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         idempotency_store=store,
         idempotency_key="k1",
         idempotency_args_hash="h1",
@@ -218,7 +261,10 @@ def test_idempotency_conflict_in_flight():
 def test_idempotency_key_without_hash_denies():
     store = InMemoryIdempotencyStore()
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         idempotency_store=store,
         idempotency_key="k1",
         # idempotency_args_hash not provided
@@ -230,7 +276,10 @@ def test_idempotency_key_without_hash_denies():
 
 def test_idempotency_store_none_skips():
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         idempotency_store=None,
         idempotency_key="k1",
         idempotency_args_hash="h1",
@@ -242,12 +291,16 @@ def test_idempotency_store_none_skips():
 # Context refresher
 # ---------------------------------------------------------------------------
 
+
 def test_context_refresh_same_principal_proceeds():
     def refresher():
         return _ctx("alice")  # same as current
 
     result = recheck_step(
-        capability="cap", args={}, context=_ctx("alice"), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx("alice"),
+        invariants=_empty_invariants(),
         context_refresher=refresher,
     )
     assert result.status is RecheckStatus.PROCEED
@@ -258,7 +311,10 @@ def test_context_refresh_changed_principal_denies():
         return _ctx("bob")
 
     result = recheck_step(
-        capability="cap", args={}, context=_ctx("alice"), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx("alice"),
+        invariants=_empty_invariants(),
         context_refresher=refresher,
     )
     assert result.status is RecheckStatus.DENY
@@ -271,7 +327,10 @@ def test_context_refresh_exception_denies():
         raise RuntimeError("session expired")
 
     result = recheck_step(
-        capability="cap", args={}, context=_ctx(), invariants=_empty_invariants(),
+        capability="cap",
+        args={},
+        context=_ctx(),
+        invariants=_empty_invariants(),
         context_refresher=refresher,
     )
     assert result.status is RecheckStatus.DENY

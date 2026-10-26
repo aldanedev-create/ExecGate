@@ -41,6 +41,7 @@ class TestGeminiAdapter(AdapterContractMixin):
 # Provider-specific behaviors
 # ---------------------------------------------------------------------------
 
+
 def test_name():
     assert GeminiAdapter().name == "gemini"
 
@@ -56,36 +57,44 @@ def test_format_tools_shape():
 
 def test_parse_accepts_parts_list():
     adapter = GeminiAdapter()
-    plan = adapter.parse_proposal([
-        {"functionCall": {"name": "get_order", "args": {"order_id": 1}}},
-    ])
+    plan = adapter.parse_proposal(
+        [
+            {"functionCall": {"name": "get_order", "args": {"order_id": 1}}},
+        ]
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 1}}
 
 
 def test_parse_accepts_single_part():
     adapter = GeminiAdapter()
-    plan = adapter.parse_proposal({
-        "functionCall": {"name": "get_order", "args": {"order_id": 2}},
-    })
+    plan = adapter.parse_proposal(
+        {
+            "functionCall": {"name": "get_order", "args": {"order_id": 2}},
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 2}}
 
 
 def test_parse_skips_text_parts():
     adapter = GeminiAdapter()
-    plan = adapter.parse_proposal({
-        "parts": [
-            {"text": "Let me look that up."},
-            {"functionCall": {"name": "get_order", "args": {"order_id": 3}}},
-        ],
-    })
+    plan = adapter.parse_proposal(
+        {
+            "parts": [
+                {"text": "Let me look that up."},
+                {"functionCall": {"name": "get_order", "args": {"order_id": 3}}},
+            ],
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 3}}
 
 
 def test_parse_handles_missing_args_as_empty_dict():
     adapter = GeminiAdapter()
-    plan = adapter.parse_proposal({
-        "functionCall": {"name": "noop"},
-    })
+    plan = adapter.parse_proposal(
+        {
+            "functionCall": {"name": "noop"},
+        }
+    )
     assert plan == {"call": "noop", "with": {}}
 
 

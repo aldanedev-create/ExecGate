@@ -13,10 +13,10 @@ from logiq.plans import parse_plan
 from logiq.plans.parse import CanonicalPlan, CanonicalStep
 from logiq.verifier import _dependency_order
 
-
 # ---------------------------------------------------------------------------
 # Ordering
 # ---------------------------------------------------------------------------
+
 
 def test_single_call_order():
     plan = parse_plan({"call": "x", "with": {}})
@@ -27,13 +27,15 @@ def test_single_call_order():
 
 
 def test_linear_chain():
-    plan = parse_plan({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "x", "with": {}},
-            {"id": "b", "call": "y", "with": {"r": {"$ref": "a"}}},
-        ],
-    })
+    plan = parse_plan(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "x", "with": {}},
+                {"id": "b", "call": "y", "with": {"r": {"$ref": "a"}}},
+            ],
+        }
+    )
     assert isinstance(plan, CanonicalPlan)
     order, errors = _dependency_order(plan)
     assert errors == []
@@ -41,13 +43,15 @@ def test_linear_chain():
 
 
 def test_independent_steps_preserve_declared_order():
-    plan = parse_plan({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "x", "with": {}},
-            {"id": "b", "call": "y", "with": {}},
-        ],
-    })
+    plan = parse_plan(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "x", "with": {}},
+                {"id": "b", "call": "y", "with": {}},
+            ],
+        }
+    )
     assert isinstance(plan, CanonicalPlan)
     order, errors = _dependency_order(plan)
     assert errors == []
@@ -55,17 +59,24 @@ def test_independent_steps_preserve_declared_order():
 
 
 def test_diamond():
-    plan = parse_plan({
-        "version": "1",
-        "steps": [
-            {"id": "root", "call": "x", "with": {}},
-            {"id": "left", "call": "y", "with": {"r": {"$ref": "root"}}},
-            {"id": "right", "call": "z", "with": {"r": {"$ref": "root"}}},
-            {"id": "join", "call": "w", "with": {
-                "l": {"$ref": "left"}, "r": {"$ref": "right"},
-            }},
-        ],
-    })
+    plan = parse_plan(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "root", "call": "x", "with": {}},
+                {"id": "left", "call": "y", "with": {"r": {"$ref": "root"}}},
+                {"id": "right", "call": "z", "with": {"r": {"$ref": "root"}}},
+                {
+                    "id": "join",
+                    "call": "w",
+                    "with": {
+                        "l": {"$ref": "left"},
+                        "r": {"$ref": "right"},
+                    },
+                },
+            ],
+        }
+    )
     assert isinstance(plan, CanonicalPlan)
     order, errors = _dependency_order(plan)
     assert errors == []
@@ -77,6 +88,7 @@ def test_diamond():
 # ---------------------------------------------------------------------------
 # Cycle detection (direct — cannot occur via parse)
 # ---------------------------------------------------------------------------
+
 
 def test_cycle_detected():
     a = CanonicalStep(id="a", capability="x", arguments={"r": {"$ref": "b"}})
@@ -103,14 +115,17 @@ def test_self_cycle_detected():
 # Parse-level guard (the actual contract: no forward refs -> no cycles)
 # ---------------------------------------------------------------------------
 
+
 def test_forward_ref_prevented_at_parse():
     """Cycles cannot reach the verifier through the parser's forward-ref
     rejection. This is the load-bearing guarantee."""
-    result = parse_plan({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "x", "with": {"r": {"$ref": "b"}}},
-            {"id": "b", "call": "y", "with": {"r": {"$ref": "a"}}},
-        ],
-    })
+    result = parse_plan(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "x", "with": {"r": {"$ref": "b"}}},
+                {"id": "b", "call": "y", "with": {"r": {"$ref": "a"}}},
+            ],
+        }
+    )
     assert isinstance(result, list), "cyclic plan must be rejected at parse"

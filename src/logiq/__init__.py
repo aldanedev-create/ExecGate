@@ -16,18 +16,17 @@ from __future__ import annotations
 
 __version__ = "0.1.0"
 __all__ = [
-    "__version__",
-    "Logix",
-    "Result",
-    "VerificationReport",
-    "ExecutionContext",
-    "Error",
-    "VerifiedPlan",
     "Allow",
     "Deny",
+    "Error",
+    "ExecutionContext",
+    "Logix",
     "RequireApproval",
-    "ToolSpec",          # NEW
-
+    "Result",
+    "ToolSpec",  # NEW
+    "VerificationReport",
+    "VerifiedPlan",
+    "__version__",
 ]
 
 # The engine (Phase 1). Imported lazily via __getattr__ so that
@@ -44,12 +43,11 @@ _LAZY_IMPORTS = {
     "Allow": ("logiq.policies", "Allow"),
     "Deny": ("logiq.policies", "Deny"),
     "RequireApproval": ("logiq.policies", "RequireApproval"),
-    "ToolSpec": ("logiq.tools", "ToolSpec"),   # NEW
-
+    "ToolSpec": ("logiq.tools", "ToolSpec"),  # NEW
 }
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     """
     Lazy attribute access for public names.
 

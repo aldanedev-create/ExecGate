@@ -34,6 +34,7 @@ __all__ = ["ToolCatalog", "ToolSpec"]
 # ToolSpec — the provider-neutral capability description
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class ToolSpec:
     """
@@ -76,12 +77,13 @@ class ToolSpec:
 # ToolCatalog
 # ---------------------------------------------------------------------------
 
+
 class ToolCatalog:
     """Read-only view over the registry for AI discovery."""
 
     __slots__ = ("_registry",)
 
-    def __init__(self, registry: "Registry") -> None:
+    def __init__(self, registry: Registry) -> None:
         self._registry = registry
 
     def describe(self) -> list[ToolSpec]:
@@ -141,15 +143,13 @@ class ToolCatalog:
     # -- internals --------------------------------------------------------
 
     @staticmethod
-    def _spec_for(cap: "Capability") -> ToolSpec:
+    def _spec_for(cap: Capability) -> ToolSpec:
         return ToolSpec(
             name=cap.name,
             description=cap.description,
             input_schema=cap.input_schema.to_json_schema(),
             output_schema=(
-                cap.output_schema.to_json_schema()
-                if cap.output_schema is not None
-                else None
+                cap.output_schema.to_json_schema() if cap.output_schema is not None else None
             ),
             effects=cap.effects,
             approval="required" if cap.requires_approval else None,

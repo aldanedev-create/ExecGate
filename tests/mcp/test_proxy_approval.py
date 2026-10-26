@@ -10,13 +10,11 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from logiq import Logix
 from logiq.approval import issue
 from logiq_mcp.proxy import LogixMCPProxy
 
-from mcp_support import FakeMCPClient, mcp_available
+from .mcp_support import FakeMCPClient, mcp_available
 
 
 @mcp_available
@@ -32,8 +30,7 @@ def test_approval_required_blocks_forwarding(fake_order_tools):
 
             result = await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
             )
             assert not result.ok
             assert result.errors[0].code == "APPROVAL_REQUIRED"
@@ -59,7 +56,8 @@ def test_valid_token_permits_forwarding(fake_order_tools):
             logix.require_approval("upstream_issue_refund")
 
             report = logix.verify(
-                {"call": "upstream_issue_refund", "with": args}, context=ctx,
+                {"call": "upstream_issue_refund", "with": args},
+                context=ctx,
             )
             assert report.ok
 
@@ -104,8 +102,7 @@ def test_mismatched_token_blocks_forwarding(fake_order_tools):
             logix.require_approval("upstream_issue_refund")
 
             report = logix.verify(
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
                 context=ctx,
             )
             result = await asyncio.to_thread(
@@ -144,8 +141,7 @@ def test_token_from_wrong_principal_blocks(fake_order_tools):
             logix.require_approval("upstream_issue_refund")
 
             report = logix.verify(
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
                 context=bob_ctx,
             )
             result = await asyncio.to_thread(

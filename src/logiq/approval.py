@@ -37,6 +37,7 @@ __all__ = [
 # Hashing
 # ---------------------------------------------------------------------------
 
+
 def canonical_args_hash(args: dict[str, Any]) -> str:
     """
     Deterministic hash of a resolved argument map.
@@ -54,7 +55,7 @@ def canonical_args_hash(args: dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def context_hash(context: "ExecutionContext") -> str:
+def context_hash(context: ExecutionContext) -> str:
     """
     Deterministic hash of the relevant parts of a context.
 
@@ -69,7 +70,9 @@ def context_hash(context: "ExecutionContext") -> str:
         "roles": sorted(context.roles),
     }
     encoded = json.dumps(
-        payload, sort_keys=True, separators=(",", ":"),
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
@@ -77,6 +80,7 @@ def context_hash(context: "ExecutionContext") -> str:
 # ---------------------------------------------------------------------------
 # ApprovalToken
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class ApprovalToken:
@@ -101,7 +105,7 @@ class ApprovalToken:
         self,
         capability: str,
         args: dict[str, Any],
-        context: "ExecutionContext",
+        context: ExecutionContext,
     ) -> bool:
         """
         True iff the token binds to exactly this action.
@@ -134,11 +138,12 @@ class ApprovalToken:
 # Issuance
 # ---------------------------------------------------------------------------
 
+
 def issue(
     *,
     capability: str,
     args: dict[str, Any],
-    context: "ExecutionContext",
+    context: ExecutionContext,
     issuer: str,
 ) -> ApprovalToken:
     """

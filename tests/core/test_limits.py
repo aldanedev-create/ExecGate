@@ -12,10 +12,10 @@ import pytest
 
 from logiq.plans import DEFAULT_LIMITS, PlanLimits, parse_plan
 
-
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
+
 
 def test_default_limits():
     assert DEFAULT_LIMITS.max_bytes == 64_000
@@ -35,6 +35,7 @@ def test_limits_frozen():
 # ---------------------------------------------------------------------------
 # Individual checks
 # ---------------------------------------------------------------------------
+
 
 def test_check_bytes_below_ok():
     PlanLimits(max_bytes=1000).check_bytes(500)
@@ -74,6 +75,7 @@ def test_check_depth_above_raises():
 # ---------------------------------------------------------------------------
 # Enforcement via parse_plan
 # ---------------------------------------------------------------------------
+
 
 def test_max_steps_exceeded_at_parse():
     plan = {
@@ -116,6 +118,7 @@ def test_under_limits_succeeds():
 # Engine override
 # ---------------------------------------------------------------------------
 
+
 def test_logix_limits_override(logix):
     original_bytes = logix._limits.max_bytes
     logix.limits(max_steps=5)
@@ -130,13 +133,15 @@ def test_logix_limits_override_enforced(logix):
 
     logix.limits(max_steps=1)
 
-    report = logix.verify({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "f", "with": {"x": 1}},
-            {"id": "b", "call": "f", "with": {"x": 2}},
-        ],
-    })
+    report = logix.verify(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "f", "with": {"x": 1}},
+                {"id": "b", "call": "f", "with": {"x": 2}},
+            ],
+        }
+    )
     assert not report.ok
     assert any("max_steps" in e.message for e in report.errors)
 

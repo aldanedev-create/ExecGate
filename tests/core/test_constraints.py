@@ -34,6 +34,7 @@ def _schema(fn):
 # Numeric bounds
 # ---------------------------------------------------------------------------
 
+
 def test_gt_constraint():
     def f(x: Annotated[int, Gt(0)]) -> int:
         return x
@@ -87,6 +88,7 @@ def test_multiple_bounds():
 # String constraints
 # ---------------------------------------------------------------------------
 
+
 def test_min_length():
     def f(s: Annotated[str, MinLength(3)]) -> str:
         return s
@@ -119,6 +121,7 @@ def test_pattern():
 # JSON Schema output
 # ---------------------------------------------------------------------------
 
+
 def test_constraint_appears_in_json_schema():
     def f(x: Annotated[int, Gt(0), Le(100)]) -> int:
         return x
@@ -142,6 +145,7 @@ def test_min_length_in_json_schema():
 # Rejection
 # ---------------------------------------------------------------------------
 
+
 class MyConstraint:
     """Module-level so ``get_type_hints`` can resolve it (stringified annotations)."""
 
@@ -157,6 +161,7 @@ def test_unsupported_constraint_raises():
 # ---------------------------------------------------------------------------
 # End-to-end
 # ---------------------------------------------------------------------------
+
 
 def test_constraint_enforced_at_runtime(logix):
     @logix.capability

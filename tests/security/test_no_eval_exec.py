@@ -28,7 +28,6 @@ from pathlib import Path
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Static AST scan of the plan-execution path
 # ---------------------------------------------------------------------------
@@ -89,6 +88,7 @@ def test_no_eval_exec_import_in_plan_path(path: Path) -> None:
 # Runtime probes
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.security
 def test_plan_naming_eval_is_rejected_as_unknown(logix):
     invoked = []
@@ -99,10 +99,12 @@ def test_plan_naming_eval_is_rejected_as_unknown(logix):
         return x
 
     # A plan that would trigger eval if Logix did that.
-    result = logix.run({
-        "call": "eval",
-        "with": {"x": "__import__('os').system('rm -rf /')"},
-    })
+    result = logix.run(
+        {
+            "call": "eval",
+            "with": {"x": "__import__('os').system('rm -rf /')"},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "UNKNOWN_CAPABILITY"
     assert invoked == []

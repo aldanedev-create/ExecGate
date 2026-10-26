@@ -26,11 +26,11 @@ if TYPE_CHECKING:
     from logiq.engine import Logix
 
 
-class HandlerMode(str, Enum):
+class HandlerMode(str, Enum):  # noqa: UP042
     """What the handler receives for parameters typed as Pydantic models."""
 
-    MODEL = "model"      # Pydantic model instance
-    VALUES = "values"    # plain dict (model_dump(mode="json"))
+    MODEL = "model"  # Pydantic model instance
+    VALUES = "values"  # plain dict (model_dump(mode="json"))
 
 
 _default_mode: HandlerMode = HandlerMode.MODEL
@@ -41,7 +41,7 @@ def get_handler_mode() -> HandlerMode:
     return _default_mode
 
 
-def set_handler_mode(mode: "HandlerMode | str") -> HandlerMode:
+def set_handler_mode(mode: HandlerMode | str) -> HandlerMode:
     """
     Set the global handler mode. Returns the new mode.
 
@@ -53,14 +53,12 @@ def set_handler_mode(mode: "HandlerMode | str") -> HandlerMode:
         try:
             mode = HandlerMode(mode)
         except ValueError as e:
-            raise ValueError(
-                f"handler_mode must be 'model' or 'values', got {mode!r}"
-            ) from e
+            raise ValueError(f"handler_mode must be 'model' or 'values', got {mode!r}") from e
     _default_mode = mode
     return _default_mode
 
 
-def install(logiq: "Logix") -> None:
+def install(logiq: Logix) -> None:
     """
     Explicitly enable the Pydantic adapter on ``logiq``.
 

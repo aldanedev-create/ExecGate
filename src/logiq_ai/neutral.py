@@ -32,9 +32,7 @@ class NeutralJSONAdapter:
                 raise AdapterError(f"proposal is not valid JSON: {e}") from e
 
         if not isinstance(raw, dict):
-            raise AdapterError(
-                f"proposal must be a JSON object, got {type(raw).__name__}"
-            )
+            raise AdapterError(f"proposal must be a JSON object, got {type(raw).__name__}")
 
         # Do not strip or add anything. If the proposal smuggles "verified",
         # plans.parse will reject it as an unknown top-level field.

@@ -30,11 +30,11 @@ from __future__ import annotations
 import asyncio
 import functools
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from logiq.context import ExecutionContext
 from logiq.engine import Logix
-
 from logiq_mcp.adapter import (
     from_mcp_call,
     result_to_mcp_response,
@@ -75,7 +75,7 @@ class LogixMCPServer:
         logiq: Logix,
         *,
         name: str = "logiq",
-        context_factory: "Callable[[], ExecutionContext] | None" = None,
+        context_factory: Callable[[], ExecutionContext] | None = None,
     ) -> None:
         """
         Args:
@@ -117,8 +117,7 @@ class LogixMCPServer:
         runner = getattr(self._mcp, "run_async", None)
         if runner is None:
             raise RuntimeError(
-                "this FastMCP version has no run_async; use run() from a "
-                "synchronous entry point"
+                "this FastMCP version has no run_async; use run() from a synchronous entry point"
             )
         await runner(**kwargs)
 
@@ -152,7 +151,9 @@ class LogixMCPServer:
         except (ImportError, TypeError, ValueError) as e:
             logger.debug(
                 "explicit-schema registration unavailable for %r (%s); "
-                "falling back to **kwargs handler", spec.name, e,
+                "falling back to **kwargs handler",
+                spec.name,
+                e,
             )
 
         try:
@@ -177,9 +178,10 @@ class LogixMCPServer:
     def _make_explicit_schema_tool(spec: Any, handler: Callable[..., Any]) -> Any:
         """Build a FastMCP ``Tool`` carrying ``spec.input_schema``."""
         from fastmcp.tools import Tool
+
         from pydantic import Field
 
-        class _LogixTool(Tool):  # type: ignore[misc]
+        class _LogixTool(Tool):
             handler: Any = Field(default=None, exclude=True)
 
             async def run(self, arguments: dict[str, Any]) -> Any:
@@ -192,7 +194,7 @@ class LogixMCPServer:
             handler=handler,
         )
 
-    def _build_handler(self, capability_name: str):
+    def _build_handler(self, capability_name: str) -> Callable[..., Any]:
         """
         Build an async FastMCP tool handler for one capability.
 
@@ -207,9 +209,7 @@ class LogixMCPServer:
             ctx = ctx_factory()
             # Run the sync Logix pipeline off the event loop. Blocking the
             # loop on a slow handler would freeze all other MCP requests.
-            result = await asyncio.to_thread(
-                functools.partial(logiq.run, plan, context=ctx)
-            )
+            result = await asyncio.to_thread(functools.partial(logiq.run, plan, context=ctx))
             return result_to_mcp_response(result)
 
         # FastMCP uses __name__ for the tool name. Set it to the capability
@@ -230,7 +230,4 @@ class LogixMCPServer:
         Useful for tests and for applications that want to inspect the
         catalog without going through FastMCP. Does not require FastMCP.
         """
-        return [
-            tool_spec_to_mcp_dict(spec)
-            for spec in self._logix.tools.describe()
-        ]
+        return [tool_spec_to_mcp_dict(spec) for spec in self._logix.tools.describe()]

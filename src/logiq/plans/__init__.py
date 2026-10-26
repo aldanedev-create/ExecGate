@@ -27,9 +27,9 @@ from logiq.plans.parse import CanonicalPlan, CanonicalStep, parse_plan
 from logiq.plans.references import Reference, parse_reference
 
 __all__ = [
+    "DEFAULT_LIMITS",
     "CanonicalPlan",
     "CanonicalStep",
-    "DEFAULT_LIMITS",
     "PlanLimits",
     "Reference",
     "parse_plan",

@@ -24,18 +24,20 @@ from typing import Any
 
 from logiq.schemas.types import SchemaError
 
-
 # ---------------------------------------------------------------------------
 # Constraint objects
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class Gt:
     value: int | float
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if not value > self.value:
             return [SchemaError(path, f"must be > {self.value}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"exclusiveMinimum": self.value}
 
@@ -43,10 +45,12 @@ class Gt:
 @dataclass(frozen=True)
 class Ge:
     value: int | float
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if not value >= self.value:
             return [SchemaError(path, f"must be >= {self.value}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"minimum": self.value}
 
@@ -54,10 +58,12 @@ class Ge:
 @dataclass(frozen=True)
 class Lt:
     value: int | float
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if not value < self.value:
             return [SchemaError(path, f"must be < {self.value}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"exclusiveMaximum": self.value}
 
@@ -65,10 +71,12 @@ class Lt:
 @dataclass(frozen=True)
 class Le:
     value: int | float
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if not value <= self.value:
             return [SchemaError(path, f"must be <= {self.value}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"maximum": self.value}
 
@@ -76,10 +84,12 @@ class Le:
 @dataclass(frozen=True)
 class MinLength:
     value: int
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if hasattr(value, "__len__") and len(value) < self.value:
             return [SchemaError(path, f"length must be >= {self.value}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"minLength": self.value}
 
@@ -87,10 +97,12 @@ class MinLength:
 @dataclass(frozen=True)
 class MaxLength:
     value: int
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if hasattr(value, "__len__") and len(value) > self.value:
             return [SchemaError(path, f"length must be <= {self.value}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"maxLength": self.value}
 
@@ -98,14 +110,22 @@ class MaxLength:
 @dataclass(frozen=True)
 class Pattern:
     regex: str
+
     def validate(self, value: Any, path: str) -> list[SchemaError]:
         if isinstance(value, str) and not re.fullmatch(self.regex, value):
             return [SchemaError(path, f"does not match pattern {self.regex!r}")]
         return []
+
     def to_json_schema_fragment(self) -> dict[str, Any]:
         return {"pattern": self.regex}
 
 
 SUPPORTED_CONSTRAINTS: tuple[type, ...] = (
-    Gt, Ge, Lt, Le, MinLength, MaxLength, Pattern,
+    Gt,
+    Ge,
+    Lt,
+    Le,
+    MinLength,
+    MaxLength,
+    Pattern,
 )

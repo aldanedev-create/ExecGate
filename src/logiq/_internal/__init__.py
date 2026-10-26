@@ -14,13 +14,27 @@ Two concerns:
 from __future__ import annotations
 
 from logiq._internal.immutability import (
-    canonical_hash, canonical_json, freeze, is_frozen, thaw,
+    canonical_hash,
+    canonical_json,
+    freeze,
+    is_frozen,
+    thaw,
 )
 from logiq._internal.redaction import (
-    REDACTED, Redactor, DEFAULT_REDACTOR, redact,
+    DEFAULT_REDACTOR,
+    REDACTED,
+    Redactor,
+    redact,
 )
 
 __all__ = [
-    "canonical_hash", "canonical_json", "freeze", "is_frozen", "thaw",
-    "REDACTED", "Redactor", "DEFAULT_REDACTOR", "redact",
+    "DEFAULT_REDACTOR",
+    "REDACTED",
+    "Redactor",
+    "canonical_hash",
+    "canonical_json",
+    "freeze",
+    "is_frozen",
+    "redact",
+    "thaw",
 ]

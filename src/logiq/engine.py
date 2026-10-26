@@ -7,7 +7,8 @@ See ``docs/usage-model.md`` and ``docs/system-design.md``.
 from __future__ import annotations
 
 import dataclasses
-from typing import TYPE_CHECKING, Any, Callable, Iterable
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any
 
 from logiq.capabilities import Registry, build_capability
 from logiq.context import ExecutionContext
@@ -45,20 +46,18 @@ class Logix:
         self._invariants = InvariantRegistry()
         self._grounding = GroundingPolicy()
         self._idempotency_store = (
-            idempotency_store
-            if idempotency_store is not None
-            else InMemoryIdempotencyStore()
+            idempotency_store if idempotency_store is not None else InMemoryIdempotencyStore()
         )
         self._tools = ToolCatalog(self._registry)
         self._capability = _CapabilityRegistrar(self)
-        self._audit_hook: Any = None                       # ADDED
+        self._audit_hook: Any = None  # ADDED
 
     # ------------------------------------------------------------------
     # Registration
     # ------------------------------------------------------------------
 
     @property
-    def capability(self) -> "_CapabilityRegistrar":
+    def capability(self) -> _CapabilityRegistrar:
         """Capability registration surface. See ``docs/api-reference.md §3``."""
         return self._capability
 
@@ -68,7 +67,7 @@ class Logix:
 
     def authorize(
         self,
-        capability: "str | Callable[..., Any]",
+        capability: str | Callable[..., Any],
         *,
         check: Callable[[dict[str, Any], ExecutionContext], Any],
     ) -> None:
@@ -77,7 +76,7 @@ class Logix:
 
     def require_approval(
         self,
-        capability: "str | Callable[..., Any]",
+        capability: str | Callable[..., Any],
         *,
         principal_bound: bool = True,
     ) -> None:
@@ -112,17 +111,21 @@ class Logix:
         max_invocations: int | None = None,
     ) -> None:
         overrides: dict[str, int] = {}
-        if max_steps is not None:       overrides["max_steps"] = max_steps
-        if max_bytes is not None:       overrides["max_bytes"] = max_bytes
-        if max_depth is not None:       overrides["max_depth"] = max_depth
-        if max_invocations is not None: overrides["max_invocations"] = max_invocations
+        if max_steps is not None:
+            overrides["max_steps"] = max_steps
+        if max_bytes is not None:
+            overrides["max_bytes"] = max_bytes
+        if max_depth is not None:
+            overrides["max_depth"] = max_depth
+        if max_invocations is not None:
+            overrides["max_invocations"] = max_invocations
         if overrides:
             self._limits = dataclasses.replace(self._limits, **overrides)
 
     def context(self, **kwargs: Any) -> ExecutionContext:
         return ExecutionContext(**kwargs)
 
-    def audit(self, hook: Any) -> None:                    # ADDED
+    def audit(self, hook: Any) -> None:  # ADDED
         """
         Attach an audit hook (see ``logiq.observability.AuditHook``).
 
@@ -171,7 +174,7 @@ class Logix:
 
     def execute(
         self,
-        verified_plan: "VerifiedPlan",
+        verified_plan: VerifiedPlan,
         *,
         context: ExecutionContext | None = None,
         approval: Any = None,
@@ -185,7 +188,7 @@ class Logix:
             approval=approval,
             invariants=self._invariants,
             idempotency_store=self._idempotency_store,
-            audit_hook=self._audit_hook,                   # ADDED
+            audit_hook=self._audit_hook,  # ADDED
             # policies= removed — not in execute_verified signature
         )
 
@@ -198,7 +201,8 @@ class Logix:
         report = self.verify(plan, context=context)
         if not report.ok:
             return Result.failure(report.errors)
-        return self.execute(report.verified_plan, context=context)
+        # report.ok guarantees verified_plan is not None
+        return self.execute(report.verified_plan, context=context)  # type: ignore[arg-type]
 
     # ------------------------------------------------------------------
     # Reserved APIs
@@ -224,7 +228,7 @@ class Logix:
         return self._registry
 
     @property
-    def schemas(self) -> "_SchemaCatalog":
+    def schemas(self) -> _SchemaCatalog:
         return _SchemaCatalog(self._registry)
 
     @property
@@ -235,6 +239,7 @@ class Logix:
 # ---------------------------------------------------------------------------
 # Capability registrar
 # ---------------------------------------------------------------------------
+
 
 class _CapabilityRegistrar:
     """The object behind ``logiq.capability``."""
@@ -252,7 +257,7 @@ class _CapabilityRegistrar:
         description: str | None = None,
         effects: str | None = None,
         requires_approval: bool = False,
-        idempotent: bool = False,                          # ADDED
+        idempotent: bool = False,  # ADDED
     ) -> Any:
         def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
             cap = build_capability(
@@ -261,7 +266,7 @@ class _CapabilityRegistrar:
                 description=description,
                 effects=effects,
                 requires_approval=requires_approval,
-                idempotent=idempotent,                     # ADDED
+                idempotent=idempotent,  # ADDED
             )
             self._engine._registry.add(cap)
             return f
@@ -278,7 +283,7 @@ class _CapabilityRegistrar:
         description: str | None = None,
         effects: str | None = None,
         requires_approval: bool = False,
-        idempotent: bool = False,                          # ADDED
+        idempotent: bool = False,  # ADDED
     ) -> Callable[..., Any]:
         cap = build_capability(
             fn,
@@ -286,7 +291,7 @@ class _CapabilityRegistrar:
             description=description,
             effects=effects,
             requires_approval=requires_approval,
-            idempotent=idempotent,                         # ADDED
+            idempotent=idempotent,  # ADDED
         )
         self._engine._registry.add(cap)
         return fn
@@ -294,7 +299,7 @@ class _CapabilityRegistrar:
     def unregister(self, name: str) -> None:
         self._engine._registry.unregister(name)
 
-    def get(self, name: str) -> "Capability":
+    def get(self, name: str) -> Capability:
         return self._engine._registry.get(name)
 
     def names(self) -> list[str]:
@@ -308,22 +313,20 @@ class _CapabilityRegistrar:
 # Schema catalog view
 # ---------------------------------------------------------------------------
 
+
 class _SchemaCatalog:
     __slots__ = ("_registry",)
 
     def __init__(self, registry: Registry) -> None:
         self._registry = registry
 
-    def for_capability(self, name: str) -> "_CapabilitySchema":
+    def for_capability(self, name: str) -> _CapabilitySchema:
         cap = self._registry.get(name)
         return _CapabilitySchema(
             name=cap.name,
             description=cap.description,
             input=cap.input_schema.to_json_schema(),
-            output=(
-                cap.output_schema.to_json_schema()
-                if cap.output_schema is not None else None
-            ),
+            output=(cap.output_schema.to_json_schema() if cap.output_schema is not None else None),
             input_type=cap.input_schema,
             output_type=cap.output_schema,
         )
@@ -346,13 +349,13 @@ class _CapabilitySchema:
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _as_capability_name(capability: "str | Callable[..., Any]") -> str:
+
+def _as_capability_name(capability: str | Callable[..., Any]) -> str:
     if isinstance(capability, str):
         return capability
     name = getattr(capability, "__name__", None)
     if not isinstance(name, str) or not name:
         raise TypeError(
-            f"expected a capability name or a decorated function, "
-            f"got {type(capability).__name__}"
+            f"expected a capability name or a decorated function, got {type(capability).__name__}"
         )
     return name

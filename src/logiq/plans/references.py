@@ -53,7 +53,7 @@ def is_reference(value: Any) -> bool:
     )
 
 
-def parse_reference(value: Any) -> "Reference | Error":
+def parse_reference(value: Any) -> Reference | Error:
     """
     Parse a ``$ref`` value into a ``Reference`` or return an ``Error``.
 
@@ -61,9 +61,7 @@ def parse_reference(value: Any) -> "Reference | Error":
     bad step-id, bad path segment, empty path.
     """
     if not is_reference(value):
-        return invalid_reference(
-            "reference must be of the form {'$ref': '<step>.<path>'}"
-        )
+        return invalid_reference("reference must be of the form {'$ref': '<step>.<path>'}")
 
     raw: str = value["$ref"]
     if not raw:
@@ -89,7 +87,7 @@ def parse_reference(value: Any) -> "Reference | Error":
     return Reference(step_id=step_id, path=path)
 
 
-def resolve_reference(ref: Reference, results: dict[str, Any]) -> "Any | Error":
+def resolve_reference(ref: Reference, results: dict[str, Any]) -> Any | Error:
     """
     Resolve a parsed reference against already-computed step results.
 

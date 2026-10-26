@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
 from logiq.capabilities import Registry, build_capability
 from logiq.errors import (
     approval_required,
@@ -45,6 +44,7 @@ def _registry():
 # check_proposal — baseline
 # ---------------------------------------------------------------------------
 
+
 def test_empty_proposal_allowed():
     loop = RepairLoop(max_attempts=3)
     assert loop.check_proposal([]) is RepairState.ALLOWED
@@ -58,6 +58,7 @@ def test_fresh_loop_allows_anything():
 # ---------------------------------------------------------------------------
 # Exhaustion
 # ---------------------------------------------------------------------------
+
 
 def test_exhaustion_after_max_attempts():
     loop = RepairLoop(max_attempts=2)
@@ -79,19 +80,24 @@ def test_max_attempts_one():
 # Capability-level refusal
 # ---------------------------------------------------------------------------
 
+
 def test_capability_denied_is_refused():
     loop = RepairLoop(max_attempts=3)
-    loop.record_outcome([
-        policy_rejected("limit", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            policy_rejected("limit", details={"capability": "refund"}),
+        ]
+    )
     assert loop.check_proposal(["refund"]) is RepairState.REFUSED
 
 
 def test_denied_capability_does_not_block_others():
     loop = RepairLoop(max_attempts=3)
-    loop.record_outcome([
-        policy_rejected("limit", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            policy_rejected("limit", details={"capability": "refund"}),
+        ]
+    )
     # Different capability with no registry → no effect tracking, so
     # effect-based refusal does not apply. Only "refund" is refused.
     assert loop.check_proposal(["other"]) is RepairState.ALLOWED
@@ -101,11 +107,14 @@ def test_denied_capability_does_not_block_others():
 # Effect-class refusal (requires a registry)
 # ---------------------------------------------------------------------------
 
+
 def test_effect_class_refusal_blocks_same_effect():
     loop = RepairLoop(max_attempts=3, registry=_registry())
-    loop.record_outcome([
-        policy_rejected("limit", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            policy_rejected("limit", details={"capability": "refund"}),
+        ]
+    )
     # refund was denied → "write" effect is now denied.
     assert loop.check_proposal(["refund"]) is RepairState.REFUSED
     assert loop.check_proposal(["delete_order"]) is RepairState.REFUSED
@@ -113,9 +122,11 @@ def test_effect_class_refusal_blocks_same_effect():
 
 def test_effect_class_refusal_allows_different_effect():
     loop = RepairLoop(max_attempts=3, registry=_registry())
-    loop.record_outcome([
-        policy_rejected("limit", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            policy_rejected("limit", details={"capability": "refund"}),
+        ]
+    )
     # get_order is a read-effect capability; not blocked by a write denial.
     assert loop.check_proposal(["get_order"]) is RepairState.ALLOWED
 
@@ -124,11 +135,14 @@ def test_effect_class_refusal_allows_different_effect():
 # Only refusal codes trigger refusal
 # ---------------------------------------------------------------------------
 
+
 def test_non_refusal_errors_do_not_record_capability():
     loop = RepairLoop(max_attempts=3)
-    loop.record_outcome([
-        policy_rejected("limit", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            policy_rejected("limit", details={"capability": "refund"}),
+        ]
+    )
     assert loop.check_proposal(["refund"]) is RepairState.REFUSED
 
 
@@ -136,26 +150,32 @@ def test_schema_error_does_not_record_capability():
     from logiq.errors import schema_validation_failed
 
     loop = RepairLoop(max_attempts=3)
-    loop.record_outcome([
-        schema_validation_failed("bad arg", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            schema_validation_failed("bad arg", details={"capability": "refund"}),
+        ]
+    )
     # Schema error is not a refusal code — capability is not added to denied set.
     assert loop.check_proposal(["refund"]) is RepairState.ALLOWED
 
 
 def test_authorization_failure_counts_as_refusal():
     loop = RepairLoop(max_attempts=3)
-    loop.record_outcome([
-        authorization_failed("denied", details={"capability": "refund"}),
-    ])
+    loop.record_outcome(
+        [
+            authorization_failed("denied", details={"capability": "refund"}),
+        ]
+    )
     assert loop.check_proposal(["refund"]) is RepairState.REFUSED
 
 
 def test_approval_required_counts_as_refusal():
     loop = RepairLoop(max_attempts=3)
-    loop.record_outcome([
-        approval_required("refund"),
-    ])
+    loop.record_outcome(
+        [
+            approval_required("refund"),
+        ]
+    )
     # approval_required doesn't set details["capability"] in its default form,
     # so no capability is added. Test the negative case.
     assert loop.check_proposal(["refund"]) is RepairState.ALLOWED
@@ -164,6 +184,7 @@ def test_approval_required_counts_as_refusal():
 # ---------------------------------------------------------------------------
 # Missing capability in details
 # ---------------------------------------------------------------------------
+
 
 def test_refusal_without_capability_in_details_does_not_block():
     loop = RepairLoop(max_attempts=3)
@@ -175,6 +196,7 @@ def test_refusal_without_capability_in_details_does_not_block():
 # ---------------------------------------------------------------------------
 # assert_repair_allowed
 # ---------------------------------------------------------------------------
+
 
 def test_assert_passes_for_allowed():
     loop = RepairLoop(max_attempts=3)
@@ -198,6 +220,7 @@ def test_assert_raises_for_exhausted():
 # ---------------------------------------------------------------------------
 # Introspection
 # ---------------------------------------------------------------------------
+
 
 def test_attempts_counter():
     loop = RepairLoop(max_attempts=5)

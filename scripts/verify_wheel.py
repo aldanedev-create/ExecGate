@@ -24,7 +24,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-EXPECTED_PACKAGES = ("logix", "logiq_pydantic", "logiq_ai", "logiq_mcp")
+EXPECTED_PACKAGES = ("logiq", "logiq_pydantic", "logiq_ai", "logiq_mcp")
 FORBIDDEN_PREFIXES = ("tests/", "scripts/", "docs/", "examples/")
 
 
@@ -73,10 +73,7 @@ def main(argv: list[str]) -> int:
         for name in names:
             for prefix in FORBIDDEN_PREFIXES:
                 if name.startswith(prefix):
-                    failures.append(
-                        f"forbidden path in wheel: {name} "
-                        f"(prefix {prefix!r})"
-                    )
+                    failures.append(f"forbidden path in wheel: {name} (prefix {prefix!r})")
                     break
 
         # 4. Metadata.
@@ -87,11 +84,8 @@ def main(argv: list[str]) -> int:
             python_req = _field(metadata, "Requires-Python")
             if not python_req:
                 failures.append("missing Requires-Python")
-            elif not any(">=3.11" in v or ">=3.12" in v or ">=3.13" in v
-                         for v in python_req):
-                failures.append(
-                    f"Requires-Python must be >=3.11, got {python_req}"
-                )
+            elif not any(">=3.11" in v or ">=3.12" in v or ">=3.13" in v for v in python_req):
+                failures.append(f"Requires-Python must be >=3.11, got {python_req}")
 
             # No unconditional runtime deps.
             for req in _field(metadata, "Requires-Dist"):

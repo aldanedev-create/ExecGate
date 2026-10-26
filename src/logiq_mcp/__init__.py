@@ -24,12 +24,13 @@ Python SDK v2). Install with::
 
 from __future__ import annotations
 
+from typing import Any
+
 try:
     import fastmcp as _fastmcp
 except ImportError as e:  # pragma: no cover — tested via test_core_without_mcp
     raise ImportError(
-        "logiq_mcp requires fastmcp>=4; install with: "
-        "pip install \"logiq[mcp]\""
+        'logiq_mcp requires fastmcp>=4; install with: pip install "logiq[mcp]"'
     ) from e
 
 if not hasattr(_fastmcp, "FastMCP"):
@@ -52,24 +53,24 @@ from logiq_mcp.server import LogixMCPServer
 from logiq_mcp.upstream import fetch_upstream_tools, wrap_upstream_tool
 
 __all__ = [
+    "LogixMCPProxy",
     # Server + proxy
     "LogixMCPServer",
-    "LogixMCPProxy",
-    # Upstream
-    "fetch_upstream_tools",
-    "wrap_upstream_tool",
     # Adapter
     "extract_mcp_result_value",
+    # Upstream
+    "fetch_upstream_tools",
     "format_errors_for_mcp",
     "from_mcp_call",
     "mcp_schema_to_logix",
     "result_to_mcp_response",
     "schema_errors_to_errors",
     "tool_spec_to_mcp_dict",
+    "wrap_upstream_tool",
 ]
 
 
-def install(logiq) -> None:
+def install(logiq: Any) -> None:
     """
     Explicit startup assertion.
 

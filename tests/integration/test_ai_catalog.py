@@ -17,12 +17,12 @@ import json
 
 import pytest
 
-from logiq import Logix, ToolSpec
-
+from logiq import ToolSpec
 
 # ---------------------------------------------------------------------------
 # describe() — neutral catalog
 # ---------------------------------------------------------------------------
+
 
 def test_describe_returns_tool_specs(logix):
     @logix.capability
@@ -97,12 +97,14 @@ def test_describe_empty_engine(logix):
 # Same schema, two uses — the load-bearing property
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("capability_name", ["add", "refund", "noop"])
 def test_catalog_schema_matches_verifier_schema(logix, capability_name):
     """The schema the catalog advertises must be byte-identical to the
     schema the verifier validates against. If they ever diverge, a client
     that reads the catalog could produce plans the verifier rejects —
     exactly the coupling ``docs/system-design.md §10`` promises."""
+
     @logix.capability
     def add(a: int, b: int) -> int:
         return a + b
@@ -145,6 +147,7 @@ def test_catalog_schema_advertises_what_verifier_enforces(logix):
 # format() — wiring to adapters
 # ---------------------------------------------------------------------------
 
+
 def test_format_json_returns_neutral_dicts(logix):
     @logix.capability
     def add(a: int, b: int) -> int:
@@ -170,6 +173,7 @@ def test_format_json_equals_describe_neutral(logix):
 
 def test_format_unknown_provider_falls_back_to_neutral(logix):
     """The core promise: unknown provider name never raises."""
+
     @logix.capability
     def add(a: int, b: int) -> int:
         return a + b
@@ -184,6 +188,7 @@ def test_format_unknown_provider_falls_back_to_neutral(logix):
 def test_format_known_provider_succeeds(logix, provider):
     """If logiq_ai is installed (it is, per dev extras), every registered
     provider name resolves to a working adapter."""
+
     @logix.capability
     def add(a: int, b: int) -> int:
         return a + b
@@ -210,6 +215,7 @@ def test_format_openai_produces_function_tools(logix):
 # for_capability()
 # ---------------------------------------------------------------------------
 
+
 def test_for_capability_returns_spec(logix):
     @logix.capability
     def add(a: int, b: int) -> int:
@@ -229,6 +235,7 @@ def test_for_capability_unknown_raises(logix):
 # names()
 # ---------------------------------------------------------------------------
 
+
 def test_tools_names(logix):
     @logix.capability
     def a() -> int:
@@ -244,6 +251,7 @@ def test_tools_names(logix):
 # ---------------------------------------------------------------------------
 # Consistency across describe() and for_capability()
 # ---------------------------------------------------------------------------
+
 
 def test_describe_and_for_capability_agree(logix):
     @logix.capability(effects="read")

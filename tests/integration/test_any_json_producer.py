@@ -23,7 +23,6 @@ import pytest
 
 from logiq import Deny, Logix
 
-
 # ---------------------------------------------------------------------------
 # Optional dependency: logiq_ai
 # ---------------------------------------------------------------------------
@@ -31,18 +30,21 @@ from logiq import Deny, Logix
 try:
     from logiq_ai.neutral import NeutralJSONAdapter
     from logiq_ai.providers.openai import OpenAIAdapter
+
     HAS_LOGIX_AI = True
 except ImportError:
     HAS_LOGIX_AI = False
 
 requires_logix_ai = pytest.mark.skipif(
-    not HAS_LOGIX_AI, reason="logiq_ai not installed",
+    not HAS_LOGIX_AI,
+    reason="logiq_ai not installed",
 )
 
 
 # ---------------------------------------------------------------------------
 # Helper: a fixed plan and engine
 # ---------------------------------------------------------------------------
+
 
 def _engine() -> Logix:
     """A fresh engine with a single ``add`` capability."""
@@ -58,6 +60,7 @@ def _engine() -> Logix:
 # ---------------------------------------------------------------------------
 # Every producer produces the same *plan*; every plan gets the same result
 # ---------------------------------------------------------------------------
+
 
 def _valid_plans() -> dict[str, object]:
     """Four ways to construct the same logical plan: {"call": "add", "with": {"a": 3, "b": 4}}"""
@@ -76,14 +79,24 @@ def _valid_plans() -> dict[str, object]:
             {"call": "add", "with": {"a": 3, "b": 4}}
         )
         # 4. OpenAI adapter output — the "one specific provider" path.
-        plans["openai"] = OpenAIAdapter().parse_proposal({
-            "choices": [{"message": {"tool_calls": [
-                {"function": {
-                    "name": "add",
-                    "arguments": '{"a": 3, "b": 4}',
-                }},
-            ]}}],
-        })
+        plans["openai"] = OpenAIAdapter().parse_proposal(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "tool_calls": [
+                                {
+                                    "function": {
+                                        "name": "add",
+                                        "arguments": '{"a": 3, "b": 4}',
+                                    }
+                                },
+                            ]
+                        }
+                    }
+                ],
+            }
+        )
 
     return plans
 
@@ -91,7 +104,7 @@ def _valid_plans() -> dict[str, object]:
 @pytest.mark.parametrize("producer_name", list(_valid_plans().keys()))
 def test_every_producer_yields_same_plan(producer_name):
     plan = _valid_plans()[producer_name]
-    from logiq.plans import parse_plan, CanonicalPlan
+    from logiq.plans import CanonicalPlan, parse_plan
 
     parsed = parse_plan(plan)
     assert isinstance(parsed, CanonicalPlan)
@@ -110,6 +123,7 @@ def test_every_producer_yields_same_result(producer_name):
 # ---------------------------------------------------------------------------
 # A hand-written dict is an untrusted plan, exactly like an AI proposal
 # ---------------------------------------------------------------------------
+
 
 def test_handwritten_dict_rejected_on_unknown_capability():
     invoked: list[int] = []
@@ -165,6 +179,7 @@ def test_handwritten_dict_rejected_by_invariant():
 # The boundary doesn't know or care about the source
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("producer_name", list(_valid_plans().keys()))
 def test_schema_violation_rejected_identically(producer_name):
     """Same policy, same schema — every producer receives the same
@@ -187,14 +202,24 @@ def test_schema_violation_rejected_identically(producer_name):
         bad_plans["neutral"] = NeutralJSONAdapter().parse_proposal(
             {"call": "add", "with": {"a": "wrong", "b": 2}}
         )
-        bad_plans["openai"] = OpenAIAdapter().parse_proposal({
-            "choices": [{"message": {"tool_calls": [
-                {"function": {
-                    "name": "add",
-                    "arguments": '{"a": "wrong", "b": 2}',
-                }},
-            ]}}],
-        })
+        bad_plans["openai"] = OpenAIAdapter().parse_proposal(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "tool_calls": [
+                                {
+                                    "function": {
+                                        "name": "add",
+                                        "arguments": '{"a": "wrong", "b": 2}',
+                                    }
+                                },
+                            ]
+                        }
+                    }
+                ],
+            }
+        )
 
     result = logix.run(bad_plans[producer_name])
     assert not result.ok
@@ -206,13 +231,16 @@ def test_schema_violation_rejected_identically(producer_name):
 # The smuggle-verified test: no producer can inject "verified": true
 # ---------------------------------------------------------------------------
 
+
 def test_handwritten_dict_smuggling_verified_rejected():
     logix = _engine()
-    result = logix.run({
-        "call": "add",
-        "with": {"a": 1, "b": 2},
-        "verified": True,  # attempted bypass
-    })
+    result = logix.run(
+        {
+            "call": "add",
+            "with": {"a": 1, "b": 2},
+            "verified": True,  # attempted bypass
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "INVALID_PLAN"
 
@@ -238,6 +266,7 @@ def test_neutral_adapter_smuggling_verified_rejected():
 # Equivalence across producers, including on failures
 # ---------------------------------------------------------------------------
 
+
 def test_all_producers_produce_identical_error_codes_on_failure():
     """A plan is a plan is a plan. The same semantic plan produces the same
     error code regardless of which JSON producer emitted it."""
@@ -261,11 +290,19 @@ def test_all_producers_produce_identical_error_codes_on_failure():
         producers["neutral"] = NeutralJSONAdapter().parse_proposal(
             {"call": "add", "with": {"a": 1, "b": 2}}
         )
-        producers["openai"] = OpenAIAdapter().parse_proposal({
-            "choices": [{"message": {"tool_calls": [
-                {"function": {"name": "add", "arguments": '{"a": 1, "b": 2}'}},
-            ]}}],
-        })
+        producers["openai"] = OpenAIAdapter().parse_proposal(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "tool_calls": [
+                                {"function": {"name": "add", "arguments": '{"a": 1, "b": 2}'}},
+                            ]
+                        }
+                    }
+                ],
+            }
+        )
 
     for name, plan in producers.items():
         result = logix.run(plan)
@@ -282,6 +319,7 @@ def test_all_producers_produce_identical_error_codes_on_failure():
 # Multi-step via hand-written plan
 # ---------------------------------------------------------------------------
 
+
 def test_handwritten_multistep_plan_works_end_to_end():
     """No AI, no adapter, no provider SDK — just two dicts. Full pipeline."""
     logix = Logix()
@@ -297,13 +335,15 @@ def test_handwritten_multistep_plan_works_end_to_end():
         invoked.append("b")
         return x * 2
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "one", "call": "a", "with": {"x": 5}},
-            {"id": "two", "call": "b", "with": {"x": {"$ref": "one"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "one", "call": "a", "with": {"x": 5}},
+                {"id": "two", "call": "b", "with": {"x": {"$ref": "one"}}},
+            ],
+        }
+    )
 
     assert result.ok, result.errors
     assert invoked == ["a", "b"]

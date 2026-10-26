@@ -18,7 +18,7 @@ import pytest
 from logiq import Logix
 from logiq_mcp.proxy import LogixMCPProxy
 
-from mcp_support import FakeMCPClient, mcp_available
+from .mcp_support import FakeMCPClient, mcp_available
 
 
 @mcp_available
@@ -75,10 +75,15 @@ def test_lookalike_name_rejected(fake_order_tools):
     async def run():
         await proxy.startup()
         try:
-            for name in ("upstream_get_orders", "UPSTREAM_GET_ORDER",
-                         "get_order", "upstream_get_order_x"):
+            for name in (
+                "upstream_get_orders",
+                "UPSTREAM_GET_ORDER",
+                "get_order",
+                "upstream_get_order_x",
+            ):
                 result = await asyncio.to_thread(
-                    logix.run, {"call": name, "with": {}},
+                    logix.run,
+                    {"call": name, "with": {}},
                 )
                 assert not result.ok, f"{name!r} unexpectedly resolved"
                 assert result.errors[0].code == "UNKNOWN_CAPABILITY"
@@ -92,6 +97,7 @@ def test_lookalike_name_rejected(fake_order_tools):
 # ---------------------------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------------------------
+
 
 @mcp_available
 def test_startup_enters_client(fake_order_tools):
@@ -119,7 +125,8 @@ def test_startup_populates_registry(fake_order_tools):
         await proxy.startup()
         try:
             assert set(logix.registry.names()) == {
-                "upstream_get_order", "upstream_issue_refund",
+                "upstream_get_order",
+                "upstream_issue_refund",
             }
         finally:
             await proxy.shutdown()
@@ -154,7 +161,7 @@ def test_double_startup_raises(fake_order_tools):
     async def run():
         await proxy.startup()
         try:
-            with pytest.raises(RuntimeError, match="startup.*twice"):
+            with pytest.raises(RuntimeError, match=r"startup.*twice"):
                 await proxy.startup()
         finally:
             await proxy.shutdown()

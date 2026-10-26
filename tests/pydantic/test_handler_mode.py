@@ -18,7 +18,6 @@ import subprocess
 import sys
 
 import pytest
-from pydantic import BaseModel
 
 from logiq_pydantic import (
     HandlerMode,
@@ -26,11 +25,12 @@ from logiq_pydantic import (
     install,
     set_handler_mode,
 )
-
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Reset global around every test
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def _restore_handler_mode():
@@ -42,6 +42,7 @@ def _restore_handler_mode():
 # ---------------------------------------------------------------------------
 # Enum surface
 # ---------------------------------------------------------------------------
+
 
 def test_handler_mode_enum_values():
     assert HandlerMode.MODEL.value == "model"
@@ -58,7 +59,9 @@ print('ok')
 """
     r = subprocess.run(
         [sys.executable, "-c", code],
-        capture_output=True, text=True, timeout=30,
+        capture_output=True,
+        text=True,
+        timeout=30,
     )
     assert r.returncode == 0, r.stderr
     assert "ok" in r.stdout
@@ -67,6 +70,7 @@ print('ok')
 # ---------------------------------------------------------------------------
 # set_handler_mode / get_handler_mode
 # ---------------------------------------------------------------------------
+
 
 def test_set_mode_with_enum():
     set_handler_mode(HandlerMode.VALUES)
@@ -93,6 +97,7 @@ def test_set_mode_invalid_string():
 # install() is a no-op assertion
 # ---------------------------------------------------------------------------
 
+
 def test_install_does_not_raise(logix):
     install(logix)  # must not raise
 
@@ -105,6 +110,7 @@ def test_install_does_not_raise(logix):
 # resolved with ``typing.get_type_hints``, which cannot see classes defined
 # inside a test function.
 # ---------------------------------------------------------------------------
+
 
 class Item(BaseModel):
     x: int
@@ -128,6 +134,7 @@ class Order(BaseModel):
 # End-to-end: MODEL mode
 # ---------------------------------------------------------------------------
 
+
 def test_model_mode_handler_receives_model_instance(logix):
     received: list[Item] = []
 
@@ -150,6 +157,7 @@ def test_model_mode_handler_receives_model_instance(logix):
 # End-to-end: VALUES mode
 # ---------------------------------------------------------------------------
 
+
 def test_values_mode_handler_receives_dict(logix):
     received: list[dict] = []
 
@@ -171,6 +179,7 @@ def test_values_mode_handler_receives_dict(logix):
 # Validation runs before either mode conversion
 # ---------------------------------------------------------------------------
 
+
 def test_validation_runs_before_handler_in_either_mode(logix):
     for mode in (HandlerMode.MODEL, HandlerMode.VALUES):
         set_handler_mode(mode)
@@ -178,13 +187,15 @@ def test_validation_runs_before_handler_in_either_mode(logix):
 
         @logix.capability(name=f"op_{mode.value}")
         def op(item: XOnlyItem) -> dict[str, int]:
-            invoked.append(1)
+            invoked.append(1)  # noqa: B023
             return {"ok": 1}
 
-        result = logix.run({
-            "call": f"op_{mode.value}",
-            "with": {"item": {"x": "not-an-int"}},
-        })
+        result = logix.run(
+            {
+                "call": f"op_{mode.value}",
+                "with": {"item": {"x": "not-an-int"}},
+            }
+        )
         assert not result.ok
         assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
         assert invoked == [], f"handler ran in {mode.value} mode with bad input"
@@ -193,6 +204,7 @@ def test_validation_runs_before_handler_in_either_mode(logix):
 # ---------------------------------------------------------------------------
 # Nested models under VALUES mode
 # ---------------------------------------------------------------------------
+
 
 def test_values_mode_recursively_flattens(logix):
     received: list[dict] = []
@@ -203,10 +215,12 @@ def test_values_mode_recursively_flattens(logix):
         return {"ok": 1}
 
     set_handler_mode(HandlerMode.VALUES)
-    result = logix.run({
-        "call": "op",
-        "with": {"order": {"id": 1, "address": {"city": "Berlin"}}},
-    })
+    result = logix.run(
+        {
+            "call": "op",
+            "with": {"order": {"id": 1, "address": {"city": "Berlin"}}},
+        }
+    )
 
     assert result.ok
     assert received[0] == {"id": 1, "address": {"city": "Berlin"}}

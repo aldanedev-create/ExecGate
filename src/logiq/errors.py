@@ -14,7 +14,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Stable codes. Do not rename. Add only with a changelog entry.
 # ---------------------------------------------------------------------------
@@ -35,28 +34,31 @@ IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
 GROUNDING_REQUIRED = "GROUNDING_REQUIRED"
 ADAPTER_ERROR = "ADAPTER_ERROR"
 
-ALL_CODES: frozenset[str] = frozenset({
-    INVALID_PLAN,
-    UNKNOWN_CAPABILITY,
-    SCHEMA_VALIDATION_FAILED,
-    INVALID_REFERENCE,
-    DEPENDENCY_CYCLE,
-    POLICY_REJECTED,
-    AUTHORIZATION_FAILED,
-    APPROVAL_REQUIRED,
-    RESOURCE_LIMIT_EXCEEDED,
-    HANDLER_FAILED,
-    OUTPUT_VALIDATION_FAILED,
-    EXECUTION_CANCELLED,
-    IDEMPOTENCY_CONFLICT,
-    GROUNDING_REQUIRED,
-    ADAPTER_ERROR,
-})
+ALL_CODES: frozenset[str] = frozenset(
+    {
+        INVALID_PLAN,
+        UNKNOWN_CAPABILITY,
+        SCHEMA_VALIDATION_FAILED,
+        INVALID_REFERENCE,
+        DEPENDENCY_CYCLE,
+        POLICY_REJECTED,
+        AUTHORIZATION_FAILED,
+        APPROVAL_REQUIRED,
+        RESOURCE_LIMIT_EXCEEDED,
+        HANDLER_FAILED,
+        OUTPUT_VALIDATION_FAILED,
+        EXECUTION_CANCELLED,
+        IDEMPOTENCY_CONFLICT,
+        GROUNDING_REQUIRED,
+        ADAPTER_ERROR,
+    }
+)
 
 
 # ---------------------------------------------------------------------------
 # Error — the object that crosses the boundary
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class Error:
@@ -90,6 +92,7 @@ class Error:
 # ---------------------------------------------------------------------------
 # Convenience constructors used by the pipeline stages
 # ---------------------------------------------------------------------------
+
 
 def _flat(details: dict[str, Any]) -> dict[str, Any]:
     """

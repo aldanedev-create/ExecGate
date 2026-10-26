@@ -50,13 +50,10 @@ class LocalAdapter:
         try:
             plan = json.loads(text)
         except json.JSONDecodeError as e:
-            raise AdapterError(
-                f"local model response is not valid JSON: {e}"
-            ) from e
+            raise AdapterError(f"local model response is not valid JSON: {e}") from e
         if not isinstance(plan, dict):
             raise AdapterError(
-                f"local model output must be a JSON object, got "
-                f"{type(plan).__name__}"
+                f"local model output must be a JSON object, got {type(plan).__name__}"
             )
         return plan
 
@@ -69,11 +66,11 @@ def _extract_text(raw: Any) -> str | None:
 
     # Ollama: {"response": "..."}
     if isinstance(raw.get("response"), str):
-        return raw["response"]
+        return raw["response"]  # type: ignore[no-any-return]
 
     # llama.cpp server: {"content": "..."}
     if isinstance(raw.get("content"), str):
-        return raw["content"]
+        return raw["content"]  # type: ignore[no-any-return]
 
     # OpenAI-compatible chat: {"choices": [{"message": {"content": "..."}}]}
     if "choices" in raw:
@@ -81,10 +78,10 @@ def _extract_text(raw: Any) -> str | None:
         if choices and isinstance(choices[0], dict):
             message = choices[0].get("message")
             if isinstance(message, dict) and isinstance(message.get("content"), str):
-                return message["content"]
+                return message["content"]  # type: ignore[no-any-return]
 
     # vLLM simple: {"text": "..."}
     if isinstance(raw.get("text"), str):
-        return raw["text"]
+        return raw["text"]  # type: ignore[no-any-return]
 
     return None

@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Allow, Deny, Logix
+from logiq import Allow, Deny
 from logiq.approval import issue
-
 
 # ---------------------------------------------------------------------------
 # Structural guarantee: execute() rejects anything but a VerifiedPlan
 # ---------------------------------------------------------------------------
+
 
 def test_execute_rejects_dict(logix):
     with pytest.raises(TypeError, match="VerifiedPlan"):
@@ -32,6 +32,7 @@ def test_execute_rejects_none(logix):
 # ---------------------------------------------------------------------------
 # Result shape: single-call vs multi-step
 # ---------------------------------------------------------------------------
+
 
 def test_single_call_returns_value(logix):
     @logix.capability
@@ -52,13 +53,15 @@ def test_multi_step_returns_dict(logix):
     def two(x: int) -> int:
         return x + 1
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "one", "with": {}},
-            {"id": "b", "call": "two", "with": {"x": {"$ref": "a"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "one", "with": {}},
+                {"id": "b", "call": "two", "with": {"x": {"$ref": "a"}}},
+            ],
+        }
+    )
     assert result.ok
     assert result.value == {"a": 1, "b": 2}
 
@@ -66,6 +69,7 @@ def test_multi_step_returns_dict(logix):
 # ---------------------------------------------------------------------------
 # Handler never invoked when verify fails
 # ---------------------------------------------------------------------------
+
 
 def test_handler_not_invoked_on_unknown_capability(logix):
     invoked: list[int] = []
@@ -114,6 +118,7 @@ def test_handler_not_invoked_when_invariant_denies(logix):
 # Handler invocation and output validation
 # ---------------------------------------------------------------------------
 
+
 def test_handler_exception_produces_handler_failed(logix):
     @logix.capability
     def fail(x: int) -> int:
@@ -147,6 +152,7 @@ def test_output_validation_skipped_when_no_schema(logix):
 # ---------------------------------------------------------------------------
 # Invariants (live-state checks)
 # ---------------------------------------------------------------------------
+
 
 def test_invariant_allow_proceeds(logix):
     @logix.capability
@@ -186,6 +192,7 @@ def test_invariant_returns_garbage_denies(logix):
 # ---------------------------------------------------------------------------
 # Approval
 # ---------------------------------------------------------------------------
+
 
 def test_approval_required_no_token(logix):
     @logix.capability
@@ -257,6 +264,7 @@ def test_approval_with_mismatched_principal_rejected(logix):
 # Idempotency
 # ---------------------------------------------------------------------------
 
+
 def test_idempotent_capability_replays(logix):
     calls: list[int] = []
 
@@ -303,6 +311,7 @@ def test_non_idempotent_capability_calls_always(logix):
 # Snapshot-hash mismatch
 # ---------------------------------------------------------------------------
 
+
 def test_registry_change_between_verify_and_execute_rejected(logix):
     @logix.capability
     def add(a: int, b: int) -> int:
@@ -323,6 +332,7 @@ def test_registry_change_between_verify_and_execute_rejected(logix):
 # ---------------------------------------------------------------------------
 # Audit hook
 # ---------------------------------------------------------------------------
+
 
 def test_audit_hook_fires_on_success(logix):
     events: list[tuple] = []
@@ -388,6 +398,7 @@ def test_audit_hook_exception_does_not_break_execution(logix):
 # Trace population
 # ---------------------------------------------------------------------------
 
+
 def test_trace_populated_on_success(logix):
     @logix.capability
     def add(a: int, b: int) -> int:
@@ -414,6 +425,7 @@ def test_trace_populated_on_failure(logix):
 # ---------------------------------------------------------------------------
 # The trust-boundary posture: direct invocation bypasses everything
 # ---------------------------------------------------------------------------
+
 
 def test_direct_handler_call_bypasses_pipeline(logix):
     # Logix is a boundary; it does not wrap the function. Direct calls

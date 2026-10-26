@@ -31,15 +31,16 @@ def test_forward_ref_rejected_at_parse(logix):
         invoked.append(x)
         return x
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "cap", "with": {"x": 1}},
-            {"id": "b", "call": "cap",
-             "with": {"x": {"$ref": "c"}}},  # forward ref to c
-            {"id": "c", "call": "cap", "with": {"x": 3}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "cap", "with": {"x": 1}},
+                {"id": "b", "call": "cap", "with": {"x": {"$ref": "c"}}},  # forward ref to c
+                {"id": "c", "call": "cap", "with": {"x": 3}},
+            ],
+        }
+    )
     assert not result.ok
     # Forward ref caught at parse: INVALID_PLAN or INVALID_REFERENCE.
     assert result.errors[0].code in {"INVALID_PLAN", "INVALID_REFERENCE"}
@@ -55,12 +56,14 @@ def test_self_ref_rejected(logix):
         invoked.append(x)
         return x
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "cap", "with": {"x": {"$ref": "a"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "cap", "with": {"x": {"$ref": "a"}}},
+            ],
+        }
+    )
     assert not result.ok
     assert invoked == []
 
@@ -93,13 +96,15 @@ def test_cycle_handler_never_invoked(logix):
     # A valid plan is required to exercise the pipeline; if the cycle
     # smuggles through, we'd see invoked != []. Since the parser rejects
     # forward refs, this yields a parse error.
-    logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "cap", "with": {"x": {"$ref": "b"}}},
-            {"id": "b", "call": "cap", "with": {"x": {"$ref": "a"}}},
-        ],
-    })
+    logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "cap", "with": {"x": {"$ref": "b"}}},
+                {"id": "b", "call": "cap", "with": {"x": {"$ref": "a"}}},
+            ],
+        }
+    )
     assert invoked == []
 
 
@@ -124,14 +129,16 @@ def test_dag_with_diamond_dependency_succeeds(logix):
         calls.append("c")
         return x * 2
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "root", "call": "a", "with": {}},
-            {"id": "left", "call": "b", "with": {"x": {"$ref": "root"}}},
-            {"id": "right", "call": "c", "with": {"x": {"$ref": "root"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "root", "call": "a", "with": {}},
+                {"id": "left", "call": "b", "with": {"x": {"$ref": "root"}}},
+                {"id": "right", "call": "c", "with": {"x": {"$ref": "root"}}},
+            ],
+        }
+    )
     assert result.ok
     assert calls[0] == "a"
     assert set(calls) == {"a", "b", "c"}

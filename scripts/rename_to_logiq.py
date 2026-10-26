@@ -50,21 +50,21 @@ ROOT = Path(__file__).resolve().parent.parent
 # ---------------------------------------------------------------------------
 
 DIR_RENAMES = [
-    ("src/logix",          "src/logiq"),
+    ("src/logix", "src/logiq"),
     ("src/logiq_pydantic", "src/logiq_pydantic"),
-    ("src/logiq_ai",       "src/logiq_ai"),
-    ("src/logiq_mcp",      "src/logiq_mcp"),
+    ("src/logiq_ai", "src/logiq_ai"),
+    ("src/logiq_mcp", "src/logiq_mcp"),
 ]
 
 # Conservative, safe replacements — applied to all files.
 IMPORT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
     # Package name with underscore — most specific first
     (re.compile(r"\blogix_pydantic\b"), "logiq_pydantic"),
-    (re.compile(r"\blogix_ai\b"),       "logiq_ai"),
-    (re.compile(r"\blogix_mcp\b"),      "logiq_mcp"),
+    (re.compile(r"\blogix_ai\b"), "logiq_ai"),
+    (re.compile(r"\blogix_mcp\b"), "logiq_mcp"),
     # Import statements (matches ``from logiq import`` and ``from logiq.xxx``)
-    (re.compile(r"\bfrom logix\b"),     "from logiq"),
-    (re.compile(r"\bimport logix\b"),   "import logiq"),
+    (re.compile(r"\bfrom logix\b"), "from logiq"),
+    (re.compile(r"\bimport logix\b"), "import logiq"),
     # pip install commands
     (re.compile(r"\bpip install logix\b"), "pip install logiq"),
     (re.compile(r"""(pip install ["'])logix(\[)"""), r"\1logiq\2"),
@@ -82,19 +82,22 @@ SRC_AGGRESSIVE: list[tuple[re.Pattern[str], str]] = [
 # pyproject.toml specific patterns
 PYPROJECT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r'^name = "logix"$', re.MULTILINE), 'name = "logiq"'),
-    (re.compile(r'"src/logix"'),          '"src/logiq"'),
+    (re.compile(r'"src/logix"'), '"src/logiq"'),
     (re.compile(r'"src/logiq_pydantic"'), '"src/logiq_pydantic"'),
-    (re.compile(r'"src/logiq_ai"'),       '"src/logiq_ai"'),
-    (re.compile(r'"src/logiq_mcp"'),      '"src/logiq_mcp"'),
-    (re.compile(r'^Homepage = "https://github\.com/[^/]+/logix"$',
-                re.MULTILINE),
-     lambda m: m.group(0).replace("/logix", "/logiq")),
-    (re.compile(r'^Documentation = "https://github\.com/[^/]+/logix/',
-                re.MULTILINE),
-     lambda m: m.group(0).replace("/logix/", "/logiq/")),
-    (re.compile(r'^Changelog = "https://github\.com/[^/]+/logix/',
-                re.MULTILINE),
-     lambda m: m.group(0).replace("/logix/", "/logiq/")),
+    (re.compile(r'"src/logiq_ai"'), '"src/logiq_ai"'),
+    (re.compile(r'"src/logiq_mcp"'), '"src/logiq_mcp"'),
+    (
+        re.compile(r'^Homepage = "https://github\.com/[^/]+/logix"$', re.MULTILINE),
+        lambda m: m.group(0).replace("/logix", "/logiq"),
+    ),
+    (
+        re.compile(r'^Documentation = "https://github\.com/[^/]+/logix/', re.MULTILINE),
+        lambda m: m.group(0).replace("/logix/", "/logiq/"),
+    ),
+    (
+        re.compile(r'^Changelog = "https://github\.com/[^/]+/logix/', re.MULTILINE),
+        lambda m: m.group(0).replace("/logix/", "/logiq/"),
+    ),
 ]
 
 
@@ -103,8 +106,7 @@ PYPROJECT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
 # ---------------------------------------------------------------------------
 
 PROCESS_DIRS = ("src", "tests", "scripts", "examples", "docs")
-PROCESS_ROOT_FILES = ("pyproject.toml", "README.md", "CHANGELOG.md",
-                     "CONTRIBUTING.md")
+PROCESS_ROOT_FILES = ("pyproject.toml", "README.md", "CHANGELOG.md", "CONTRIBUTING.md")
 PROCESS_EXTENSIONS = {".py", ".md", ".toml", ".rst", ".txt", ".cfg", ".ini"}
 
 
@@ -133,6 +135,7 @@ def is_src_file(path: Path) -> bool:
 # ---------------------------------------------------------------------------
 # Replacement
 # ---------------------------------------------------------------------------
+
 
 def apply_replacements(
     text: str,
@@ -182,6 +185,7 @@ def process_file(path: Path, *, dry_run: bool) -> tuple[int, bool]:
 # Report remaining occurrences
 # ---------------------------------------------------------------------------
 
+
 def remaining_lowercase_logix(
     files: list[Path],
 ) -> list[tuple[Path, int, str]]:
@@ -213,12 +217,13 @@ def remaining_lowercase_logix(
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dry-run", action="store_true",
-                        help="show what would change; do not modify files")
-    parser.add_argument("--skip-verify", action="store_true",
-                        help="skip pytest after rename")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="show what would change; do not modify files"
+    )
+    parser.add_argument("--skip-verify", action="store_true", help="skip pytest after rename")
     args = parser.parse_args(argv)
 
     # Snapshot files BEFORE any changes.
@@ -271,10 +276,7 @@ def main(argv: list[str]) -> int:
     # ---- Phase 3: report remaining occurrences -------------------------
     print("\n=== Remaining 'logix' references (manual review) ===")
     # Re-collect files (paths may have changed under src/).
-    if not args.dry_run:
-        files_after = collect_files()
-    else:
-        files_after = files
+    files_after = collect_files() if not args.dry_run else files
     remaining = remaining_lowercase_logix(files_after)
 
     if not remaining:
@@ -323,9 +325,9 @@ def main(argv: list[str]) -> int:
     print("Rename complete. Next steps:")
     print("=" * 60)
     print("  1. Reinstall the editable package:")
-    print("       pip install -e \".[dev]\"")
+    print('       pip install -e ".[dev]"')
     print("  2. Verify import + quick smoke test:")
-    print("       python -c \"from logiq import Logix; print(Logix)\"")
+    print('       python -c "from logiq import Logix; print(Logix)"')
     print("  3. Review changes:")
     print("       git status")
     print("       git diff --stat")
@@ -336,7 +338,7 @@ def main(argv: list[str]) -> int:
     print("       - CI workflows referencing 'logix'")
     print("       - Any bookmarks, badges, external docs")
     print("  6. Commit:")
-    print("       git commit -m \"Rename package to logiq\"")
+    print('       git commit -m "Rename package to logiq"')
     return 0
 
 

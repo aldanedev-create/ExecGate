@@ -24,7 +24,6 @@ from __future__ import annotations
 import pytest
 
 from logiq._internal.redaction import (
-    DEFAULT_REDACTOR,
     DEFAULT_SENSITIVE_KEYS,
     REDACTED,
     Redactor,
@@ -32,10 +31,10 @@ from logiq._internal.redaction import (
     redact_details,
 )
 
-
 # ---------------------------------------------------------------------------
 # Structural redaction (traces never contain raw values)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.security
 def test_trace_does_not_contain_argument_values(logix):
@@ -45,13 +44,16 @@ def test_trace_does_not_contain_argument_values(logix):
     def charge(api_key: str, amount: float) -> dict[str, int]:
         return {"ok": 1}
 
-    result = logix.run({
-        "call": "charge",
-        "with": {"api_key": secret, "amount": 5.0},
-    })
+    result = logix.run(
+        {
+            "call": "charge",
+            "with": {"api_key": secret, "amount": 5.0},
+        }
+    )
     assert result.ok
     # Trace serialization must not contain the raw key.
     import json
+
     trace_json = json.dumps(result.trace.to_dict())
     assert secret not in trace_json
 
@@ -67,6 +69,7 @@ def test_trace_does_not_contain_handler_return_value(logix):
     result = logix.run({"call": "get_user", "with": {"user_id": 1}})
     assert result.ok
     import json
+
     trace_json = json.dumps(result.trace.to_dict())
     assert sensitive_return not in trace_json
 
@@ -74,6 +77,7 @@ def test_trace_does_not_contain_handler_return_value(logix):
 @pytest.mark.security
 def test_framework_grounding_error_does_not_leak_value(logix):
     """GROUNDING_REQUIRED reports the *path*, not the value."""
+
     @logix.capability
     def refund(order_id: int, amount: float) -> dict[str, int]:
         return {"ok": 1}
@@ -81,10 +85,12 @@ def test_framework_grounding_error_does_not_leak_value(logix):
     logix.grounding(require_ref_for=["refund.amount"])
 
     secret_amount = 42.195
-    result = logix.run({
-        "call": "refund",
-        "with": {"order_id": 1, "amount": secret_amount},
-    })
+    result = logix.run(
+        {
+            "call": "refund",
+            "with": {"order_id": 1, "amount": secret_amount},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "GROUNDING_REQUIRED"
     # The detail names the argument path, not the literal value.
@@ -94,6 +100,7 @@ def test_framework_grounding_error_does_not_leak_value(logix):
 # ---------------------------------------------------------------------------
 # The redact() helper
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.security
 def test_redact_default_sensitive_keys():
@@ -150,6 +157,7 @@ def test_redact_does_not_mutate_input():
 @pytest.mark.security
 def test_redact_with_patterns():
     import re
+
     r = Redactor(
         sensitive_keys=frozenset(),
         patterns=(re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),),

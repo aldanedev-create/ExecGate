@@ -14,8 +14,9 @@ enforcement lives in ``verifier`` (static checks, reserved) and
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from logiq.context import ExecutionContext
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Decision types
 # ---------------------------------------------------------------------------
+
 
 class Decision(Protocol):
     """Marker protocol; concrete types are Allow, Deny, RequireApproval."""
@@ -66,6 +68,7 @@ expects) and the current context."""
 # PolicySet — the named-policy registry
 # ---------------------------------------------------------------------------
 
+
 class PolicySet:
     """
     Named reusable policies.
@@ -90,13 +93,9 @@ class PolicySet:
         Raises ``TypeError`` if ``rule`` is not callable.
         """
         if not isinstance(name, str) or not name:
-            raise ValueError(
-                f"policy name must be a non-empty string; got {name!r}"
-            )
+            raise ValueError(f"policy name must be a non-empty string; got {name!r}")
         if not callable(rule):
-            raise TypeError(
-                f"policy rule must be callable; got {type(rule).__name__}"
-            )
+            raise TypeError(f"policy rule must be callable; got {type(rule).__name__}")
         if name in self._policies:
             raise ValueError(f"policy {name!r} is already registered")
         self._policies[name] = rule
@@ -119,7 +118,7 @@ class PolicySet:
         self,
         name: str,
         plan: Any,
-        context: "ExecutionContext",
+        context: ExecutionContext,
     ) -> Decision:
         """
         Run one policy by name.
@@ -134,7 +133,7 @@ class PolicySet:
     def decisions(
         self,
         plan: Any,
-        context: "ExecutionContext",
+        context: ExecutionContext,
     ) -> dict[str, Decision]:
         """
         Run every policy and return ``{name: decision}``.
@@ -143,10 +142,7 @@ class PolicySet:
         propagate to the caller; the caller decides whether to treat them
         as denials.
         """
-        return {
-            name: rule(plan, context)
-            for name, rule in self._policies.items()
-        }
+        return {name: rule(plan, context) for name, rule in self._policies.items()}
 
     def __iter__(self) -> Iterator[tuple[str, PolicyRule]]:
         return iter(self._policies.items())

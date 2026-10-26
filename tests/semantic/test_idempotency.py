@@ -8,18 +8,16 @@ protocol is the contract; this class is the default.
 
 from __future__ import annotations
 
-import pytest
-
 from logiq import Logix
 from logiq.semantic import (
     IdempotencyStatus,
     InMemoryIdempotencyStore,
 )
 
-
 # ---------------------------------------------------------------------------
 # InMemoryIdempotencyStore: direct
 # ---------------------------------------------------------------------------
+
 
 def test_fresh_key_reserves():
     store = InMemoryIdempotencyStore()
@@ -97,6 +95,7 @@ def test_commit_already_committed_keeps_old_value():
 # ---------------------------------------------------------------------------
 # End-to-end via Logix
 # ---------------------------------------------------------------------------
+
 
 def test_idempotent_capability_handler_once(logix):
     calls = []
@@ -195,6 +194,7 @@ def test_two_engines_isolated_idempotency():
         def charge(order_id: int) -> dict[str, str]:
             calls.append(tag)
             return {"tag": tag}
+
         return charge
 
     a.capability.register(make(calls_a, "a"), name="charge", idempotent=True)

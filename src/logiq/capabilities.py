@@ -6,8 +6,9 @@ See ``docs/api-reference.md §3`` and ``docs/system-design.md §2``.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from logiq.annotation_inspect import (
     SignatureInfo,
@@ -97,7 +98,7 @@ class Registry:
     def names(self) -> list[str]:
         return list(self._caps.keys())
 
-    def __iter__(self) -> "Any":
+    def __iter__(self) -> Any:
         return iter(self._caps.values())
 
     def __len__(self) -> int:
@@ -109,6 +110,7 @@ class Registry:
     def snapshot_hash(self) -> str:
         if self._snapshot_cache is None:
             from logiq._internal import canonical_hash
+
             payload = {
                 name: {
                     "input": cap.input_schema.to_json_schema(),
@@ -143,20 +145,14 @@ def build_capability(
     ``ValueError`` for invalid option values. See ADR-0003.
     """
     if not callable(fn):
-        raise TypeError(
-            f"capability must be callable; got {type(fn).__name__}"
-        )
+        raise TypeError(f"capability must be callable; got {type(fn).__name__}")
 
     cap_name = name if name is not None else getattr(fn, "__name__", "")
     if not isinstance(cap_name, str) or not cap_name:
-        raise ValueError(
-            f"capability name must be a non-empty string; got {cap_name!r}"
-        )
+        raise ValueError(f"capability name must be a non-empty string; got {cap_name!r}")
 
     if effects is not None and effects not in ("read", "write"):
-        raise ValueError(
-            f"effects must be 'read', 'write', or None; got {effects!r}"
-        )
+        raise ValueError(f"effects must be 'read', 'write', or None; got {effects!r}")
 
     info = inspect_capability(fn)
     info = _maybe_transform_pydantic(info)
@@ -164,17 +160,13 @@ def build_capability(
     problems = find_unsupported_annotations(info)
     if problems:
         formatted = "\n  ".join(problems)
-        raise TypeError(
-            f"cannot register capability {cap_name!r}:\n  {formatted}"
-        )
+        raise TypeError(f"cannot register capability {cap_name!r}:\n  {formatted}")
 
     try:
         input_schema = infer_input_schema(info.parameters)
         output_schema = infer_output_schema(info.return_annotation)
     except SchemaInferenceError as e:
-        raise TypeError(
-            f"cannot register capability {cap_name!r}: {e}"
-        ) from e
+        raise TypeError(f"cannot register capability {cap_name!r}: {e}") from e
 
     return Capability(
         name=cap_name,

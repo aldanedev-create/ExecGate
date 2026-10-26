@@ -54,7 +54,7 @@ def get_adapter(name: str) -> ProviderAdapter:
     try:
         module = importlib.import_module(module_name)
         adapter_cls = getattr(module, class_name)
-        return adapter_cls()
+        return adapter_cls()  # type: ignore[no-any-return]
     except (ImportError, AttributeError):
         # A broken provider module must not break the application. Fall
         # back to neutral — the caller gets a valid, if unoptimized,

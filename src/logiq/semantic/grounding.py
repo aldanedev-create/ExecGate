@@ -20,11 +20,12 @@ See ``docs/semantic-layer.md`` and ADR-0005.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Any
 
 from logiq.errors import Error, grounding_required
-from logiq.plans.parse import CanonicalPlan, CanonicalStep
+from logiq.plans.parse import CanonicalPlan
 from logiq.plans.references import is_reference
 
 if TYPE_CHECKING:
@@ -52,9 +53,7 @@ class GroundingPolicy:
         # Every path must look like "capability.something".
         for path in self.require_ref | self.literal_allowlist:
             if "." not in path or path.startswith(".") or path.endswith("."):
-                raise ValueError(
-                    f"grounding path must be 'capability.argument': {path!r}"
-                )
+                raise ValueError(f"grounding path must be 'capability.argument': {path!r}")
 
 
 def check_grounding(
@@ -83,17 +82,18 @@ def check_grounding(
                 continue
             if is_reference(value):
                 continue
-            errors.append(grounding_required(
-                f"argument {full_path!r} must be sourced from a $ref "
-                f"(not a literal value)",
-                path=f"{step_prefix}.{arg_path}",
-                details={"capability": step.capability, "argument": arg_path},
-            ))
+            errors.append(
+                grounding_required(
+                    f"argument {full_path!r} must be sourced from a $ref (not a literal value)",
+                    path=f"{step_prefix}.{arg_path}",
+                    details={"capability": step.capability, "argument": arg_path},
+                )
+            )
 
     return errors
 
 
-def _walk_args(args: dict, prefix: str = "") -> Iterable[tuple[str, object]]:
+def _walk_args(args: Mapping[str, Any], prefix: str = "") -> Iterable[tuple[str, Any]]:
     """Yield (dotted_path, value) for every leaf argument."""
     for k, v in args.items():
         path = f"{prefix}.{k}" if prefix else k

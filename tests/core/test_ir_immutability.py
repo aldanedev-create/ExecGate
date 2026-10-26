@@ -23,9 +23,7 @@ from logiq.ir import VerifiedPlan, VerifiedStep, _construct_verified_plan
 def _make_plan(**overrides):
     base = dict(
         plan_version="1",
-        steps=(
-            VerifiedStep(id="s1", capability="c", arguments={"a": 1}),
-        ),
+        steps=(VerifiedStep(id="s1", capability="c", arguments={"a": 1}),),
         dependency_order=("s1",),
         capability_snapshot_hash="snap",
         verification_hash="vh",
@@ -38,6 +36,7 @@ def _make_plan(**overrides):
 # ---------------------------------------------------------------------------
 # Structural properties
 # ---------------------------------------------------------------------------
+
 
 def test_verified_plan_is_a_frozen_dataclass():
     assert dataclasses.is_dataclass(VerifiedPlan)
@@ -55,6 +54,7 @@ def test_verified_step_is_a_frozen_dataclass():
 # ---------------------------------------------------------------------------
 # Unforgeable from user code
 # ---------------------------------------------------------------------------
+
 
 def test_direct_construction_raises_type_error():
     # @dataclass(init=False) means no __init__ is generated. Calling the
@@ -81,6 +81,7 @@ def test_object_new_bypass_has_no_fields():
 # ---------------------------------------------------------------------------
 # Mutation rejected
 # ---------------------------------------------------------------------------
+
 
 def test_verified_plan_frozen():
     vp = _make_plan()
@@ -118,6 +119,7 @@ def test_verified_step_arguments_dict_copied():
 # single_call field
 # ---------------------------------------------------------------------------
 
+
 def test_single_call_recorded():
     vp = _make_plan(single_call=True)
     assert vp.single_call is True
@@ -129,6 +131,7 @@ def test_single_call_recorded():
 # ---------------------------------------------------------------------------
 # Serialization
 # ---------------------------------------------------------------------------
+
 
 def test_serialize_round_trips_fields():
     vp = _make_plan(single_call=True)

@@ -22,38 +22,41 @@ import pytest
 # fail with a clear message rather than a cryptic import error.
 try:
     import fastmcp  # noqa: F401
+
     HAS_FASTMCP = True
 except ImportError:
     HAS_FASTMCP = False
 
-mcp_available = pytest.mark.skipif(
-    not HAS_FASTMCP, reason="logiq_mcp requires fastmcp"
-)
+mcp_available = pytest.mark.skipif(not HAS_FASTMCP, reason="logiq_mcp requires fastmcp")
 
 
 # ---------------------------------------------------------------------------
 # Minimal MCP-shaped stubs
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FakeMCPTool:
     """The subset of ``mcp.types.Tool`` the proxy reads."""
+
     name: str
     description: str
-    inputSchema: dict[str, Any]
+    inputSchema: dict[str, Any]  # noqa: N815
 
 
 @dataclass
 class FakeTextContent:
     """The subset of an MCP text content block the proxy reads."""
+
     text: str
 
 
 @dataclass
 class FakeCallToolResult:
     """The subset of ``mcp.types.CallToolResult`` the proxy reads."""
+
     content: list[FakeTextContent] = field(default_factory=list)
-    isError: bool = False
+    isError: bool = False  # noqa: N815
 
 
 class FakeMCPClient:
@@ -90,7 +93,7 @@ class FakeMCPClient:
         self.entered = False
         self.exited = False
 
-    async def __aenter__(self) -> "FakeMCPClient":
+    async def __aenter__(self) -> FakeMCPClient:
         self.entered = True
         return self
 
@@ -106,9 +109,7 @@ class FakeMCPClient:
             raise self._raise_on_call[name]
         if name in self._call_results:
             return self._call_results[name]
-        return FakeCallToolResult(
-            content=[FakeTextContent(text=json.dumps({"called": name}))]
-        )
+        return FakeCallToolResult(content=[FakeTextContent(text=json.dumps({"called": name}))])
 
 
 @pytest.fixture

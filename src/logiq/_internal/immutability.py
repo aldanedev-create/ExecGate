@@ -25,10 +25,10 @@ import json
 from types import MappingProxyType
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Freezing and thawing
 # ---------------------------------------------------------------------------
+
 
 def freeze(value: Any) -> Any:
     """
@@ -87,14 +87,13 @@ def is_frozen(value: Any) -> bool:
         return all(is_frozen(v) for v in value)
     if isinstance(value, frozenset):
         return all(is_frozen(v) for v in value)
-    if isinstance(value, (dict, list, set)):
-        return False
-    return True
+    return not isinstance(value, (dict, list, set))
 
 
 # ---------------------------------------------------------------------------
 # Canonical JSON and hashing
 # ---------------------------------------------------------------------------
+
 
 def canonical_json(value: Any) -> str:
     """
@@ -142,6 +141,5 @@ def assert_immutable(value: Any, name: str = "value") -> None:
     """
     if not is_frozen(value):
         raise TypeError(
-            f"{name} must be immutable (freeze() it before storing); "
-            f"got a mutable container"
+            f"{name} must be immutable (freeze() it before storing); got a mutable container"
         )

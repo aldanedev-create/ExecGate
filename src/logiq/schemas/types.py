@@ -31,6 +31,7 @@ UNION_ORIGINS: tuple[Any, ...] = (_typing.Union, _types.UnionType)
 # Validation error
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class SchemaError:
     """A single schema validation failure at a specific path."""
@@ -44,10 +45,11 @@ class SchemaError:
 # Type protocol
 # ---------------------------------------------------------------------------
 
+
 class Type(Protocol):
     def validate(self, value: Any, path: str = "$") -> list[SchemaError]: ...
     def to_json_schema(self) -> dict[str, Any]: ...
-    def walk(self, segment: str) -> "Type | None": ...
+    def walk(self, segment: str) -> Type | None: ...
 
 
 def is_type_instance(value: Any) -> bool:
@@ -59,15 +61,14 @@ def is_type_instance(value: Any) -> bool:
     so they are not rejected as unsupported annotations.
     """
     return (
-        hasattr(value, "validate")
-        and hasattr(value, "to_json_schema")
-        and hasattr(value, "walk")
+        hasattr(value, "validate") and hasattr(value, "to_json_schema") and hasattr(value, "walk")
     )
 
 
 # ---------------------------------------------------------------------------
 # Primitive types — strict, no coercion
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class IntType:
@@ -81,7 +82,7 @@ class IntType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "integer"}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -97,7 +98,7 @@ class FloatType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "number"}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -113,7 +114,7 @@ class NumberType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "number"}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -129,7 +130,7 @@ class StrType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "string"}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -145,7 +146,7 @@ class BoolType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "boolean"}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -161,13 +162,14 @@ class NoneType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "null"}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
 # ---------------------------------------------------------------------------
 # Container types
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class AnyType:
@@ -179,7 +181,7 @@ class AnyType:
     def to_json_schema(self) -> dict[str, Any]:
         return {}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -200,7 +202,7 @@ class ListType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "array", "items": self.item_type.to_json_schema()}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         try:
             int(segment)
         except ValueError:
@@ -228,7 +230,7 @@ class DictType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"type": "object", "additionalProperties": self.value_type.to_json_schema()}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return self.value_type
 
 
@@ -274,7 +276,7 @@ class ObjectType:
             "additionalProperties": self.additional,
         }
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return self.fields.get(segment)
 
 
@@ -294,7 +296,7 @@ class LiteralType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"enum": list(self.values)}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         return None
 
 
@@ -317,7 +319,7 @@ class UnionType:
     def to_json_schema(self) -> dict[str, Any]:
         return {"anyOf": [m.to_json_schema() for m in self.members]}
 
-    def walk(self, segment: str) -> "Type | None":
+    def walk(self, segment: str) -> Type | None:
         members = [m.walk(segment) for m in self.members]
         if any(m is None for m in members):
             return None
@@ -333,6 +335,7 @@ class UnionType:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _name_of(value: Any) -> str:
     if value is None:

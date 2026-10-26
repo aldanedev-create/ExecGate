@@ -28,6 +28,7 @@ def _ctx(principal: str = "alice", **kwargs) -> ExecutionContext:
 # canonical_args_hash
 # ---------------------------------------------------------------------------
 
+
 def test_args_hash_is_deterministic():
     assert canonical_args_hash({"a": 1, "b": 2}) == canonical_args_hash({"a": 1, "b": 2})
 
@@ -49,6 +50,7 @@ def test_args_hash_empty_dict():
 # ---------------------------------------------------------------------------
 # context_hash
 # ---------------------------------------------------------------------------
+
 
 def test_context_hash_deterministic():
     ctx = _ctx()
@@ -85,6 +87,7 @@ def test_context_hash_ignores_extra():
 # issue()
 # ---------------------------------------------------------------------------
 
+
 def test_issue_creates_valid_token():
     ctx = _ctx()
     token = issue(
@@ -119,6 +122,7 @@ def test_issue_rejects_empty_issuer():
 # ---------------------------------------------------------------------------
 # matches()
 # ---------------------------------------------------------------------------
+
 
 def test_matches_exact_action():
     ctx = _ctx()
@@ -170,12 +174,18 @@ def test_mismatch_roles():
 # to_dict
 # ---------------------------------------------------------------------------
 
+
 def test_to_dict_contains_no_secrets():
     ctx = _ctx()
     token = issue(capability="refund", args={}, context=ctx, issuer="h")
     d = token.to_dict()
     assert set(d.keys()) == {
-        "capability", "args_hash", "principal", "context_hash", "issued_at", "issuer",
+        "capability",
+        "args_hash",
+        "principal",
+        "context_hash",
+        "issued_at",
+        "issuer",
     }
     # No plaintext args, no raw context.
     assert "args" not in d
@@ -185,6 +195,7 @@ def test_to_dict_contains_no_secrets():
 # ---------------------------------------------------------------------------
 # End-to-end: execute with a token
 # ---------------------------------------------------------------------------
+
 
 def test_execute_with_valid_token(logix):
     @logix.capability
@@ -221,7 +232,8 @@ def test_execute_with_wrong_args_token_rejected(logix):
     )
 
     report = logix.verify(
-        {"call": "refund", "with": {"order_id": 1, "amount": 5.0}}, context=ctx,
+        {"call": "refund", "with": {"order_id": 1, "amount": 5.0}},
+        context=ctx,
     )
     result = logix.execute(report.verified_plan, context=ctx, approval=token)
     assert not result.ok

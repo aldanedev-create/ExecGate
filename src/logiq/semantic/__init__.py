@@ -29,27 +29,43 @@ not an optional adapter: the guarantees it provides are part of what makes
 from __future__ import annotations
 
 from logiq.semantic.grounding import (
-    GroundingPolicy, check_grounding,
+    GroundingPolicy,
+    check_grounding,
 )
 from logiq.semantic.idempotency import (
-    IdempotencyResult, IdempotencyStatus, IdempotencyStore,
+    IdempotencyResult,
+    IdempotencyStatus,
+    IdempotencyStore,
     InMemoryIdempotencyStore,
 )
 from logiq.semantic.invariants import (
-    InvariantRegistry, run_invariants,
+    InvariantRegistry,
+    run_invariants,
 )
 from logiq.semantic.recheck import (
-    RecheckResult, RecheckStatus, recheck_step,
+    RecheckResult,
+    RecheckStatus,
+    recheck_step,
 )
 from logiq.semantic.repair_loop import (
-    RepairLoop, RepairRefused, RepairState,
+    RepairLoop,
+    RepairRefused,
+    RepairState,
 )
 
 __all__ = [
-    "GroundingPolicy", "check_grounding",
-    "InvariantRegistry", "run_invariants",
-    "RecheckResult", "RecheckStatus", "recheck_step",
-    "RepairLoop", "RepairRefused", "RepairState",
-    "IdempotencyResult", "IdempotencyStatus", "IdempotencyStore",
+    "GroundingPolicy",
+    "IdempotencyResult",
+    "IdempotencyStatus",
+    "IdempotencyStore",
     "InMemoryIdempotencyStore",
+    "InvariantRegistry",
+    "RecheckResult",
+    "RecheckStatus",
+    "RepairLoop",
+    "RepairRefused",
+    "RepairState",
+    "check_grounding",
+    "recheck_step",
+    "run_invariants",
 ]

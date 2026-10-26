@@ -21,7 +21,6 @@ from pathlib import Path
 
 import pytest
 
-
 _LOGIX_MCP = Path(__file__).resolve().parents[2] / "src" / "logiq_mcp"
 
 _FORBIDDEN_MODULES = {
@@ -52,9 +51,8 @@ def _imports_in(path: Path) -> list[tuple[int, str]]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 found.append((node.lineno, alias.name))
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                found.append((node.lineno, node.module))
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            found.append((node.lineno, node.module))
     return found
 
 
@@ -76,41 +74,39 @@ def _calls_in(path: Path) -> list[tuple[int, str]]:
 # Import scan
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("path", _source_files(), ids=lambda p: p.name)
 def test_no_trust_internal_imports(path: Path) -> None:
     imports = _imports_in(path)
     for lineno, module in imports:
         for forbidden in _FORBIDDEN_MODULES:
             if module == forbidden or module.startswith(forbidden + "."):
-                pytest.fail(
-                    f"{path.name}:{lineno} imports forbidden module "
-                    f"{module!r} (ADR-0007)"
-                )
+                pytest.fail(f"{path.name}:{lineno} imports forbidden module {module!r} (ADR-0007)")
 
 
 # ---------------------------------------------------------------------------
 # Call scan
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("path", _source_files(), ids=lambda p: p.name)
 def test_no_bypass_function_calls(path: Path) -> None:
     calls = _calls_in(path)
     for lineno, name in calls:
         if name in _FORBIDDEN_FUNCTION_NAMES:
-            pytest.fail(
-                f"{path.name}:{lineno} calls forbidden function "
-                f"{name!r} (ADR-0007)"
-            )
+            pytest.fail(f"{path.name}:{lineno} calls forbidden function {name!r} (ADR-0007)")
 
 
 # ---------------------------------------------------------------------------
 # Positive: allowed imports still work
 # ---------------------------------------------------------------------------
 
+
 def test_package_imports_cleanly():
     """Sanity: importing the package must not have been broken by these
     checks."""
     import logiq_mcp
+
     assert hasattr(logiq_mcp, "LogixMCPServer")
     assert hasattr(logiq_mcp, "LogixMCPProxy")
 
@@ -120,18 +116,18 @@ def test_package_imports_cleanly():
 # ---------------------------------------------------------------------------
 
 _ALLOWED_LOGIX_MODULES = {
-    "logix",                    # top-level version etc.
-    "logiq.tools",              # ToolSpec (allowed by ADR-0007)
-    "logiq.results",            # Result, Trace, VerificationReport
-    "logiq.errors",             # Error, code constants
-    "logiq.context",            # ExecutionContext
-    "logiq.capabilities",       # Capability dataclass (not build_capability)
-    "logiq.engine",             # Logix (to call run/verify/execute)
-    "logiq.schemas",            # Type instances for wrapping upstream tools
-    "logiq.schemas.types",      # ObjectType etc.
-    "logiq.schemas.infer",      # annotation-to-type for nested resolution
-    "logiq.approval",           # for approval-related paths
-    "logiq.policies",           # Allow/Deny (returned by invariants)
+    "logix",  # top-level version etc.
+    "logiq.tools",  # ToolSpec (allowed by ADR-0007)
+    "logiq.results",  # Result, Trace, VerificationReport
+    "logiq.errors",  # Error, code constants
+    "logiq.context",  # ExecutionContext
+    "logiq.capabilities",  # Capability dataclass (not build_capability)
+    "logiq.engine",  # Logix (to call run/verify/execute)
+    "logiq.schemas",  # Type instances for wrapping upstream tools
+    "logiq.schemas.types",  # ObjectType etc.
+    "logiq.schemas.infer",  # annotation-to-type for nested resolution
+    "logiq.approval",  # for approval-related paths
+    "logiq.policies",  # Allow/Deny (returned by invariants)
 }
 
 
@@ -143,13 +139,12 @@ def test_imports_from_core_are_in_allowlist() -> None:
 
     for path in _source_files():
         for lineno, module in _imports_in(path):
-            if module.startswith("logiq.") or module == "logix":
+            if module.startswith("logiq.") or module == "logix":  # noqa: SIM102
                 if module not in _ALLOWED_LOGIX_MODULES:
                     # Check whether a parent is allowed (e.g. logix.schemas.*
                     # imports under logix.schemas).
                     prefix_allowed = any(
-                        module.startswith(allowed + ".")
-                        for allowed in _ALLOWED_LOGIX_MODULES
+                        module.startswith(allowed + ".") for allowed in _ALLOWED_LOGIX_MODULES
                     )
                     if not prefix_allowed:
                         violations.append((path.name, lineno, module))

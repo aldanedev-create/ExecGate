@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
 from logiq.plans import CanonicalPlan, CanonicalStep
 from logiq.semantic import GroundingPolicy, check_grounding
 
@@ -28,6 +27,7 @@ def _plan(capability: str, args: dict) -> CanonicalPlan:
 # GroundingPolicy construction
 # ---------------------------------------------------------------------------
 
+
 def test_empty_policy_is_valid():
     policy = GroundingPolicy()
     assert policy.require_ref == frozenset()
@@ -43,7 +43,7 @@ def test_valid_paths_accepted():
 
 
 def test_path_without_dot_rejected():
-    with pytest.raises(ValueError, match="capability.argument"):
+    with pytest.raises(ValueError, match=r"capability\.argument"):
         GroundingPolicy(require_ref=frozenset({"justname"}))
 
 
@@ -61,6 +61,7 @@ def test_path_ending_with_dot_rejected():
 # check_grounding — empty policy
 # ---------------------------------------------------------------------------
 
+
 def test_empty_policy_produces_no_errors():
     plan = _plan("refund", {"amount": 5.0})
     assert check_grounding(plan, GroundingPolicy()) == []
@@ -69,6 +70,7 @@ def test_empty_policy_produces_no_errors():
 # ---------------------------------------------------------------------------
 # check_grounding — literal rejected
 # ---------------------------------------------------------------------------
+
 
 def test_literal_value_rejected():
     plan = _plan("refund", {"amount": 5.0})
@@ -95,6 +97,7 @@ def test_non_sensitive_literal_allowed():
 # check_grounding — $ref accepted
 # ---------------------------------------------------------------------------
 
+
 def test_ref_value_accepted():
     plan = _plan("refund", {"amount": {"$ref": "order.total"}})
     policy = GroundingPolicy(require_ref=frozenset({"refund.amount"}))
@@ -104,6 +107,7 @@ def test_ref_value_accepted():
 # ---------------------------------------------------------------------------
 # literal_allowlist
 # ---------------------------------------------------------------------------
+
 
 def test_allowlist_overrides_require_ref():
     plan = _plan("refund", {"amount": 5.0})
@@ -129,6 +133,7 @@ def test_allowlist_does_not_affect_other_paths():
 # Nested arguments
 # ---------------------------------------------------------------------------
 
+
 def test_nested_dict_path():
     plan = _plan("refund", {"line_items": {"first": 5.0}})
     policy = GroundingPolicy(require_ref=frozenset({"refund.line_items.first"}))
@@ -139,10 +144,14 @@ def test_nested_dict_path():
 
 def test_list_index_path():
     plan = _plan("refund", {"line_items": [{"amount": 5.0}, {"amount": 6.0}]})
-    policy = GroundingPolicy(require_ref=frozenset({
-        "refund.line_items.0.amount",
-        "refund.line_items.1.amount",
-    }))
+    policy = GroundingPolicy(
+        require_ref=frozenset(
+            {
+                "refund.line_items.0.amount",
+                "refund.line_items.1.amount",
+            }
+        )
+    )
     errors = check_grounding(plan, policy)
     assert len(errors) == 2
 
@@ -151,6 +160,7 @@ def test_list_index_path():
 # End-to-end via Logix
 # ---------------------------------------------------------------------------
 
+
 def test_verify_fails_for_ungrounded_literal(logix):
     @logix.capability
     def refund(order_id: int, amount: float) -> dict[str, int]:
@@ -158,10 +168,12 @@ def test_verify_fails_for_ungrounded_literal(logix):
 
     logix.grounding(require_ref_for=["refund.amount"])
 
-    report = logix.verify({
-        "call": "refund",
-        "with": {"order_id": 1, "amount": 5.0},
-    })
+    report = logix.verify(
+        {
+            "call": "refund",
+            "with": {"order_id": 1, "amount": 5.0},
+        }
+    )
     assert not report.ok
     assert report.errors[0].code == "GROUNDING_REQUIRED"
 
@@ -177,14 +189,19 @@ def test_verify_passes_when_amount_is_ref(logix):
 
     logix.grounding(require_ref_for=["refund.amount"])
 
-    report = logix.verify({
-        "version": "1",
-        "steps": [
-            {"id": "o", "call": "get_order", "with": {"order_id": 1}},
-            {"id": "r", "call": "refund",
-             "with": {"order_id": 1, "amount": {"$ref": "o.total"}}},
-        ],
-    })
+    report = logix.verify(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "o", "call": "get_order", "with": {"order_id": 1}},
+                {
+                    "id": "r",
+                    "call": "refund",
+                    "with": {"order_id": 1, "amount": {"$ref": "o.total"}},
+                },
+            ],
+        }
+    )
     assert report.ok
 
 
@@ -198,10 +215,12 @@ def test_run_fails_grounding_before_handler(logix):
 
     logix.grounding(require_ref_for=["refund.amount"])
 
-    result = logix.run({
-        "call": "refund",
-        "with": {"order_id": 1, "amount": 5.0},
-    })
+    result = logix.run(
+        {
+            "call": "refund",
+            "with": {"order_id": 1, "amount": 5.0},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "GROUNDING_REQUIRED"
     assert invoked == []

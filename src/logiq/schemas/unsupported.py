@@ -19,17 +19,31 @@ from typing import Any
 
 from logiq.schemas.types import UNION_ORIGINS
 
-SUPPORTED_PRIMITIVES: frozenset[Any] = frozenset({
-    int, float, str, bool, type(None),
-})
+SUPPORTED_PRIMITIVES: frozenset[Any] = frozenset(
+    {
+        int,
+        float,
+        str,
+        bool,
+        type(None),
+    }
+)
 
-SUPPORTED_GENERIC_ORIGINS: frozenset[Any] = frozenset({
-    list, dict, *UNION_ORIGINS,
-})
+SUPPORTED_GENERIC_ORIGINS: frozenset[Any] = frozenset(
+    {
+        list,
+        dict,
+        *UNION_ORIGINS,
+    }
+)
 
-SUPPORTED_TYPING_NAMES: frozenset[str] = frozenset({
-    "Optional", "Union", "Literal",
-})
+SUPPORTED_TYPING_NAMES: frozenset[str] = frozenset(
+    {
+        "Optional",
+        "Union",
+        "Literal",
+    }
+)
 
 
 def describe_unsupported(annotation: Any) -> list[str]:
@@ -99,6 +113,7 @@ def describe_unsupported(annotation: Any) -> list[str]:
 
 
 def _name(annotation: Any) -> str:
-    if hasattr(annotation, "__name__"):
-        return annotation.__name__
+    name = getattr(annotation, "__name__", None)
+    if isinstance(name, str):
+        return name
     return repr(annotation)

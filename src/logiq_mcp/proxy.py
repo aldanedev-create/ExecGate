@@ -29,11 +29,11 @@ Lifecycle::
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from logiq.context import ExecutionContext
 from logiq.engine import Logix
-
 from logiq_mcp.server import LogixMCPServer
 from logiq_mcp.upstream import fetch_upstream_tools, wrap_upstream_tool
 
@@ -57,7 +57,7 @@ class LogixMCPProxy:
         upstream: Any,
         *,
         name: str = "logiq-proxy",
-        context_factory: "Callable[[], ExecutionContext] | None" = None,
+        context_factory: Callable[[], ExecutionContext] | None = None,
     ) -> None:
         """
         Args:
@@ -91,14 +91,13 @@ class LogixMCPProxy:
         proxy in a clean state.
         """
         if self._server is not None:
-            raise RuntimeError(
-                "startup() called twice; call shutdown() first"
-            )
+            raise RuntimeError("startup() called twice; call shutdown() first")
 
         self._loop = asyncio.get_running_loop()
 
         if isinstance(self._upstream, str):
             from fastmcp import Client
+
             self._client = Client(self._upstream)
         else:
             self._client = self._upstream
@@ -147,9 +146,7 @@ class LogixMCPProxy:
     async def run_async(self, **kwargs: Any) -> None:
         """Run the proxy as an MCP server (async)."""
         if self._server is None:
-            raise RuntimeError(
-                "call startup() before run_async()"
-            )
+            raise RuntimeError("call startup() before run_async()")
         await self._server.run_async(**kwargs)
 
     def run(self, **kwargs: Any) -> None:

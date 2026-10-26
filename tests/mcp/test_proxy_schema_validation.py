@@ -15,7 +15,7 @@ import pytest
 from logiq import Logix
 from logiq_mcp.proxy import LogixMCPProxy
 
-from mcp_support import FakeMCPClient, mcp_available
+from .mcp_support import FakeMCPClient, mcp_available
 
 
 @mcp_available
@@ -74,8 +74,7 @@ def test_extra_arg_rejected(fake_order_tools):
         try:
             result = await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_get_order",
-                 "with": {"order_id": 1, "evil": "payload"}},
+                {"call": "upstream_get_order", "with": {"order_id": 1, "evil": "payload"}},
             )
             assert not result.ok
             assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
@@ -98,8 +97,7 @@ def test_valid_args_forwarded(fake_order_tools):
         try:
             result = await asyncio.to_thread(
                 logix.run,
-                {"call": "upstream_issue_refund",
-                 "with": {"order_id": 1, "amount": 5.0}},
+                {"call": "upstream_issue_refund", "with": {"order_id": 1, "amount": 5.0}},
             )
             assert result.ok
             assert client.calls == [
@@ -115,11 +113,12 @@ def test_valid_args_forwarded(fake_order_tools):
 # Startup: unsupported upstream schemas
 # ---------------------------------------------------------------------------
 
+
 @mcp_available
 def test_startup_fails_on_unsupported_schema():
     """If upstream declares a schema we can't faithfully wrap, startup
     must fail — not silently downgrade to a permissive schema."""
-    from mcp_support import FakeMCPClient, FakeMCPTool
+    from .mcp_support import FakeMCPClient, FakeMCPTool
 
     tools = [
         FakeMCPTool(

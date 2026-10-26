@@ -12,7 +12,6 @@ from typing import Annotated
 
 import pytest
 
-from logiq import Logix
 from logiq.schemas import Gt, Le
 
 
@@ -29,16 +28,19 @@ def _spy(logix):
 
 
 @pytest.mark.security
-@pytest.mark.parametrize("bad_args", [
-    {},                                  # missing required
-    {"x": "not an int"},                 # wrong type
-    {"x": 1.5},                          # float for int
-    {"x": True},                         # bool is not int
-    {"x": None},                         # None for non-optional
-    {"x": 1, "extra": "payload"},        # unknown field
-    {"x": [1, 2]},                       # list for int
-    {"x": {"a": 1}},                     # dict for int
-])
+@pytest.mark.parametrize(
+    "bad_args",
+    [
+        {},  # missing required
+        {"x": "not an int"},  # wrong type
+        {"x": 1.5},  # float for int
+        {"x": True},  # bool is not int
+        {"x": None},  # None for non-optional
+        {"x": 1, "extra": "payload"},  # unknown field
+        {"x": [1, 2]},  # list for int
+        {"x": {"a": 1}},  # dict for int
+    ],
+)
 def test_invalid_input_does_not_invoke(logix, bad_args):
     invoked = _spy(logix)
     result = logix.run({"call": "op", "with": bad_args})

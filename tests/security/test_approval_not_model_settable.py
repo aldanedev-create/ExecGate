@@ -15,8 +15,6 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
-
 
 @pytest.mark.security
 def test_approval_required_without_token_denies(logix):
@@ -73,10 +71,12 @@ def test_model_cannot_pass_approval_as_argument(logix):
     logix.require_approval(refund)
 
     for arg_value in (True, "fake-token", {"issuer": "admin"}):
-        result = logix.run({
-            "call": "refund",
-            "with": {"order_id": 1, "approved": arg_value},
-        })
+        result = logix.run(
+            {
+                "call": "refund",
+                "with": {"order_id": 1, "approved": arg_value},
+            }
+        )
         assert not result.ok
         # Extra arg triggers schema rejection, not approval bypass.
         assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
@@ -98,10 +98,12 @@ def test_approval_flag_is_capability_level_not_plan_level(logix):
     logix.require_approval(refund)
 
     # Approved arg present, valid; but no token was issued.
-    result = logix.run({
-        "call": "refund",
-        "with": {"order_id": 1, "approved": True},
-    })
+    result = logix.run(
+        {
+            "call": "refund",
+            "with": {"order_id": 1, "approved": True},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "APPROVAL_REQUIRED"
     assert invoked == []
@@ -156,12 +158,15 @@ def test_approval_token_from_different_principal_rejected(logix):
     alice = logix.context(principal="alice")
     bob = logix.context(principal="bob")
     token = issue(
-        capability="refund", args={"order_id": 1},
-        context=alice, issuer="human:alice",
+        capability="refund",
+        args={"order_id": 1},
+        context=alice,
+        issuer="human:alice",
     )
 
     report = logix.verify(
-        {"call": "refund", "with": {"order_id": 1}}, context=bob,
+        {"call": "refund", "with": {"order_id": 1}},
+        context=bob,
     )
     result = logix.execute(report.verified_plan, context=bob, approval=token)
     assert not result.ok

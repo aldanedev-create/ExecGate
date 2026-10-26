@@ -17,8 +17,6 @@ from __future__ import annotations
 import subprocess
 import sys
 
-import pytest
-
 
 def _run(code: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(

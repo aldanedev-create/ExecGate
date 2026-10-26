@@ -25,10 +25,9 @@ than forwarding to an unknown capability.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from logiq.capabilities import Capability
-
 from logiq_mcp.adapter import extract_mcp_result_value, mcp_schema_to_logix
 
 if TYPE_CHECKING:
@@ -49,9 +48,7 @@ async def fetch_upstream_tools(client: Any) -> list[Any]:
     response = await client.list_tools()
     tools = getattr(response, "tools", response)
     if not isinstance(tools, list):
-        raise TypeError(
-            f"expected tools/list to yield a list; got {type(tools).__name__}"
-        )
+        raise TypeError(f"expected tools/list to yield a list; got {type(tools).__name__}")
     return tools
 
 
@@ -60,7 +57,7 @@ def wrap_upstream_tool(
     *,
     client: Any,
     loop: asyncio.AbstractEventLoop,
-    logiq: "Logix",
+    logiq: Logix,
     timeout_seconds: float = 120.0,
 ) -> Capability:
     """
@@ -97,9 +94,7 @@ def wrap_upstream_tool(
     if input_schema_dict is None:  # older FastMCP / MCP SDK v1 objects
         input_schema_dict = getattr(tool, "inputSchema", None)
     if not isinstance(input_schema_dict, dict):
-        raise ValueError(
-            f"upstream tool {name!r} has no inputSchema dict"
-        )
+        raise ValueError(f"upstream tool {name!r} has no inputSchema dict")
 
     input_schema = mcp_schema_to_logix(input_schema_dict)
 
@@ -112,8 +107,7 @@ def wrap_upstream_tool(
             upstream_result = future.result(timeout=timeout_seconds)
         except TimeoutError:
             raise TimeoutError(
-                f"upstream tool {name!r} timed out after "
-                f"{timeout_seconds}s"
+                f"upstream tool {name!r} timed out after {timeout_seconds}s"
             ) from None
         return extract_mcp_result_value(upstream_result)
 
@@ -123,7 +117,7 @@ def wrap_upstream_tool(
         handler=handler,
         input_schema=input_schema,
         output_schema=None,
-        effects="write",           # upstream tools are untrusted by default
+        effects="write",  # upstream tools are untrusted by default
         requires_approval=False,
         idempotent=False,
     )

@@ -11,8 +11,6 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
-
 
 @pytest.mark.security
 def test_wrong_type_output_reported(logix):
@@ -39,6 +37,7 @@ def test_wrong_dict_shape_output_reported(logix):
 @pytest.mark.security
 def test_bool_rejected_as_int_output(logix):
     """Strict types apply to output validation too."""
+
     @logix.capability
     def bad(x: int) -> int:
         return True  # type: ignore[return-value]
@@ -81,6 +80,7 @@ def test_output_failure_reported_in_trace(logix):
 def test_output_failure_is_distinct_from_handler_failure(logix):
     """OUTPUT_VALIDATION_FAILED and HANDLER_FAILED are different codes —
     callers can distinguish 'ran and returned wrong shape' from 'crashed'."""
+
     @logix.capability
     def crashes(x: int) -> int:
         raise ValueError("boom")

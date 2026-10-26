@@ -43,6 +43,7 @@ class TestOpenAIAdapter(AdapterContractMixin):
 # Provider-specific behaviors
 # ---------------------------------------------------------------------------
 
+
 def test_name():
     assert OpenAIAdapter().name == "openai"
 
@@ -60,46 +61,56 @@ def test_format_tools_shape():
 
 def test_parse_accepts_message_dict():
     adapter = OpenAIAdapter()
-    plan = adapter.parse_proposal({
-        "tool_calls": [
-            {
-                "function": {"name": "get_order", "arguments": '{"order_id": 1}'},
-            }
-        ],
-    })
+    plan = adapter.parse_proposal(
+        {
+            "tool_calls": [
+                {
+                    "function": {"name": "get_order", "arguments": '{"order_id": 1}'},
+                }
+            ],
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 1}}
 
 
 def test_parse_accepts_tool_calls_list():
     adapter = OpenAIAdapter()
-    plan = adapter.parse_proposal([
-        {"function": {"name": "get_order", "arguments": "{}"}},
-    ])
+    plan = adapter.parse_proposal(
+        [
+            {"function": {"name": "get_order", "arguments": "{}"}},
+        ]
+    )
     assert plan == {"call": "get_order", "with": {}}
 
 
 def test_parse_accepts_single_tool_call():
     adapter = OpenAIAdapter()
-    plan = adapter.parse_proposal({
-        "function": {"name": "get_order", "arguments": '{"order_id": 3}'},
-    })
+    plan = adapter.parse_proposal(
+        {
+            "function": {"name": "get_order", "arguments": '{"order_id": 3}'},
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 3}}
 
 
 def test_parse_handles_dict_arguments():
     """Newer OpenAI SDKs sometimes return arguments as a dict."""
     adapter = OpenAIAdapter()
-    plan = adapter.parse_proposal({
-        "function": {"name": "get_order", "arguments": {"order_id": 4}},
-    })
+    plan = adapter.parse_proposal(
+        {
+            "function": {"name": "get_order", "arguments": {"order_id": 4}},
+        }
+    )
     assert plan == {"call": "get_order", "with": {"order_id": 4}}
 
 
 def test_parse_handles_empty_arguments_string():
     adapter = OpenAIAdapter()
-    plan = adapter.parse_proposal({
-        "function": {"name": "noop", "arguments": ""},
-    })
+    plan = adapter.parse_proposal(
+        {
+            "function": {"name": "noop", "arguments": ""},
+        }
+    )
     assert plan == {"call": "noop", "with": {}}
 
 
@@ -112,14 +123,18 @@ def test_rejects_no_tool_call():
 def test_rejects_invalid_json_arguments():
     adapter = OpenAIAdapter()
     with pytest.raises(AdapterError, match="not valid JSON"):
-        adapter.parse_proposal({
-            "function": {"name": "get_order", "arguments": "{not json"},
-        })
+        adapter.parse_proposal(
+            {
+                "function": {"name": "get_order", "arguments": "{not json"},
+            }
+        )
 
 
 def test_rejects_missing_function_name():
     adapter = OpenAIAdapter()
     with pytest.raises(AdapterError):
-        adapter.parse_proposal({
-            "function": {"arguments": '{"x": 1}'},
-        })
+        adapter.parse_proposal(
+            {
+                "function": {"arguments": '{"x": 1}'},
+            }
+        )

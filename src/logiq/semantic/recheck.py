@@ -20,20 +20,26 @@ re-earns the dynamic guarantees on every step, every execution.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from logiq.errors import (
-    Error, approval_required, authorization_failed, idempotency_conflict,
+    Error,
+    approval_required,
+    authorization_failed,
+    idempotency_conflict,
 )
-from logiq.policies import Allow, Deny, RequireApproval
-
+from logiq.policies import Deny, RequireApproval
 from logiq.semantic.idempotency import (
-    IdempotencyResult, IdempotencyStatus, IdempotencyStore,
+    IdempotencyStatus,
+    IdempotencyStore,
 )
 from logiq.semantic.invariants import (
-    InvariantRegistry, decision_to_error, run_invariants,
+    InvariantRegistry,
+    decision_to_error,
+    run_invariants,
 )
 
 if TYPE_CHECKING:
@@ -41,10 +47,10 @@ if TYPE_CHECKING:
     from logiq.context import ExecutionContext
 
 
-class RecheckStatus(str, Enum):
+class RecheckStatus(str, Enum):  # noqa: UP042
     PROCEED = "proceed"
-    REPLAY = "replay"                    # cached result available
-    DENY = "deny"                        # rejected; do not invoke
+    REPLAY = "replay"  # cached result available
+    DENY = "deny"  # rejected; do not invoke
     APPROVAL_REQUIRED = "approval_required"
 
 
@@ -59,14 +65,14 @@ def recheck_step(
     *,
     capability: str,
     args: dict[str, Any],
-    context: "ExecutionContext",
+    context: ExecutionContext,
     invariants: InvariantRegistry,
-    approval_token: "ApprovalToken | None" = None,
+    approval_token: ApprovalToken | None = None,
     approval_required_flag: bool = False,
-    idempotency_store: "IdempotencyStore | None" = None,
+    idempotency_store: IdempotencyStore | None = None,
     idempotency_key: str | None = None,
     idempotency_args_hash: str | None = None,
-    context_refresher: "Callable[[], ExecutionContext] | None" = None,
+    context_refresher: Callable[[], ExecutionContext] | None = None,
 ) -> RecheckResult:
     """
     Run every dynamic check before a step's handler is invoked.
@@ -135,7 +141,8 @@ def recheck_step(
                 ),
             )
         idem = idempotency_store.check_and_reserve(
-            idempotency_key, idempotency_args_hash,
+            idempotency_key,
+            idempotency_args_hash,
         )
         if idem.status is IdempotencyStatus.CONFLICT:
             return RecheckResult(

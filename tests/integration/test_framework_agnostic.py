@@ -24,15 +24,26 @@ import pytest
 
 from logiq import Logix
 
-
 # ---------------------------------------------------------------------------
 # Static: no framework imports under src/logiq
 # ---------------------------------------------------------------------------
 
 _FRAMEWORKS = {
-    "flask", "django", "fastapi", "starlette", "aiohttp",
-    "pyramid", "bottle", "tornado", "sanic", "quart", "falcon",
-    "litestar", "blacksheep", "cherrypy", "hug",
+    "flask",
+    "django",
+    "fastapi",
+    "starlette",
+    "aiohttp",
+    "pyramid",
+    "bottle",
+    "tornado",
+    "sanic",
+    "quart",
+    "falcon",
+    "litestar",
+    "blacksheep",
+    "cherrypy",
+    "hug",
 }
 
 _SRC_LOGIX = Path(__file__).resolve().parents[2] / "src" / "logix"
@@ -46,9 +57,8 @@ def _imports_in_file(path: Path) -> set[str]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 names.add(alias.name.split(".")[0])
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                names.add(node.module.split(".")[0])
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.add(node.module.split(".")[0])
             # ``from . import x`` has module=None; skip.
     return names
 
@@ -72,23 +82,22 @@ def test_no_web_framework_imports_in_core():
 # Runtime: import logiq with frameworks blocked
 # ---------------------------------------------------------------------------
 
+
 def _run_with_blocked_frameworks(code: str) -> subprocess.CompletedProcess[str]:
     # Block each framework by setting sys.modules['<name>'] = None BEFORE
     # the import. If logix tried to import one, Python raises ImportError.
-    block = "\n".join(
-        f"sys.modules[{name!r}] = None" for name in sorted(_FRAMEWORKS)
-    )
+    block = "\n".join(f"sys.modules[{name!r}] = None" for name in sorted(_FRAMEWORKS))
     full = f"import sys\n{block}\n{code}"
     return subprocess.run(
         [sys.executable, "-c", full],
-        capture_output=True, text=True, timeout=30,
+        capture_output=True,
+        text=True,
+        timeout=30,
     )
 
 
 def test_import_logix_with_frameworks_blocked():
-    r = _run_with_blocked_frameworks(
-        "import logiq\nprint('ok')"
-    )
+    r = _run_with_blocked_frameworks("import logiq\nprint('ok')")
     assert r.returncode == 0, r.stderr
     assert "ok" in r.stdout
 
@@ -115,6 +124,7 @@ print('ok')
 # No framework context required
 # ---------------------------------------------------------------------------
 
+
 def test_engine_at_module_level():
     """A Logix engine can be constructed and used from module-level code,
     with no app, no request, no application-server context."""
@@ -130,6 +140,7 @@ def test_engine_at_module_level():
 def test_engine_inside_class_method():
     """A Logix engine can be used from inside a plain class method — no
     dependency-injection framework, no request scope."""
+
     class Service:
         def __init__(self):
             self.logix = Logix()
@@ -152,7 +163,6 @@ def test_engine_inside_class_method():
 async def test_engine_inside_async_function():
     """No async requirement, but Logix works from inside an async context
     without interfering with the event loop."""
-    import asyncio
 
     logix = Logix()
 
@@ -172,6 +182,7 @@ async def test_engine_inside_async_function():
 # ---------------------------------------------------------------------------
 # Multiple engines are isolated
 # ---------------------------------------------------------------------------
+
 
 def test_multiple_engines_are_isolated():
     a = Logix()
@@ -205,6 +216,7 @@ def test_engine_isolation_of_policies():
         return x
 
     from logiq import Deny
+
     a.authorize(op, check=lambda args, ctx: Deny("A_BLOCKED", "no"))
 
     # a's op is blocked, b's is fine.
@@ -215,6 +227,7 @@ def test_engine_isolation_of_policies():
 # ---------------------------------------------------------------------------
 # No global state
 # ---------------------------------------------------------------------------
+
 
 def test_creating_engine_does_not_affect_existing_engine():
     """Two engines created in sequence — the second doesn't reset the first."""

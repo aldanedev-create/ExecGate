@@ -12,14 +12,12 @@ to the read's validated output.
 
 from __future__ import annotations
 
-import pytest
-
-from logiq import Deny, Logix
-
+from logiq import Deny
 
 # ---------------------------------------------------------------------------
 # Happy path: linear chain
 # ---------------------------------------------------------------------------
+
 
 def test_linear_chain_succeeds(logix):
     # Native types are strict (no int -> float widening, bool is not int),
@@ -32,15 +30,19 @@ def test_linear_chain_succeeds(logix):
     def issue_refund(order_id: int, amount: int) -> dict[str, int]:
         return {"refunded": 1, "order_id": order_id}
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "o", "call": "get_order", "with": {"order_id": 502}},
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "o", "call": "get_order", "with": {"order_id": 502}},
+                {
+                    "id": "r",
+                    "call": "issue_refund",
+                    "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+                },
+            ],
+        }
+    )
 
     assert result.ok, result.errors
     # Result.value is a dict of step outputs.
@@ -69,14 +71,16 @@ def test_step_execution_order_follows_dependencies(logix):
         log.append("c")
         return x * 2
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "s1", "call": "a", "with": {}},
-            {"id": "s2", "call": "b", "with": {"x": {"$ref": "s1"}}},
-            {"id": "s3", "call": "c", "with": {"x": {"$ref": "s2"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "s1", "call": "a", "with": {}},
+                {"id": "s2", "call": "b", "with": {"x": {"$ref": "s1"}}},
+                {"id": "s3", "call": "c", "with": {"x": {"$ref": "s2"}}},
+            ],
+        }
+    )
     assert result.ok
     assert log == ["a", "b", "c"]
 
@@ -84,6 +88,7 @@ def test_step_execution_order_follows_dependencies(logix):
 # ---------------------------------------------------------------------------
 # Diamond dependencies
 # ---------------------------------------------------------------------------
+
 
 def test_diamond_dependencies(logix):
     log: list[str] = []
@@ -104,20 +109,25 @@ def test_diamond_dependencies(logix):
         return x + 2
 
     @logix.capability
-    def join(l: int, r: int) -> int:
+    def join(left_val: int, r: int) -> int:
         log.append("join")
-        return l + r
+        return left_val + r
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "root", "call": "root", "with": {}},
-            {"id": "left", "call": "left", "with": {"x": {"$ref": "root"}}},
-            {"id": "right", "call": "right", "with": {"x": {"$ref": "root"}}},
-            {"id": "join", "call": "join",
-             "with": {"l": {"$ref": "left"}, "r": {"$ref": "right"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "root", "call": "root", "with": {}},
+                {"id": "left", "call": "left", "with": {"x": {"$ref": "root"}}},
+                {"id": "right", "call": "right", "with": {"x": {"$ref": "root"}}},
+                {
+                    "id": "join",
+                    "call": "join",
+                    "with": {"left_val": {"$ref": "left"}, "r": {"$ref": "right"}},
+                },
+            ],
+        }
+    )
 
     assert result.ok
     # Root must be first, join last, left/right in between (order between
@@ -131,10 +141,12 @@ def test_diamond_dependencies(logix):
 # Reference type checking
 # ---------------------------------------------------------------------------
 
+
 def test_ref_int_to_float_rejected(logix):
     """The verifier rejects ``int`` → ``float`` because ADR-0003 forbids
     implicit widening. The client must declare the field as ``float`` and
     supply a float, or use a step that returns ``float``."""
+
     @logix.capability
     def get_order(order_id: int) -> dict[str, int]:
         return {"id": order_id, "total": 50}
@@ -143,13 +155,15 @@ def test_ref_int_to_float_rejected(logix):
     def refund(amount: float) -> dict[str, int]:
         return {"ok": 1}
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "o", "call": "get_order", "with": {"order_id": 1}},
-            {"id": "r", "call": "refund", "with": {"amount": {"$ref": "o.total"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "o", "call": "get_order", "with": {"order_id": 1}},
+                {"id": "r", "call": "refund", "with": {"amount": {"$ref": "o.total"}}},
+            ],
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "INVALID_REFERENCE"
 
@@ -163,13 +177,15 @@ def test_ref_missing_path_rejected(logix):
     def refund(amount: int) -> dict[str, int]:
         return {"ok": 1}
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "o", "call": "get_order", "with": {"order_id": 1}},
-            {"id": "r", "call": "refund", "with": {"amount": {"$ref": "o.missing"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "o", "call": "get_order", "with": {"order_id": 1}},
+                {"id": "r", "call": "refund", "with": {"amount": {"$ref": "o.missing"}}},
+            ],
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "INVALID_REFERENCE"
 
@@ -177,6 +193,7 @@ def test_ref_missing_path_rejected(logix):
 # ---------------------------------------------------------------------------
 # Partial failure
 # ---------------------------------------------------------------------------
+
 
 def test_partial_failure_stops_subsequent_steps(logix):
     log: list[str] = []
@@ -196,14 +213,16 @@ def test_partial_failure_stops_subsequent_steps(logix):
         log.append("c")
         return 3
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "step_a", "with": {}},
-            {"id": "b", "call": "step_b", "with": {"x": {"$ref": "a"}}},
-            {"id": "c", "call": "step_c", "with": {"x": {"$ref": "b"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "step_a", "with": {}},
+                {"id": "b", "call": "step_b", "with": {"x": {"$ref": "a"}}},
+                {"id": "c", "call": "step_c", "with": {"x": {"$ref": "b"}}},
+            ],
+        }
+    )
 
     assert not result.ok
     assert result.errors[0].code == "HANDLER_FAILED"
@@ -220,13 +239,15 @@ def test_partial_failure_reports_which_steps_ran(logix):
     def fail_step(x: int) -> int:
         raise ValueError("boom")
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "ok", "call": "ok_step", "with": {}},
-            {"id": "fail", "call": "fail_step", "with": {"x": {"$ref": "ok"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "ok", "call": "ok_step", "with": {}},
+                {"id": "fail", "call": "fail_step", "with": {"x": {"$ref": "ok"}}},
+            ],
+        }
+    )
 
     assert not result.ok
     assert result.trace is not None
@@ -251,14 +272,16 @@ def test_pre_execution_failure_produces_no_side_effects(logix):
         invoked.append("b")
         return 2
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "a", "call": "step_a", "with": {}},
-            # Unknown capability: rejected at verify.
-            {"id": "b", "call": "no_such_cap", "with": {}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "a", "call": "step_a", "with": {}},
+                # Unknown capability: rejected at verify.
+                {"id": "b", "call": "no_such_cap", "with": {}},
+            ],
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "UNKNOWN_CAPABILITY"
     assert invoked == []
@@ -267,6 +290,7 @@ def test_pre_execution_failure_produces_no_side_effects(logix):
 # ---------------------------------------------------------------------------
 # Invariants in multi-step plans
 # ---------------------------------------------------------------------------
+
 
 def test_invariant_fires_per_step(logix):
     """Each step's invariant runs before that step's handler."""
@@ -284,13 +308,15 @@ def test_invariant_fires_per_step(logix):
 
     logix.authorize(dangerous, check=lambda args, ctx: Deny("BLOCKED", "no"))
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "s1", "call": "safe", "with": {"x": 1}},
-            {"id": "s2", "call": "dangerous", "with": {"x": {"$ref": "s1"}}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "s1", "call": "safe", "with": {"x": 1}},
+                {"id": "s2", "call": "dangerous", "with": {"x": {"$ref": "s1"}}},
+            ],
+        }
+    )
 
     assert not result.ok
     assert result.errors[0].code == "POLICY_REJECTED"
@@ -302,17 +328,20 @@ def test_invariant_fires_per_step(logix):
 # Multi-step vs single-call result shape
 # ---------------------------------------------------------------------------
 
+
 def test_multistep_result_is_dict_not_value(logix):
     @logix.capability
     def only() -> int:
         return 42
 
-    result = logix.run({
-        "version": "1",
-        "steps": [
-            {"id": "s", "call": "only", "with": {}},
-        ],
-    })
+    result = logix.run(
+        {
+            "version": "1",
+            "steps": [
+                {"id": "s", "call": "only", "with": {}},
+            ],
+        }
+    )
     # Even a single-step multi-step plan returns a dict, not the raw value.
     # (Its shape comes from the plan form, not the step count.)
     assert result.ok
