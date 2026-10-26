@@ -50,12 +50,12 @@ dev = [
 all = ["logiq[pydantic,mcp,dev]"]
 
 [project.urls]
-Homepage = "https://github.com/aldanedev-create/Logix"
-Documentation = "https://github.com/aldanedev-create/Logix/blob/main/docs/"
-Changelog = "https://github.com/aldanedev-create/Logix/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/aldanedev-create/Logiq"
+Documentation = "https://github.com/aldanedev-create/Logiq/blob/main/docs/"
+Changelog = "https://github.com/aldanedev-create/Logiq/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/logiq", "src/logiq_pydantic", "src/logiq_ai",    "src/logix_mcp",]
+packages = ["src/logiq", "src/logiq_pydantic", "src/logiq_ai",    "src/logiq_mcp",]
 
 [tool.hatch.build.targets.sdist]
 include = [

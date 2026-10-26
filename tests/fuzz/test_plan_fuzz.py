@@ -258,18 +258,19 @@ def test_oversized_plan_rejected(plan):
 # size calculation. Documented, not enforced — see file docstring.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "parse_plan only catches ValueError around json.dumps; an object "
-        "whose __str__ raises can crash it. Realistic inputs (JSON) are "
-        "unaffected. Fix candidate: catch Exception in that block."
-    ),
-)
-def test_plan_with_unstringable_object_crashes():
+def test_plan_with_unstringable_object_rejected():
+    """A plan containing an object whose __str__ raises must produce
+    INVALID_PLAN, not a crash. The parser catches serialization failures
+    broadly."""
     class Bad:
         def __str__(self):
             raise RuntimeError("nope")
 
-    # A dict whose serialization triggers Bad.__str__.
-    parse_plan({"call": "x", "with": {"o": Bad()}})
+    result = parse_plan({"call": "x", "with": {"o": Bad()}})
+
+    assert isinstance(result, list), (
+        "parse_plan returned a CanonicalPlan for an unserializable plan"
+    )
+    assert len(result) >= 1
+    assert result[0].code == "INVALID_PLAN"
+    assert "serialized" in result[0].message

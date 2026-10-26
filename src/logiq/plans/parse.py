@@ -103,6 +103,10 @@ def parse_plan(
         limits.check_bytes(size)
     except ValueError as e:
         return [invalid_plan(str(e))]
+    except Exception as e:
+        return [invalid_plan(
+            f"plan could not be serialized: {type(e).__name__}: {e}"
+        )]
 
     if not isinstance(plan, dict):
         return [invalid_plan(f"plan must be a JSON object, got {type(plan).__name__}")]
