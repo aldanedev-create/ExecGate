@@ -4,7 +4,7 @@ The core is framework-agnostic.
 Two claims:
 
 1. **No core dependency on any web framework.** No module in
-   ``src/logix/`` imports Flask, Django, FastAPI, Starlette, Pyramid,
+   ``src/logiq`` imports Flask, Django, FastAPI, Starlette, Pyramid,
    Bottle, Tornado, Sanic, or similar. This is enforced by an AST scan.
 
 2. **Logix works without any framework context.** No app object, no
@@ -22,11 +22,11 @@ from pathlib import Path
 
 import pytest
 
-from logix import Logix
+from logiq import Logix
 
 
 # ---------------------------------------------------------------------------
-# Static: no framework imports under src/logix/
+# Static: no framework imports under src/logiq
 # ---------------------------------------------------------------------------
 
 _FRAMEWORKS = {
@@ -54,7 +54,7 @@ def _imports_in_file(path: Path) -> set[str]:
 
 
 def test_no_web_framework_imports_in_core():
-    """No source file under ``src/logix/`` imports a web framework."""
+    """No source file under ``src/logiq`` imports a web framework."""
     offenders: list[tuple[str, set[str]]] = []
     for path in _SRC_LOGIX.rglob("*.py"):
         imported = _imports_in_file(path)
@@ -63,13 +63,13 @@ def test_no_web_framework_imports_in_core():
             offenders.append((str(path.relative_to(_SRC_LOGIX)), hits))
 
     assert offenders == [], (
-        f"src/logix/ imports web frameworks in: {offenders}. "
+        f"src/logiq/ imports web frameworks in: {offenders}. "
         f"The core must be framework-agnostic (docs/usage-model.md)."
     )
 
 
 # ---------------------------------------------------------------------------
-# Runtime: import logix with frameworks blocked
+# Runtime: import logiq with frameworks blocked
 # ---------------------------------------------------------------------------
 
 def _run_with_blocked_frameworks(code: str) -> subprocess.CompletedProcess[str]:
@@ -87,7 +87,7 @@ def _run_with_blocked_frameworks(code: str) -> subprocess.CompletedProcess[str]:
 
 def test_import_logix_with_frameworks_blocked():
     r = _run_with_blocked_frameworks(
-        "import logix\nprint('ok')"
+        "import logiq\nprint('ok')"
     )
     assert r.returncode == 0, r.stderr
     assert "ok" in r.stdout
@@ -95,7 +95,7 @@ def test_import_logix_with_frameworks_blocked():
 
 def test_run_capability_with_frameworks_blocked():
     r = _run_with_blocked_frameworks("""
-from logix import Logix
+from logiq import Logix
 logix = Logix()
 
 @logix.capability
@@ -204,7 +204,7 @@ def test_engine_isolation_of_policies():
     def op(x: int) -> int:  # noqa: F811
         return x
 
-    from logix import Deny
+    from logiq import Deny
     a.authorize(op, check=lambda args, ctx: Deny("A_BLOCKED", "no"))
 
     # a's op is blocked, b's is fine.

@@ -1,12 +1,12 @@
 """
 The core package works without FastMCP installed.
 
-Unlike Pydantic, FastMCP is required by ``logix_mcp``, not by ``logix``.
+Unlike Pydantic, FastMCP is required by ``logiq_mcp``, not by ``logix``.
 This test proves:
 
-1. ``import logix`` works with FastMCP uninstalled.
+1. ``import logiq`` works with FastMCP uninstalled.
 2. ``Logix()`` constructs and ``logix.run()`` executes.
-3. ``import logix_mcp`` raises a clear ImportError with the install hint.
+3. ``import logiq_mcp`` raises a clear ImportError with the install hint.
 
 Uses ``sys.modules['fastmcp'] = None`` in a subprocess to simulate the
 absence without uninstalling.
@@ -33,7 +33,7 @@ def test_import_logix_without_fastmcp():
     r = _run("""
 import sys
 sys.modules['fastmcp'] = None
-import logix
+import logiq
 assert logix.__version__
 print('ok')
 """)
@@ -45,7 +45,7 @@ def test_engine_and_run_without_fastmcp():
     r = _run("""
 import sys
 sys.modules['fastmcp'] = None
-from logix import Logix
+from logiq import Logix
 
 logix = Logix()
 
@@ -67,7 +67,7 @@ def test_multi_step_without_fastmcp():
     r = _run("""
 import sys
 sys.modules['fastmcp'] = None
-from logix import Logix
+from logiq import Logix
 
 logix = Logix()
 
@@ -99,13 +99,13 @@ def test_import_logix_mcp_raises_clear_error():
 import sys
 sys.modules['fastmcp'] = None
 try:
-    import logix_mcp
+    import logiq_mcp
     print('UNEXPECTED: import succeeded')
     sys.exit(1)
 except ImportError as e:
     msg = str(e)
     assert 'fastmcp' in msg.lower(), f"'fastmcp' not in error: {msg!r}"
-    assert 'logix[mcp]' in msg, f"'logix[mcp]' not in error: {msg!r}"
+    assert 'logiq[mcp]' in msg, f"'logiq[mcp]' not in error: {msg!r}"
     print('ok')
 """)
     assert r.returncode == 0, r.stderr

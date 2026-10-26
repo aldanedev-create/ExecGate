@@ -1,9 +1,9 @@
 """
 The core has zero third-party runtime dependencies.
 
-Even without Pydantic installed, ``import logix`` works, ``Logix()``
+Even without Pydantic installed, ``import logiq`` works, ``Logix()``
 constructs, and non-Pydantic capabilities register and run. Attempting
-to import ``logix_pydantic`` raises a clear ``ImportError`` telling the
+to import ``logiq_pydantic`` raises a clear ``ImportError`` telling the
 user how to install the extra.
 
 Because Pydantic is installed in the test environment, each
@@ -37,7 +37,7 @@ def test_import_logix_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-import logix
+import logiq
 assert logix.__version__
 print('ok')
 """
@@ -50,7 +50,7 @@ def test_engine_constructs_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-from logix import Logix
+from logiq import Logix
 logix = Logix()
 assert logix.registry.names() == []
 print('ok')
@@ -64,7 +64,7 @@ def test_register_and_run_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-from logix import Logix
+from logiq import Logix
 
 logix = Logix()
 
@@ -87,7 +87,7 @@ def test_multi_step_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-from logix import Logix
+from logiq import Logix
 
 logix = Logix()
 
@@ -116,7 +116,7 @@ print('ok')
 
 
 # ---------------------------------------------------------------------------
-# Importing logix_pydantic raises a clear error
+# Importing logiq_pydantic raises a clear error
 # ---------------------------------------------------------------------------
 
 def test_import_logix_pydantic_raises_clear_error():
@@ -124,13 +124,13 @@ def test_import_logix_pydantic_raises_clear_error():
 import sys
 sys.modules['pydantic'] = None
 try:
-    import logix_pydantic
+    import logiq_pydantic
     print('UNEXPECTED: import succeeded')
     sys.exit(1)
 except ImportError as e:
     msg = str(e)
     assert 'pydantic' in msg.lower()
-    assert 'logix[pydantic]' in msg
+    assert 'logiq[pydantic]' in msg
     print('ok')
 """
     r = _run(code)

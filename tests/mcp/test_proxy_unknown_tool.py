@@ -15,10 +15,10 @@ import asyncio
 
 import pytest
 
-from logix import Logix
-from logix_mcp.proxy import LogixMCPProxy
+from logiq import Logix
+from logiq_mcp.proxy import LogixMCPProxy
 
-from .conftest import FakeMCPClient, mcp_available
+from mcp_support import FakeMCPClient, mcp_available
 
 
 @mcp_available

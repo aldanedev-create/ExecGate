@@ -26,8 +26,8 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from logix.errors import ALL_CODES, Error
-from logix.plans import CanonicalPlan, parse_plan
+from logiq.errors import ALL_CODES, Error
+from logiq.plans import CanonicalPlan, parse_plan
 
 
 # ---------------------------------------------------------------------------
@@ -240,10 +240,13 @@ def test_smuggled_verified_flag_always_rejected(plan):
 def test_oversized_plan_rejected(plan):
     """A plan larger than the byte limit is rejected before parsing
     succeeds."""
-    from logix.plans import PlanLimits
+    from logiq.plans import PlanLimits
 
     # Serialize, then set a limit smaller than the resulting bytes.
-    size = len(json.dumps(plan).encode("utf-8"))
+    # Must match parse_plan's canonical (compact) serialization.
+    size = len(
+        json.dumps(plan, separators=(",", ":"), default=str).encode("utf-8")
+    )
     tiny_limit = PlanLimits(max_bytes=max(1, size - 1))
     result = parse_plan(plan, limits=tiny_limit)
     assert isinstance(result, list)

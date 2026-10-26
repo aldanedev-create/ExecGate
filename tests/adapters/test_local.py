@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from logix_ai.base import AdapterError
-from logix_ai.providers.local import LocalAdapter
+from logiq_ai.base import AdapterError
+from logiq_ai.providers.local import LocalAdapter
 from tests.adapters.contract import AdapterContractMixin
 
 
@@ -34,7 +34,7 @@ def test_name():
 
 def test_format_tools_returns_neutral():
     """Local models consume the neutral form; no provider-specific shape."""
-    from logix_ai.neutral import NeutralJSONAdapter
+    from logiq_ai.neutral import NeutralJSONAdapter
     from tests.adapters.contract import SAMPLE_SPECS
 
     local = LocalAdapter().format_tools(SAMPLE_SPECS)

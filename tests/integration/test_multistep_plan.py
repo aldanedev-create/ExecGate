@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Deny, Logix
+from logiq import Deny, Logix
 
 
 # ---------------------------------------------------------------------------
@@ -22,13 +22,15 @@ from logix import Deny, Logix
 # ---------------------------------------------------------------------------
 
 def test_linear_chain_succeeds(logix):
+    # Native types are strict (no int -> float widening, bool is not int),
+    # so the chained values are all ints and the declared types agree.
     @logix.capability
-    def get_order(order_id: int) -> dict[str, float]:
-        return {"id": order_id, "total": 50.0}
+    def get_order(order_id: int) -> dict[str, int]:
+        return {"id": order_id, "total": 50}
 
     @logix.capability
-    def issue_refund(order_id: int, amount: float) -> dict[str, int]:
-        return {"refunded": True, "order_id": order_id}
+    def issue_refund(order_id: int, amount: int) -> dict[str, int]:
+        return {"refunded": 1, "order_id": order_id}
 
     result = logix.run({
         "version": "1",
@@ -42,8 +44,8 @@ def test_linear_chain_succeeds(logix):
 
     assert result.ok, result.errors
     # Result.value is a dict of step outputs.
-    assert result.value["o"] == {"id": 502, "total": 50.0}
-    assert result.value["r"] == {"refunded": True, "order_id": 502}
+    assert result.value["o"] == {"id": 502, "total": 50}
+    assert result.value["r"] == {"refunded": 1, "order_id": 502}
 
 
 def test_step_execution_order_follows_dependencies(logix):

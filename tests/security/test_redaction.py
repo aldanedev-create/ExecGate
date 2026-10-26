@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import pytest
 
-from logix._internal.redaction import (
+from logiq._internal.redaction import (
     DEFAULT_REDACTOR,
     DEFAULT_SENSITIVE_KEYS,
     REDACTED,

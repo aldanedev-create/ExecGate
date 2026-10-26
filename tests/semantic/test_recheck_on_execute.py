@@ -11,15 +11,15 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Allow, Deny, RequireApproval
-from logix.approval import issue
-from logix.context import ExecutionContext
-from logix.semantic import (
+from logiq import Allow, Deny, RequireApproval
+from logiq.approval import issue
+from logiq.context import ExecutionContext
+from logiq.semantic import (
     InMemoryIdempotencyStore,
     RecheckStatus,
     recheck_step,
 )
-from logix.semantic.invariants import InvariantRegistry
+from logiq.semantic.invariants import InvariantRegistry
 
 
 def _ctx(principal: str = "alice") -> ExecutionContext:

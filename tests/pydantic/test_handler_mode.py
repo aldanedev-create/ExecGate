@@ -20,7 +20,7 @@ import sys
 import pytest
 from pydantic import BaseModel
 
-from logix_pydantic import (
+from logiq_pydantic import (
     HandlerMode,
     get_handler_mode,
     install,
@@ -52,7 +52,7 @@ def test_default_is_model_in_subprocess():
     """The module-level default is MODEL. Observed in a fresh interpreter
     so prior tests cannot have mutated it."""
     code = """
-from logix_pydantic import get_handler_mode, HandlerMode
+from logiq_pydantic import get_handler_mode, HandlerMode
 assert get_handler_mode() == HandlerMode.MODEL
 print('ok')
 """
@@ -98,14 +98,37 @@ def test_install_does_not_raise(logix):
 
 
 # ---------------------------------------------------------------------------
+# Models used by the end-to-end tests below.
+#
+# These live at module level on purpose: this file uses
+# ``from __future__ import annotations``, so handler annotations are strings
+# resolved with ``typing.get_type_hints``, which cannot see classes defined
+# inside a test function.
+# ---------------------------------------------------------------------------
+
+class Item(BaseModel):
+    x: int
+    y: str
+
+
+class XOnlyItem(BaseModel):
+    x: int
+
+
+class Address(BaseModel):
+    city: str
+
+
+class Order(BaseModel):
+    id: int
+    address: Address
+
+
+# ---------------------------------------------------------------------------
 # End-to-end: MODEL mode
 # ---------------------------------------------------------------------------
 
 def test_model_mode_handler_receives_model_instance(logix):
-    class Item(BaseModel):
-        x: int
-        y: str
-
     received: list[Item] = []
 
     @logix.capability
@@ -128,10 +151,6 @@ def test_model_mode_handler_receives_model_instance(logix):
 # ---------------------------------------------------------------------------
 
 def test_values_mode_handler_receives_dict(logix):
-    class Item(BaseModel):
-        x: int
-        y: str
-
     received: list[dict] = []
 
     @logix.capability
@@ -153,15 +172,12 @@ def test_values_mode_handler_receives_dict(logix):
 # ---------------------------------------------------------------------------
 
 def test_validation_runs_before_handler_in_either_mode(logix):
-    class Item(BaseModel):
-        x: int
-
     for mode in (HandlerMode.MODEL, HandlerMode.VALUES):
         set_handler_mode(mode)
         invoked: list[int] = []
 
         @logix.capability(name=f"op_{mode.value}")
-        def op(item: Item) -> dict[str, int]:
+        def op(item: XOnlyItem) -> dict[str, int]:
             invoked.append(1)
             return {"ok": 1}
 
@@ -179,13 +195,6 @@ def test_validation_runs_before_handler_in_either_mode(logix):
 # ---------------------------------------------------------------------------
 
 def test_values_mode_recursively_flattens(logix):
-    class Address(BaseModel):
-        city: str
-
-    class Order(BaseModel):
-        id: int
-        address: Address
-
     received: list[dict] = []
 
     @logix.capability

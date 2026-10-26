@@ -19,8 +19,8 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from logix.errors import Error
-from logix.plans.references import (
+from logiq.errors import Error
+from logiq.plans.references import (
     Reference,
     is_reference,
     parse_reference,

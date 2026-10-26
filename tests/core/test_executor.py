@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Allow, Deny, Logix
-from logix.approval import issue
+from logiq import Allow, Deny, Logix
+from logiq.approval import issue
 
 
 # ---------------------------------------------------------------------------

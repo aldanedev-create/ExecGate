@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import pytest
 
-from logix.approval import (
+from logiq.approval import (
     ApprovalToken,
     canonical_args_hash,
     context_hash,
     issue,
 )
-from logix.context import ExecutionContext
+from logiq.context import ExecutionContext
 
 
 def _ctx(principal: str = "alice", **kwargs) -> ExecutionContext:

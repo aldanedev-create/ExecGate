@@ -11,8 +11,8 @@ from typing import Annotated
 
 import pytest
 
-from logix.annotation_inspect import inspect_capability
-from logix.schemas import (
+from logiq.annotation_inspect import inspect_capability
+from logiq.schemas import (
     Ge,
     Gt,
     Le,
@@ -23,7 +23,7 @@ from logix.schemas import (
     SchemaInferenceError,
     infer_input_schema,
 )
-from logix.schemas.validate import ConstrainedType
+from logiq.schemas.validate import ConstrainedType
 
 
 def _schema(fn):
@@ -142,10 +142,11 @@ def test_min_length_in_json_schema():
 # Rejection
 # ---------------------------------------------------------------------------
 
-def test_unsupported_constraint_raises():
-    class MyConstraint:
-        pass
+class MyConstraint:
+    """Module-level so ``get_type_hints`` can resolve it (stringified annotations)."""
 
+
+def test_unsupported_constraint_raises():
     def f(x: Annotated[int, MyConstraint()]) -> int:  # type: ignore[valid-type]
         return x
 

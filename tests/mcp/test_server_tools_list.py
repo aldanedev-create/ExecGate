@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Logix
-from logix_mcp.server import LogixMCPServer
+from logiq import Logix
+from logiq_mcp.server import LogixMCPServer
 
-from .conftest import mcp_available
+from mcp_support import mcp_available
 
 
 @mcp_available

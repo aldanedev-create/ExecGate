@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import pytest
 
-from logix.capabilities import Registry, build_capability
-from logix.ir import VerifiedPlan
-from logix.plans import DEFAULT_LIMITS, parse_plan
-from logix.verifier import verify_plan
+from logiq.capabilities import Registry, build_capability
+from logiq.ir import VerifiedPlan
+from logiq.plans import DEFAULT_LIMITS, parse_plan
+from logiq.verifier import verify_plan
 
 
 # ---------------------------------------------------------------------------
@@ -174,13 +174,14 @@ def test_ref_to_untyped_output_rejected():
 
 
 def test_ref_missing_path():
-    # get_order returns dict[str, int] which has no "wrong" key.
+    # get_order returns dict[str, int]; any string key is valid on a dict,
+    # but descending *into* an int value is not.
     plan = {
         "version": "1",
         "steps": [
             {"id": "o", "call": "get_order", "with": {"order_id": 1}},
             {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.wrong"},
+             "with": {"order_id": {"$ref": "o.id.wrong"},
                       "amount": 5.0}},
         ],
     }

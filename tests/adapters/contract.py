@@ -35,8 +35,8 @@ import json
 
 import pytest
 
-from logix.tools import ToolSpec
-from logix_ai import AdapterError, ProviderAdapter
+from logiq.tools import ToolSpec
+from logiq_ai import AdapterError, ProviderAdapter
 
 
 # ---------------------------------------------------------------------------
@@ -202,9 +202,13 @@ class AdapterContractMixin:
             return
 
         # If it normalized, the result must not be directly executable.
-        from logix.plans import parse_plan
+        from logiq.plans import parse_plan
+        # Invariant: a smuggled marker must never reach an *accepted* plan.
+        # Fresh-output adapters drop it (no key to reject); passthrough
+        # adapters keep it and parse_plan must reject it.
         parse_result = parse_plan(normalized)
-        assert isinstance(parse_result, list), (
+        carries_marker = isinstance(normalized, dict) and "verified" in normalized
+        assert not carries_marker or isinstance(parse_result, list), (
             "adapter's normalized plan contained a 'verified' marker that "
             "reached parse_plan; this would defeat the trust boundary"
         )

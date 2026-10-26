@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Logix
+from logiq import Logix
 
 
 # ---------------------------------------------------------------------------

@@ -17,7 +17,7 @@ import json
 
 import pytest
 
-from logix import Logix, ToolSpec
+from logiq import Logix, ToolSpec
 
 
 # ---------------------------------------------------------------------------
@@ -47,7 +47,9 @@ def test_describe_includes_all_fields(logix):
     assert spec.input_schema["type"] == "object"
     assert spec.input_schema["properties"]["order_id"] == {"type": "integer"}
     assert spec.input_schema["properties"]["amount"] == {"type": "number"}
-    assert spec.input_schema["required"] == ["order_id", "amount"]
+    # ``required`` is emitted sorted so the catalog and snapshot hash are
+    # deterministic (ObjectType.required is an unordered frozenset).
+    assert spec.input_schema["required"] == ["amount", "order_id"]
     assert spec.input_schema["additionalProperties"] is False
     assert spec.effects == "write"
     assert spec.approval == "required"
@@ -180,7 +182,7 @@ def test_format_unknown_provider_falls_back_to_neutral(logix):
 
 @pytest.mark.parametrize("provider", ["openai", "anthropic", "gemini", "local"])
 def test_format_known_provider_succeeds(logix, provider):
-    """If logix_ai is installed (it is, per dev extras), every registered
+    """If logiq_ai is installed (it is, per dev extras), every registered
     provider name resolves to a working adapter."""
     @logix.capability
     def add(a: int, b: int) -> int:

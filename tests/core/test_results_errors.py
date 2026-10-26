@@ -13,16 +13,16 @@ import json
 
 import pytest
 
-from logix import Error, Result, VerificationReport
-from logix.errors import (
+from logiq import Error, Result, VerificationReport
+from logiq.errors import (
     ALL_CODES,
     INVALID_PLAN,
     OUTPUT_VALIDATION_FAILED,
     POLICY_REJECTED,
     SCHEMA_VALIDATION_FAILED,
 )
-from logix.ir import VerifiedStep, _construct_verified_plan
-from logix.results import StepTrace, Trace
+from logiq.ir import VerifiedStep, _construct_verified_plan
+from logiq.results import StepTrace, Trace
 
 
 def _real_verified_plan():

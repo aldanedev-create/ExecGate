@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Logix
-from logix.plans import CanonicalPlan, CanonicalStep
-from logix.semantic import GroundingPolicy, check_grounding
+from logiq import Logix
+from logiq.plans import CanonicalPlan, CanonicalStep
+from logiq.semantic import GroundingPolicy, check_grounding
 
 
 def _plan(capability: str, args: dict) -> CanonicalPlan:

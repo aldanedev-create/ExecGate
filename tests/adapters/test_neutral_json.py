@@ -13,11 +13,11 @@ import json
 
 import pytest
 
-from logix_ai import (
+from logiq_ai import (
     NeutralJSONAdapter,
     get_adapter,
 )
-from logix_ai.base import AdapterError
+from logiq_ai.base import AdapterError
 from tests.adapters.contract import AdapterContractMixin
 
 
@@ -91,10 +91,10 @@ def test_get_adapter_case_insensitive():
 
 
 def test_get_adapter_known_providers():
-    from logix_ai.providers.openai import OpenAIAdapter
-    from logix_ai.providers.anthropic import AnthropicAdapter
-    from logix_ai.providers.gemini import GeminiAdapter
-    from logix_ai.providers.local import LocalAdapter
+    from logiq_ai.providers.openai import OpenAIAdapter
+    from logiq_ai.providers.anthropic import AnthropicAdapter
+    from logiq_ai.providers.gemini import GeminiAdapter
+    from logiq_ai.providers.local import LocalAdapter
 
     assert isinstance(get_adapter("openai"), OpenAIAdapter)
     assert isinstance(get_adapter("anthropic"), AnthropicAdapter)

@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from logix.errors import Error
-from logix.plans import (
+from logiq.errors import Error
+from logiq.plans import (
     CanonicalPlan,
     PlanLimits,
     parse_plan,

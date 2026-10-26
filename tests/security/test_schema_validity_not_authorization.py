@@ -12,9 +12,12 @@ conditions.
 
 from __future__ import annotations
 
+from typing import Annotated
+
 import pytest
 
-from logix import Allow, Deny
+from logiq import Allow, Deny
+from logiq.schemas import Gt, Le
 
 
 @pytest.mark.security
@@ -102,9 +105,6 @@ def test_authorization_runs_after_schema_not_instead_of(logix):
 @pytest.mark.security
 def test_authorization_cannot_be_short_circuited_by_schema(logix):
     """Passing every schema constraint does not skip the invariant."""
-    from typing import Annotated
-    from logix.schemas import Gt, Le
-
     invoked = []
 
     @logix.capability

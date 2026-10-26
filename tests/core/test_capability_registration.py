@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Logix
-from logix.capabilities import Registry, build_capability
+from logiq import Logix
+from logiq.capabilities import Registry, build_capability
 
 
 # ---------------------------------------------------------------------------

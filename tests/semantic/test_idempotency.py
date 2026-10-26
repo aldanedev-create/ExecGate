@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Logix
-from logix.semantic import (
+from logiq import Logix
+from logiq.semantic import (
     IdempotencyStatus,
     InMemoryIdempotencyStore,
 )

@@ -1,5 +1,5 @@
 """
-``logix_mcp`` is a leaf node (ADR-0006, ADR-0007).
+``logiq_mcp`` is a leaf node (ADR-0006, ADR-0007).
 
 The package must not import from the trust-boundary internals:
 ``logix.verifier``, ``logix.executor``, ``logix.ir``, or
@@ -7,7 +7,7 @@ The package must not import from the trust-boundary internals:
 
 If these imports ever appear, the package could bypass verification. The
 structural guarantee is that the only way to run a handler from
-``logix_mcp`` is via ``logix.run()`` or ``logix.execute(verified_plan)``,
+``logiq_mcp`` is via ``logix.run()`` or ``logix.execute(verified_plan)``,
 both of which go through the full pipeline.
 
 This test scans the source for those imports and for direct calls to the
@@ -22,13 +22,13 @@ from pathlib import Path
 import pytest
 
 
-_LOGIX_MCP = Path(__file__).resolve().parents[2] / "src" / "logix_mcp"
+_LOGIX_MCP = Path(__file__).resolve().parents[2] / "src" / "logiq_mcp"
 
 _FORBIDDEN_MODULES = {
-    "logix.verifier",
-    "logix.executor",
-    "logix.ir",
-    "logix._internal",
+    "logiq.verifier",
+    "logiq.executor",
+    "logiq.ir",
+    "logiq._internal",
 }
 
 _FORBIDDEN_FUNCTION_NAMES = {
@@ -110,9 +110,9 @@ def test_no_bypass_function_calls(path: Path) -> None:
 def test_package_imports_cleanly():
     """Sanity: importing the package must not have been broken by these
     checks."""
-    import logix_mcp
-    assert hasattr(logix_mcp, "LogixMCPServer")
-    assert hasattr(logix_mcp, "LogixMCPProxy")
+    import logiq_mcp
+    assert hasattr(logiq_mcp, "LogixMCPServer")
+    assert hasattr(logiq_mcp, "LogixMCPProxy")
 
 
 # ---------------------------------------------------------------------------
@@ -121,29 +121,29 @@ def test_package_imports_cleanly():
 
 _ALLOWED_LOGIX_MODULES = {
     "logix",                    # top-level version etc.
-    "logix.tools",              # ToolSpec (allowed by ADR-0007)
-    "logix.results",            # Result, Trace, VerificationReport
-    "logix.errors",             # Error, code constants
-    "logix.context",            # ExecutionContext
-    "logix.capabilities",       # Capability dataclass (not build_capability)
-    "logix.engine",             # Logix (to call run/verify/execute)
-    "logix.schemas",            # Type instances for wrapping upstream tools
-    "logix.schemas.types",      # ObjectType etc.
-    "logix.schemas.infer",      # annotation-to-type for nested resolution
-    "logix.approval",           # for approval-related paths
-    "logix.policies",           # Allow/Deny (returned by invariants)
+    "logiq.tools",              # ToolSpec (allowed by ADR-0007)
+    "logiq.results",            # Result, Trace, VerificationReport
+    "logiq.errors",             # Error, code constants
+    "logiq.context",            # ExecutionContext
+    "logiq.capabilities",       # Capability dataclass (not build_capability)
+    "logiq.engine",             # Logix (to call run/verify/execute)
+    "logiq.schemas",            # Type instances for wrapping upstream tools
+    "logiq.schemas.types",      # ObjectType etc.
+    "logiq.schemas.infer",      # annotation-to-type for nested resolution
+    "logiq.approval",           # for approval-related paths
+    "logiq.policies",           # Allow/Deny (returned by invariants)
 }
 
 
 def test_imports_from_core_are_in_allowlist() -> None:
-    """Every ``logix.*`` import in ``logix_mcp`` must be on the documented
+    """Every ``logix.*`` import in ``logiq_mcp`` must be on the documented
     allowlist. If a new core import is needed, update the ADR and this
     list together."""
     violations: list[tuple[str, int, str]] = []
 
     for path in _source_files():
         for lineno, module in _imports_in(path):
-            if module.startswith("logix.") or module == "logix":
+            if module.startswith("logiq.") or module == "logix":
                 if module not in _ALLOWED_LOGIX_MODULES:
                     # Check whether a parent is allowed (e.g. logix.schemas.*
                     # imports under logix.schemas).
@@ -155,7 +155,7 @@ def test_imports_from_core_are_in_allowlist() -> None:
                         violations.append((path.name, lineno, module))
 
     assert violations == [], (
-        f"logix_mcp imports non-allowlisted core modules: {violations}. "
+        f"logiq_mcp imports non-allowlisted core modules: {violations}. "
         f"Update ADR-0007 and _ALLOWED_LOGIX_MODULES together if the "
         f"new import is genuinely needed."
     )

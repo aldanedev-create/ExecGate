@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from logix import Logix
+from logiq import Logix
 
 
 @pytest.mark.security
@@ -110,7 +110,7 @@ def test_approval_flag_is_capability_level_not_plan_level(logix):
 @pytest.mark.security
 def test_wrong_approval_token_rejected(logix):
     """A token for a different action does not authorize this one."""
-    from logix.approval import issue
+    from logiq.approval import issue
 
     invoked = []
 
@@ -142,7 +142,7 @@ def test_wrong_approval_token_rejected(logix):
 
 @pytest.mark.security
 def test_approval_token_from_different_principal_rejected(logix):
-    from logix.approval import issue
+    from logiq.approval import issue
 
     invoked = []
 
@@ -172,7 +172,7 @@ def test_approval_token_from_different_principal_rejected(logix):
 @pytest.mark.security
 def test_valid_approval_token_proceeds(logix):
     """Sanity: the positive case works."""
-    from logix.approval import issue
+    from logiq.approval import issue
 
     invoked = []
 

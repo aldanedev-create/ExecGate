@@ -21,22 +21,22 @@ import json
 
 import pytest
 
-from logix import Deny, Logix
+from logiq import Deny, Logix
 
 
 # ---------------------------------------------------------------------------
-# Optional dependency: logix_ai
+# Optional dependency: logiq_ai
 # ---------------------------------------------------------------------------
 
 try:
-    from logix_ai.neutral import NeutralJSONAdapter
-    from logix_ai.providers.openai import OpenAIAdapter
+    from logiq_ai.neutral import NeutralJSONAdapter
+    from logiq_ai.providers.openai import OpenAIAdapter
     HAS_LOGIX_AI = True
 except ImportError:
     HAS_LOGIX_AI = False
 
 requires_logix_ai = pytest.mark.skipif(
-    not HAS_LOGIX_AI, reason="logix_ai not installed",
+    not HAS_LOGIX_AI, reason="logiq_ai not installed",
 )
 
 
@@ -91,7 +91,7 @@ def _valid_plans() -> dict[str, object]:
 @pytest.mark.parametrize("producer_name", list(_valid_plans().keys()))
 def test_every_producer_yields_same_plan(producer_name):
     plan = _valid_plans()[producer_name]
-    from logix.plans import parse_plan, CanonicalPlan
+    from logiq.plans import parse_plan, CanonicalPlan
 
     parsed = parse_plan(plan)
     assert isinstance(parsed, CanonicalPlan)

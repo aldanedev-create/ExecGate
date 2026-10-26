@@ -3,13 +3,13 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "logix"
+name = "logiq"
 version = "0.1.0"
 description = "Verified execution for AI-generated plans."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
-authors = [{ name = "Logix contributors" }]
+authors = [{ name = "Aldane Hutchinson" }]
 keywords = ["ai", "agents", "verification", "tool-calling", "security"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -36,23 +36,26 @@ mcp = ["fastmcp>=4,<5"]                              # NEW
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
+    "pytest-asyncio>=0.23",
     "hypothesis>=6",
     "ruff>=0.6",
     "mypy>=1.10",
     "pydantic>=2,<3",  
-    "fastmcp>=4,<5",                                 # NEW (for tests/mcp)
+    "fastmcp>=4,<5",    
+    "build>=1.2",          # NEW
+    "twine>=5",                                # NEW (for tests/mcp)
 
            # for tests/pydantic + tests/adapters
 ]
-all = ["logix[pydantic,ai,dev]"]
+all = ["logiq[pydantic,ai,dev]"]
 
 [project.urls]
-Homepage = "https://github.com/logix-dev/logix"
-Documentation = "https://github.com/logix-dev/logix/blob/main/docs/"
-Changelog = "https://github.com/logix-dev/logix/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/logiq-dev/logiq"
+Documentation = "https://github.com/logix-dev/logiq/blob/main/docs/"
+Changelog = "https://github.com/logix-dev/logiq/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/logix", "src/logix_pydantic", "src/logix_ai",    "src/logix_mcp",]
+packages = ["src/logiq", "src/logiq_pydantic", "src/logiq_ai",    "src/logix_mcp",]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -71,8 +74,9 @@ include = [
 # ---------------------------------------------------------------------------
 
 [tool.pytest.ini_options]
+addopts = "-ra --strict-markers --strict-config -p no:qt"    # ← add -p no:qt
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --strict-config"
+addopts = "-ra --strict-markers --strict-config -p no:qt"
 markers = [
     "security: security-boundary test (docs/system-design.md §3)",
     "conformance: adapter conformance kit (tests/adapters/contract.py)",

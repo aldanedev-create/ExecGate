@@ -12,8 +12,8 @@ from typing import Annotated
 
 import pytest
 
-from logix import Logix
-from logix.schemas import Gt, Le
+from logiq import Logix
+from logiq.schemas import Gt, Le
 
 
 def _spy(logix):
