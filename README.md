@@ -1,4 +1,4 @@
-# Logix
+# Logiq
 
 **Verified execution for AI-generated plans.**
 
