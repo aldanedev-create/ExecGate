@@ -1,5 +1,5 @@
  <div align="center">
- <a href="https://flaxon-website.vercel.app/">
+ <a href="https://aldanedev-create.github.io/logiq-doc/#getting-Starting/01">
     <img src="https://raw.githubusercontent.com/aldanedev-create/Logiq/main/assets/Logiq_logo.png" alt="Logiq logo" width="200">
   </a>
 
