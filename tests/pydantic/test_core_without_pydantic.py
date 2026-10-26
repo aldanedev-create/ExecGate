@@ -38,7 +38,7 @@ def test_import_logix_without_pydantic():
 import sys
 sys.modules['pydantic'] = None
 import logiq
-assert logix.__version__
+assert logiq.__version__
 print('ok')
 """
     r = _run(code)

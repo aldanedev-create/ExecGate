@@ -34,7 +34,7 @@ def test_import_logix_without_fastmcp():
 import sys
 sys.modules['fastmcp'] = None
 import logiq
-assert logix.__version__
+assert logiq.__version__
 print('ok')
 """)
     assert r.returncode == 0, r.stderr
