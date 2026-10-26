@@ -1,168 +1,177 @@
+ <div align="center">
+ <a href="https://flaxon-website.vercel.app/">
+    <img src="https://raw.githubusercontent.com/aldanedev-create/Logiq/main/assets/Logiq_logo.png" alt="Logiq logo" width="200">
+  </a>
+
 # Logiq
 
 **Verified execution for AI-generated plans.**
 
 The AI proposes. Logiq verifies. Trusted code executes.
 
-Logiq is a verification boundary between an AI's proposed action and the
-trusted Python function that would carry it out. Models emit structured
-JSON plans; Logix validates them against registered capabilities,
-policies, references, and live state before any handler runs.
+[![Status: alpha](https://img.shields.io/badge/status-alpha-orange)](#project-status)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/aldanedev-create/Logiq/blob/main/LICENSE)
+[![Core: zero deps](https://img.shields.io/badge/core-zero%20runtime%20deps-success)](https://github.com/aldanedev-create/Logiq/blob/main/docs/system-design.md)
+
+[Documentation](https://aldanedev-create.github.io/logiq-doc/) · [Getting Started](https://aldanedev-create.github.io/logiq-doc/#getting-started/index) · [API Reference](https://aldanedev-create.github.io/logiq-doc/#api-reference) · [Examples](https://github.com/aldanedev-create/Logiq/tree/main/examples) · [Security](https://aldanedev-create.github.io/logiq-doc/#security)
+
+</div>
+
+---
+
+Logiq is a **verification boundary between AI-generated plans and trusted Python code**.
+
+It validates proposed actions against registered capabilities, schemas, policies, references, and live application state before normal handler execution.
 
 ```python
 from logiq import Logix
 
 logix = Logix()
 
+
 @logix.capability
 def add(a: int, b: int) -> int:
-    "Add two integers."
+    """Add two integers."""
     return a + b
 
-result = logix.run({"call": "add", "with": {"a": 10, "b": 20}})
+
+result = logix.run({
+    "call": "add",
+    "with": {"a": 10, "b": 20},
+})
 
 if result.ok:
-    print(result.value)   # 30
+    print(result.value)  # 30
 else:
     print(result.errors)
 ```
 
-That's the whole quick start. The decorator infers schemas from type
-annotations, extracts the docstring, registers the capability, and exposes
-it to an AI as a tool description. The handler remains an ordinary Python
-function and is still directly callable.
+That's the basic idea. Logiq infers schemas from type annotations, extracts descriptions from docstrings, and registers capabilities. Your handlers remain ordinary Python functions.
 
----
+**Logiq does not decide what your application should permit. It enforces the rules you define.**
 
-## What Logix does — and does not — guarantee
+## Why Logiq?
 
-**It does guarantee**, as a testable property:
+AI applications increasingly let models select tools, generate structured arguments, and propose actions. Your application still needs to verify that those proposals are valid and authorized.
 
-> A plan that fails Logix's required verification checks does not reach
-> normal handler execution.
+Logiq gives you a single boundary for checks such as:
 
-That covers mechanical failures: invented capabilities, wrong argument
-types, malformed plans, dangling or cyclic references, statically
-rejected policy, missing or mismatched approval, and live-state
-authorization failures. Each is backed by a named test in
-`tests/security/`.
+- **Capability validation** — reject unknown or invented capability names.
+- **Schema validation** — validate arguments and enforce declared types.
+- **Reference validation** — reject malformed plans and invalid dependencies.
+- **Policy enforcement** — check configured rules before execution.
+- **Live-state authorization** — evaluate application state when the action is verified and executed.
+- **Human approval** — add approval gates for sensitive operations.
+- **Idempotency** — help prevent duplicate execution when retries occur.
+- **Failure handling** — distinguish verification rejection from execution failure.
 
-**It does not claim** to prove that a model's natural-language claims are
-true, infer business rules the developer did not encode, guarantee that a
-handler behaves correctly, or prove that a permitted action is harmless.
-Those remain the application's responsibility. The semantic layer —
-`logix.authorize(...)`, `logix.require_approval(...)`,
-`logix.grounding(...)` — shrinks that residual surface. It is engineered
-minimization plus audit, not proof.
+Explore the [system design](https://aldanedev-create.github.io/logiq-doc/#system-design) and [security model](https://aldanedev-create.github.io/logiq-doc/#security).
 
-This precision is deliberate. "Eliminates hallucinations" is untestable;
-"a plan that fails verification cannot reach a handler" is not.
+## Installation
 
----
+```bash
+pip install logiq
+```
+
+Optional integrations:
+
+```bash
+pip install "logiq[pydantic]"  # Pydantic model support
+pip install "logiq[ai]"        # AI provider adapters
+pip install "logiq[mcp]"       # MCP server and proxy
+pip install "logiq[all]"       # All configured extras
+```
+
+**Requirements:** Python 3.11 or later.
+
+The core package has zero third-party runtime dependencies. Optional integrations extend the core without making Pydantic, FastMCP, or provider SDKs mandatory for `import logiq`.
+
+## Three ways to use Logiq
+
+### 1. Use it as a dispatcher
+
+You don't need an AI model to benefit from schema-checked capability execution.
+
+```python
+result = logix.run({
+    "call": "add",
+    "with": {"a": 1, "b": 2},
+})
+```
+
+This can be useful in scripts, tests, command-line tools, and webhook handlers.
+
+### 2. Connect an AI model
+
+Let a model propose a plan, then pass that proposal through Logiq's verification pipeline.
+
+```python
+catalog = logix.tools.format("openai")
+plan = adapter.parse_proposal(ai_response)
+result = logix.run(plan, context=ctx)
+```
+
+The AI proposes. Logiq verifies. Your handler executes only if the required checks pass.
+
+### 3. Separate verification from execution
+
+For workflows that need explicit approval or additional control, verify first and execute afterward.
+
+```python
+report = logix.verify(plan, context=ctx)
+approval = ask_human(report.verified_plan)
+
+result = logix.execute(
+    report.verified_plan,
+    context=ctx,
+    approval=approval,
+)
+```
+
+This separation lets you introduce approval gates, live-state invariants, and bounded retries into your application workflow.
+
+Start with the [Getting Started guide](https://aldanedev-create.github.io/logiq-doc/#getting-started/index) or follow [Lesson 01: Refund Workflow](https://aldanedev-create.github.io/logiq-doc/#lessons/01-refund-workflow).
 
 ## Works with any AI that emits JSON
 
-The core is provider-neutral. `logix.tools.format("json")` returns a
-JSON-Schema catalog that any client can read — a hosted model, a local
-model, a script, or a human. Named provider adapters (`"openai"`,
-`"anthropic"`, `"gemini"`, `"local"`) are **optional convenience
-translators**, not requirements. Unknown providers fall back to the
-neutral format. Writing your own adapter is ~30 lines and gives no access
-to the trust boundary — see `docs/writing-an-adapter.md` and
-`tests/adapters/contract.py`.
+Logiq's core is provider-neutral. It can process plans from hosted models, local models, scripts, or other sources.
 
 ```python
-catalog = logix.tools.format("json")        # always available
-catalog = logix.tools.format("openai")      # optional adapter
+catalog = logix.tools.format("json")    # Provider-neutral format
+catalog = logix.tools.format("openai")  # Optional provider format
 ```
 
-The same guarantee that protects a hand-written plan protects an AI's
-proposal. There is no privileged source.
+Provider adapters are optional translators, not a requirement. A plan from an AI provider and a plan written by hand go through the same verification pipeline.
 
----
-
-## The three levels
-
-**Level 1 — no AI yet.** Register functions, call `logix.run()` from a
-script or test. Logix is useful on its own as a schema-enforcing
-dispatcher.
-
-**Level 2 — AI tool-calling.** Expose `logix.tools.format(...)` to a
-model, receive its proposal, pass it to `logix.run()`. The common case.
-
-**Level 3 — production agent.** Split `logix.verify()` and
-`logix.execute()`, insert a human approval gate, attach live-state
-authorization and grounding rules, bound the repair loop, and record
-audit events.
-
-```python
-# Level 3: separate verification from execution
-report = logix.verify(plan, context=ctx)
-if not report.ok:
-    return handle_errors(report.errors)
-
-# Application-specific gate — human approval, extended review, etc.
-approval = ask_human(report.verified_plan)
-
-# Execute only the verified representation
-result = logix.execute(report.verified_plan, context=ctx, approval=approval)
-```
-
-`verification` is **not** an authorization grant. `execute()` re-runs every
-check that can be invalidated by live state (ADR-0004).
-
----
-
-## What's in the box
-
-| Package | Purpose | Runtime deps |
-|---|---|---|
-| `logiq` | Core: registry, schema engine, verifier, executor, semantic layer | **standard library only** |
-| `logiq_pydantic` | Optional: use Pydantic models as capability schemas | `pydantic>=2,<3` |
-| `logiq_ai` | Optional: provider-specific tool-catalog translation | none (pure data shaping) |
-| `logiq_mcp` | Optional: MCP server mode + MCP proxy mode | `fastmcp>=4,<5` |
-
-The core has **zero third-party runtime dependencies**. Optional
-integrations extend it; they never become mandatory. `import logiq` never
-touches Pydantic, FastMCP, or any provider SDK.
-
----
-
-## Install
-
-```bash
-pip install logiq                # core, standard library only
-pip install "logiq[pydantic]"    # optional richer models
-pip install "logiq[ai]"          # optional provider adapters
-pip install "logiq[mcp]"         # optional MCP integration
-pip install "logiq[all]"         # everything, including dev tools
-```
-
-Python 3.11+.
-
----
+See [AI Integration](https://aldanedev-create.github.io/logiq-doc/#ai-integration).
 
 ## MCP integration
 
-XERJ-style scenario: an MCP-capable client calls a search capability, or
-an untrusted upstream MCP server needs a verification layer in front of
-it.
+Logiq supports both MCP server and proxy workflows through the optional `logiq_mcp` package.
 
-**Server mode** — expose Logix capabilities to any MCP client:
+### Server mode
+
+Expose registered Logiq capabilities to an MCP client.
 
 ```python
 from logiq_mcp import LogixMCPServer
 
 server = LogixMCPServer(logix, name="order-service")
-server.run()   # stdio; every call goes through logix.run()
+server.run()
 ```
 
-**Proxy mode** — verify calls before forwarding to an untrusted upstream:
+The example uses stdio transport. Calls are routed through `logix.run()`.
+
+### Proxy mode
+
+Verify calls to an upstream MCP server before forwarding them.
 
 ```python
 from logiq_mcp import LogixMCPProxy
 
 proxy = LogixMCPProxy(logix, "http://upstream/mcp")
+
 await proxy.startup()
 try:
     await proxy.run_async()
@@ -170,107 +179,157 @@ finally:
     await proxy.shutdown()
 ```
 
-See `docs/mcp.md` for the threat model and `docs/adr/0007-mcp-leaf-node-boundary.md`
-for why `logiq_mcp` cannot touch the verifier or executor.
+The `logiq_mcp` package follows the leaf-node architecture described in ADR-0007. It imports the public `Logix` API and shared types rather than reaching into the verifier, executor, or intermediate representation.
 
----
+**Limitation:** MCP approval workflows have documented restrictions. Review the [MCP guide](https://aldanedev-create.github.io/logiq-doc/#mcp) before designing an approval-dependent MCP deployment.
+
+## How verification works
+
+```text
+AI / script / MCP client
+          |
+          | Untrusted proposal
+          v
++--------------------------------------+
+|                 Logiq                |
+|                                      |
+|  Parse -> Ground -> Verify           |
+|                    |                 |
+|                    v                 |
+|              VerifiedPlan            |
+|                    |                 |
+|                    v                 |
+|  Recheck invariants, approval,       |
+|  and idempotency during execution    |
++--------------------|-----------------+
+                     |
+                     v
+            Trusted handlers
+          (database, payments, etc.)
+```
+
+The executor accepts a `VerifiedPlan`, not an arbitrary dictionary claiming to be verified. Dynamic checks are re-evaluated during execution immediately before the handler runs.
+
+**Verification is not the same as authorization.** Logiq can enforce the rules and checks implemented by your application, but it cannot invent missing business rules or guarantee that every permitted action is harmless.
+
+Read the [System Design](https://aldanedev-create.github.io/logiq-doc/#system-design) and [Security](https://aldanedev-create.github.io/logiq-doc/#security) guides for the detailed model.
+
+## What's included?
+
+| Package | Purpose | Runtime dependencies |
+|---|---|---|
+| `logiq` | Registry, schema engine, verifier, executor, semantic layer | Python standard library |
+| `logiq_pydantic` | Pydantic models as capability schemas | `pydantic>=2,<3` |
+| `logiq_ai` | Provider-catalog adapters | None |
+| `logiq_mcp` | MCP server and proxy | `fastmcp>=4,<5` |
+
+Optional packages are not required to use the core dispatcher. The core's zero-dependency guarantee is also checked by the project's import-boundary tests.
 
 ## Documentation
 
-| Document | Covers |
-|---|---|
-| `docs/usage-model.md` | Who does what: developer, AI, and the boundary |
-| `docs/system-design.md` | End-to-end pipeline, trust boundary, failure taxonomy |
-| `docs/api-reference.md` | Every public API with stability markers |
-| `docs/architecture.md` | Component map and design principles |
-| `docs/plan-format.md` | Plan JSON, versions, `$ref` grammar, grounding rules |
-| `docs/schemas.md` | Native schema inference and strict type semantics |
-| `docs/security.md` | Threat model and the security test checklist |
-| `docs/semantic-layer.md` | Grounding, live invariants, approval, idempotency |
-| `docs/pydantic.md` | Optional Pydantic integration |
-| `docs/ai-integration.md` | Provider-neutral catalog and adapter model |
-| `docs/writing-an-adapter.md` | Custom adapter walkthrough |
-| `docs/mcp.md` | MCP server and proxy modes |
-| `docs/integrations/xerj.md` | XERJ search-engine integration |
-| `docs/production-guide.md` | Deployment, observability, limits |
-| `docs/adr/` | Architecture decision records |
+The [Logiq documentation site](https://aldanedev-create.github.io/logiq-doc/) contains guides, API references, architecture decisions, and security documentation.
 
----
+| Guide | What you'll learn |
+|---|---|
+| [Getting Started](https://aldanedev-create.github.io/logiq-doc/#getting-started/index) | Build your first capability and plan |
+| [Usage Model](https://aldanedev-create.github.io/logiq-doc/#usage-model) | Understand the developer, AI, and verification boundary |
+| [System Design](https://aldanedev-create.github.io/logiq-doc/#system-design) | Follow the execution pipeline and failure model |
+| [API Reference](https://aldanedev-create.github.io/logiq-doc/#api-reference) | Explore the public API |
+| [Security](https://aldanedev-create.github.io/logiq-doc/#security) | Understand the threat model and security tests |
+| [Semantic Layer](https://aldanedev-create.github.io/logiq-doc/#semantic-layer) | Learn about grounding, invariants, approval, and idempotency |
+| [Plan Format](https://aldanedev-create.github.io/logiq-doc/#plan-format) | Understand plan structure, `$ref`, and versioning |
+| [Schemas](https://aldanedev-create.github.io/logiq-doc/#schemas) | Learn about schema inference and strict types |
+| [AI Integration](https://aldanedev-create.github.io/logiq-doc/#ai-integration) | Connect AI providers to Logiq |
+| [Writing an Adapter](https://aldanedev-create.github.io/logiq-doc/#writing-an-adapter) | Build a provider adapter |
+| [MCP](https://aldanedev-create.github.io/logiq-doc/#mcp) | Configure server and proxy modes |
+| [Production Guide](https://aldanedev-create.github.io/logiq-doc/#production-guide) | Review deployment, observability, and incident response |
+
+The documentation source is available in [`docs/`](https://github.com/aldanedev-create/Logiq/tree/main/docs). Architecture decision records are in [`docs/adr/`](https://github.com/aldanedev-create/Logiq/tree/main/docs/adr).
 
 ## Examples
 
-| Example | Shows |
-|---|---|
-| `examples/01_quickstart.py` | `@logix.capability` + `logix.run()` |
-| `examples/02_ai_tool_catalog.py` | `logix.tools.describe()` / `.format()` |
-| `examples/03_multistep_refs.py` | Multi-step plan with `$ref` grounding |
-| `examples/04_refund_with_approval.py` | Level 3: verify → approve → execute |
-| `examples/05_pydantic_models.py` | Pydantic models as capability schemas |
-| `examples/06_fastapi_worker.py` | Framework-agnostic embedding |
-| `examples/07_local_model_ollama.py` | Local model, JSON-mode prompt |
-| `examples/08_write_your_own_adapter.py` | Reference adapter, ~30 lines |
-| `examples/09_mcp_server_quickstart.py` | Expose capabilities to MCP clients |
-| `examples/10_mcp_proxy_refund.py` | Verify calls before forwarding upstream |
-| `examples/11_mcp_approval_elicitation.py` | Approval gate in MCP proxy mode |
-| `examples/12_xerj_native.py` | XERJ search as a native capability |
+The repository includes standalone scripts in [`examples/`](https://github.com/aldanedev-create/Logiq/tree/main/examples).
 
----
+| Example | Demonstrates |
+|---|---|
+| [`01_quickstart.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/01_quickstart.py) | Register a capability and run a plan |
+| [`02_ai_tool_catalog.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/02_ai_tool_catalog.py) | Describe and format tool catalogs |
+| [`03_multistep_refs.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/03_multistep_refs.py) | Multi-step plans, `$ref`, and grounding |
+| [`04_refund_with_approval.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/04_refund_with_approval.py) | Verify, request approval, and execute |
+| [`05_pydantic_models.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/05_pydantic_models.py) | Use Pydantic models as schemas |
+| [`06_fastapi_worker.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/06_fastapi_worker.py) | Embed Logiq in a FastAPI worker |
+| [`07_local_model_ollama.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/07_local_model_ollama.py) | Use a local model with JSON-mode prompting |
+| [`08_write_your_own_adapter.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/08_write_your_own_adapter.py) | Write a custom provider adapter |
+| [`09_mcp_server_quickstart.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/09_mcp_server_quickstart.py) | Expose capabilities to MCP clients |
+| [`10_mcp_proxy_refund.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/10_mcp_proxy_refund.py) | Verify calls before forwarding upstream |
+| [`11_mcp_approval_elicitation.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/11_mcp_approval_elicitation.py) | Explore approval in MCP deployments |
+| [`12_xerj_native.py`](https://github.com/aldanedev-create/Logiq/blob/main/examples/12_xerj_native.py) | Use XERJ search as a native capability |
+
+For example, run the basic quick start with:
+
+```bash
+python examples/01_quickstart.py
+```
+
+Check each example's imports and requirements before running it; optional integrations may need their corresponding extras installed.
 
 ## Project status
 
-**0.1.0 — active development, alpha.**
+**Version:** 0.1.0 · **Status:** Alpha · Active development
 
-- **Core (`src/logiq/`)** — implemented. The full pipeline (parse →
-  grounding → verify → recheck → execute → output validation) works
-  end to end. `dry_run` and `explain` are reserved by name.
-- **Optional adapters** — `logiq_pydantic` and `logiq_ai` are implemented.
-  `logiq_mcp` is implemented and covered by its own test suite.
-- **Tests** — the suite in `tests/` covers core, semantic, security,
-  Pydantic, adapters, integration, MCP, and fuzz paths. The security
-  test checklist in `docs/security.md` is the source of truth.
-- **Documentation** — the design docs (`usage-model.md`,
-  `system-design.md`, `api-reference.md`) are the specification the
-  code satisfies. When they disagree, the docs win.
+### Implemented
 
-The API is marked **stable** / **experimental** / **reserved** in
-`docs/api-reference.md`. Breaking changes to stable APIs need a major
-version. Experimental APIs may change between minor versions. Reserved
-names (e.g. `dry_run`, `explain`) are fixed but have no implementation
-guarantee yet.
+- The core pipeline: parsing, grounding, verification, execution-time rechecks, and output validation.
+- Semantic-layer features for grounding, invariants, approval, idempotency, and bounded repair.
+- Optional Pydantic, AI-provider, and MCP integrations.
+- Security tests covering documented verification guarantees.
+- Getting-started guides, lessons, API documentation, and architecture decision records.
 
-Not production-ready: this is a reference implementation of a design.
-Read `docs/system-design.md §11` before deploying.
+### Known limitations and future work
 
----
+- `logix.dry_run()` and `logix.explain()` are reserved names; their behavior is deferred.
+- The default idempotency store is in-memory. Applications needing durable idempotency must implement the `IdempotencyStore` protocol using their own storage.
+- Plan execution is sequential in version 0.1.0.
+- MCP approval workflows have documented limitations.
 
-## Development
+**Logiq is not yet production-ready.** Review the [Production Guide](https://aldanedev-create.github.io/logiq-doc/#production-guide) and [MCP limitations](https://aldanedev-create.github.io/logiq-doc/#mcp) before deployment.
+
+## Security
+
+Logiq is security-adjacent software. Its verification boundary can enforce implemented checks, but it does not guarantee that handlers are correct, that business rules are complete, or that permitted actions are safe.
+
+Please do not report security vulnerabilities through public GitHub issues. Follow the private disclosure process described in [CONTRIBUTING.md](https://github.com/aldanedev-create/Logiq/blob/main/CONTRIBUTING.md#reporting-security-issues).
+
+For the threat model, limitations, and guarantee-to-test mapping, see the [Security Guide](https://aldanedev-create.github.io/logiq-doc/#security).
+
+## Contributing
+
+Contributions are welcome. Start with [CONTRIBUTING.md](https://github.com/aldanedev-create/Logiq/blob/main/CONTRIBUTING.md).
 
 ```bash
-git clone https://github.com/logix-dev/logix
-cd logix
-python -m venv .venv
-source .venv/bin/activate
-
+git clone https://github.com/aldanedev-create/Logiq.git
+cd Logiq
 pip install -e ".[dev]"
-pytest                       # full suite
-pytest tests/security -m security -v   # security checklist only
-python scripts/preflight.py  # ruff + mypy + imports + tests + wheel
+pytest
+python scripts/preflight.py
 ```
 
-See `CONTRIBUTING.md` for contribution rules, especially the leaf-node
-discipline for adapters (ADR-0006, ADR-0007) and the requirement that
-every security-relevant change ships with a matching test in
-`tests/security/`.
+Key project constraints include:
 
----
+- The core test suite must pass without Pydantic or FastMCP installed.
+- `scripts/check_imports.py` checks the zero-dependency import boundary.
+- `tests/mcp/test_leaf_node_boundary.py` checks the MCP adapter's architectural boundary.
+
+Run the documented checks before submitting changes.
 
 ## License
 
-MIT. See `LICENSE`.
+Logiq is licensed under the MIT License. See [LICENSE](https://github.com/aldanedev-create/Logiq/blob/main/LICENSE).
 
 ---
 
-## The one-sentence summary
+<div align="center">
 
-> The developer declares what is possible and what is permitted. The AI
-> chooses what to attempt. Logix decides what actually happens.
+**Declare the intent. Verify the plan. Execute only what the application permits.**
+
+</div>
