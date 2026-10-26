@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 
-# FastMCP is a hard dependency of logiq_mcp, but guard anyway so tests
+# FastMCP is a hard dependency of execgate_mcp, but guard anyway so tests
 # fail with a clear message rather than a cryptic import error.
 try:
     import fastmcp  # noqa: F401
@@ -27,7 +27,7 @@ try:
 except ImportError:
     HAS_FASTMCP = False
 
-mcp_available = pytest.mark.skipif(not HAS_FASTMCP, reason="logiq_mcp requires fastmcp")
+mcp_available = pytest.mark.skipif(not HAS_FASTMCP, reason="execgate_mcp requires fastmcp")
 
 
 # ---------------------------------------------------------------------------
@@ -64,8 +64,8 @@ class FakeMCPClient:
     An async MCP client that returns configured tools on ``list_tools``
     and records ``call_tool`` invocations.
 
-    Implements exactly the surface ``logiq_mcp.upstream`` and
-    ``logiq_mcp.proxy`` depend on: ``__aenter__``, ``__aexit__``,
+    Implements exactly the surface ``execgate_mcp.upstream`` and
+    ``execgate_mcp.proxy`` depend on: ``__aenter__``, ``__aexit__``,
     ``list_tools``, ``call_tool``.
 
     Behavior:

@@ -8,8 +8,8 @@ argument validation are the verifier's job.
 
 from __future__ import annotations
 
-from logiq.errors import Error
-from logiq.plans import (
+from execgate.errors import Error
+from execgate.plans import (
     CanonicalPlan,
     PlanLimits,
     parse_plan,

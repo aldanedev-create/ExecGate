@@ -1,12 +1,12 @@
 """
 The core package works without FastMCP installed.
 
-Unlike Pydantic, FastMCP is required by ``logiq_mcp``, not by ``logix``.
+Unlike Pydantic, FastMCP is required by ``execgate_mcp``, not by ``logix``.
 This test proves:
 
-1. ``import logiq`` works with FastMCP uninstalled.
+1. ``import execgate`` works with FastMCP uninstalled.
 2. ``Logix()`` constructs and ``logix.run()`` executes.
-3. ``import logiq_mcp`` raises a clear ImportError with the install hint.
+3. ``import execgate_mcp`` raises a clear ImportError with the install hint.
 
 Uses ``sys.modules['fastmcp'] = None`` in a subprocess to simulate the
 absence without uninstalling.
@@ -31,8 +31,8 @@ def test_import_logix_without_fastmcp():
     r = _run("""
 import sys
 sys.modules['fastmcp'] = None
-import logiq
-assert logiq.__version__
+import execgate
+assert execgate.__version__
 print('ok')
 """)
     assert r.returncode == 0, r.stderr
@@ -43,7 +43,7 @@ def test_engine_and_run_without_fastmcp():
     r = _run("""
 import sys
 sys.modules['fastmcp'] = None
-from logiq import Logix
+from execgate import Logix
 
 logix = Logix()
 
@@ -65,7 +65,7 @@ def test_multi_step_without_fastmcp():
     r = _run("""
 import sys
 sys.modules['fastmcp'] = None
-from logiq import Logix
+from execgate import Logix
 
 logix = Logix()
 
@@ -97,7 +97,7 @@ def test_import_logix_mcp_raises_clear_error():
 import sys
 sys.modules['fastmcp'] = None
 try:
-    import logiq_mcp
+    import execgate_mcp
     print('UNEXPECTED: import succeeded')
     sys.exit(1)
 except ImportError as e:

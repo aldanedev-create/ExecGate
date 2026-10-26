@@ -9,9 +9,9 @@ exercise both the parse-level guard and the direct cycle check.
 
 from __future__ import annotations
 
-from logiq.plans import parse_plan
-from logiq.plans.parse import CanonicalPlan, CanonicalStep
-from logiq.verifier import _dependency_order
+from execgate.plans import parse_plan
+from execgate.plans.parse import CanonicalPlan, CanonicalStep
+from execgate.verifier import _dependency_order
 
 # ---------------------------------------------------------------------------
 # Ordering

@@ -1,9 +1,9 @@
 """
 The core has zero third-party runtime dependencies.
 
-Even without Pydantic installed, ``import logiq`` works, ``Logix()``
+Even without Pydantic installed, ``import execgate`` works, ``Logix()``
 constructs, and non-Pydantic capabilities register and run. Attempting
-to import ``logiq_pydantic`` raises a clear ``ImportError`` telling the
+to import ``execgate_pydantic`` raises a clear ``ImportError`` telling the
 user how to install the extra.
 
 Because Pydantic is installed in the test environment, each
@@ -36,8 +36,8 @@ def test_import_logix_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-import logiq
-assert logiq.__version__
+import execgate
+assert execgate.__version__
 print('ok')
 """
     r = _run(code)
@@ -49,7 +49,7 @@ def test_engine_constructs_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-from logiq import Logix
+from execgate import Logix
 logix = Logix()
 assert logix.registry.names() == []
 print('ok')
@@ -63,7 +63,7 @@ def test_register_and_run_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-from logiq import Logix
+from execgate import Logix
 
 logix = Logix()
 
@@ -86,7 +86,7 @@ def test_multi_step_without_pydantic():
     code = """
 import sys
 sys.modules['pydantic'] = None
-from logiq import Logix
+from execgate import Logix
 
 logix = Logix()
 
@@ -115,7 +115,7 @@ print('ok')
 
 
 # ---------------------------------------------------------------------------
-# Importing logiq_pydantic raises a clear error
+# Importing execgate_pydantic raises a clear error
 # ---------------------------------------------------------------------------
 
 
@@ -124,7 +124,7 @@ def test_import_logix_pydantic_raises_clear_error():
 import sys
 sys.modules['pydantic'] = None
 try:
-    import logiq_pydantic
+    import execgate_pydantic
     print('UNEXPECTED: import succeeded')
     sys.exit(1)
 except ImportError as e:

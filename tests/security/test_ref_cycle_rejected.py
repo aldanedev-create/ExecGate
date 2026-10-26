@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq.plans.parse import CanonicalPlan, CanonicalStep
-from logiq.verifier import _dependency_order
+from execgate.plans.parse import CanonicalPlan, CanonicalStep
+from execgate.verifier import _dependency_order
 
 
 @pytest.mark.security

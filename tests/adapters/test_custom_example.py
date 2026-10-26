@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq_ai.base import AdapterError
-from logiq_ai.custom_example import ExampleAdapter
+from execgate_ai.base import AdapterError
+from execgate_ai.custom_example import ExampleAdapter
 from tests.adapters.contract import AdapterContractMixin
 
 
@@ -96,8 +96,8 @@ def test_parse_defaults_missing_tool_args_to_empty_dict():
 def test_example_adapter_is_not_registered():
     """Per its docstring, ``ExampleAdapter`` is a reference template only.
     It must not be resolvable via ``get_adapter``."""
-    from logiq_ai import get_adapter
-    from logiq_ai.neutral import NeutralJSONAdapter
+    from execgate_ai import get_adapter
+    from execgate_ai.neutral import NeutralJSONAdapter
 
     # "example" is not a registered provider → neutral fallback.
     assert isinstance(get_adapter("example"), NeutralJSONAdapter)

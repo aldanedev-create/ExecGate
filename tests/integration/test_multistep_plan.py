@@ -12,7 +12,7 @@ to the read's validated output.
 
 from __future__ import annotations
 
-from logiq import Deny
+from execgate import Deny
 
 # ---------------------------------------------------------------------------
 # Happy path: linear chain

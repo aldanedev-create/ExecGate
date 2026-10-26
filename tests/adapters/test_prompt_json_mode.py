@@ -17,8 +17,8 @@ import json
 
 import pytest
 
-from logiq.tools import ToolSpec
-from logiq_ai.prompt_json_mode import build
+from execgate.tools import ToolSpec
+from execgate_ai.prompt_json_mode import build
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -3,7 +3,7 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "logiq"
+name = "execgate"
 version = "0.1.0"
 description = "Verified execution for AI-generated plans."
 readme = "README.md"
@@ -55,7 +55,7 @@ Documentation = "https://github.com/aldanedev-create/Logiq/blob/main/docs/"
 Changelog = "https://github.com/aldanedev-create/Logiq/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/logiq", "src/logiq_pydantic", "src/logiq_ai",    "src/logiq_mcp",]
+packages = ["src/execgate", "src/execgate_pydantic", "src/execgate_ai",    "src/execgate_mcp",]
 
 [tool.hatch.build.targets.sdist]
 include = [

@@ -20,8 +20,8 @@ import os
 
 import openai
 
-from logiq import Logix, Allow, Deny
-from logiq_ai import get_adapter
+from execgate import Logix, Allow, Deny
+from execgate_ai import get_adapter
 
 
 # --- Domain ---

@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Allow, Deny
-from logiq.approval import issue
+from execgate import Allow, Deny
+from execgate.approval import issue
 
 # ---------------------------------------------------------------------------
 # Structural guarantee: execute() rejects anything but a VerifiedPlan

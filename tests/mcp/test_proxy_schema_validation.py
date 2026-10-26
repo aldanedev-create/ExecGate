@@ -12,8 +12,8 @@ import asyncio
 
 import pytest
 
-from logiq import Logix
-from logiq_mcp.proxy import LogixMCPProxy
+from execgate import Logix
+from execgate_mcp.proxy import LogixMCPProxy
 
 from .mcp_support import FakeMCPClient, mcp_available
 

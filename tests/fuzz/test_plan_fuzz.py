@@ -26,8 +26,8 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from logiq.errors import ALL_CODES, Error
-from logiq.plans import CanonicalPlan, parse_plan
+from execgate.errors import ALL_CODES, Error
+from execgate.plans import CanonicalPlan, parse_plan
 
 # ---------------------------------------------------------------------------
 # Strategies
@@ -257,7 +257,7 @@ def test_smuggled_verified_flag_always_rejected(plan):
 def test_oversized_plan_rejected(plan):
     """A plan larger than the byte limit is rejected before parsing
     succeeds."""
-    from logiq.plans import PlanLimits
+    from execgate.plans import PlanLimits
 
     # Serialize, then set a limit smaller than the resulting bytes.
     # Must match parse_plan's canonical (compact) serialization.

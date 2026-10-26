@@ -24,8 +24,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from logiq import Logix, Deny
-from logiq_mcp import LogixMCPProxy
+from execgate import Logix, Deny
+from execgate_mcp import LogixMCPProxy
 
 
 # --- Upstream stub ---

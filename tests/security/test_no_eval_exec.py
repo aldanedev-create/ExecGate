@@ -33,7 +33,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_SRC = _PROJECT_ROOT / "src" / "logiq"
+_SRC = _PROJECT_ROOT / "src" / "execgate"
 
 # These modules form the trust-boundary pipeline for a plan. None of them
 # may call eval/exec/__import__.

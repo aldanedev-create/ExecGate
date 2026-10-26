@@ -16,8 +16,8 @@ import asyncio
 
 import pytest
 
-from logiq import Deny, Logix
-from logiq_mcp.server import LogixMCPServer
+from execgate import Deny, Logix
+from execgate_mcp.server import LogixMCPServer
 
 from .mcp_support import mcp_available
 
@@ -219,7 +219,7 @@ def test_context_factory_is_called_per_invocation():
 @mcp_available
 def test_context_factory_sees_principal():
     """The context the handler receives uses the factory's output."""
-    from logiq.context import ExecutionContext
+    from execgate.context import ExecutionContext
 
     captured: list[ExecutionContext] = []
 
@@ -236,7 +236,7 @@ def test_context_factory_sees_principal():
 
     def capture_ctx(args, ctx):
         captured.append(ctx)
-        from logiq import Allow
+        from execgate import Allow
 
         return Allow()
 

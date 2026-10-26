@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq.plans import CanonicalPlan, CanonicalStep
-from logiq.semantic import GroundingPolicy, check_grounding
+from execgate.plans import CanonicalPlan, CanonicalStep
+from execgate.semantic import GroundingPolicy, check_grounding
 
 
 def _plan(capability: str, args: dict) -> CanonicalPlan:

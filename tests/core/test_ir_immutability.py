@@ -17,7 +17,7 @@ import dataclasses
 
 import pytest
 
-from logiq.ir import VerifiedPlan, VerifiedStep, _construct_verified_plan
+from execgate.ir import VerifiedPlan, VerifiedStep, _construct_verified_plan
 
 
 def _make_plan(**overrides):

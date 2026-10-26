@@ -27,7 +27,7 @@ FIXES: dict[str, list[tuple[str, str]]] = {
         ('"FAIL: src/logix/ imports', '"FAIL: src/logiq/ imports'),
         ("files under src/logix/", "files under src/logiq/"),
         ("relative import of a logix", "relative import of a logiq"),
-        ("a ``logix.*`` submodule", "a ``logiq.*`` submodule"),
+        ("a ``logix.*`` submodule", "a ``execgate.*`` submodule"),
         ("``src/logix/``", "``src/logiq/``"),
     ],
     "scripts/release.py": [

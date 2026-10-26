@@ -1,7 +1,7 @@
 
-# Contributing to Logiq
+# Contributing to ExecGate
 
-Logiq is a verification boundary. Bugs in this project can cause untrusted
+ExecGate is a verification boundary. Bugs in this project can cause untrusted
 input to reach trusted code, so contribution standards are stricter than
 a typical Python library.
 
@@ -13,8 +13,8 @@ code. They define the invariants you are expected to preserve.
 ## Ground rules
 
 1. **Core stays stdlib-only.** `src/logiq/` must import nothing outside
-   the standard library. Optional behavior lives in `src/logiq_pydantic/`,
-   `src/logiq_ai/`, and `src/logiq_mcp/`. Both
+   the standard library. Optional behavior lives in `src/execgate_pydantic/`,
+   `src/execgate_ai/`, and `src/execgate_mcp/`. Both
    `scripts/check_imports.py` and `tests/pydantic/test_core_without_pydantic.py`
    enforce this. A PR that adds a third-party import to the core is
    rejected.
@@ -51,8 +51,8 @@ code. They define the invariants you are expected to preserve.
 ## Development setup
 
 ```bash
-git clone https://github.com/aldanedev-create/Logiq.git
-cd Logiq
+git clone https://github.com/aldanedev-create/ExecGate.git
+cd ExecGate
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
@@ -147,17 +147,17 @@ first.
 ## Adding a new AI provider adapter
 
 1. Read `docs/writing-an-adapter.md`.
-2. Create `src/logiq_ai/providers/<name>.py` implementing
+2. Create `src/execgate_ai/providers/<name>.py` implementing
    `ProviderAdapter`. Two methods only: `format_tools` and
    `parse_proposal`. Zero SDK imports; pure data shaping.
 3. Add `tests/adapters/test_<name>.py` that subclasses
    `AdapterContractMixin` and implements `make_adapter()` and
    `sample_proposal()`.
-4. Register the adapter in `logiq_ai/registry.py` so
+4. Register the adapter in `execgate_ai/registry.py` so
    `tools.format("<name>")` resolves. Unknown providers must still fall
    back to neutral — never raise.
-5. The adapter must not import from `logiq.verifier`, `logiq.executor`,
-   `logiq.ir`, or `logiq._internal`. The conformance kit checks this.
+5. The adapter must not import from `execgate.verifier`, `execgate.executor`,
+   `execgate.ir`, or `execgate._internal`. The conformance kit checks this.
 
 An adapter that cannot pass `tests/adapters/contract.py` is not
 accepted, regardless of whether it "works" against a particular provider
@@ -198,12 +198,12 @@ ask in an issue before opening a PR.
 
 ## Changing the MCP integration
 
-`src/logiq_mcp/` follows the leaf-node rule (ADR-0007). Changes there
+`src/execgate_mcp/` follows the leaf-node rule (ADR-0007). Changes there
 must:
 
 - Import only from the allowlist in `tests/mcp/test_leaf_node_boundary.py`.
-- Not import from `logiq.verifier`, `logiq.executor`, `logiq.ir`, or
-  `logiq._internal`.
+- Not import from `execgate.verifier`, `execgate.executor`, `execgate.ir`, or
+  `execgate._internal`.
 - Pass `tests/mcp/test_leaf_node_boundary.py` and
   `tests/mcp/test_mcp_adapter_contract.py`.
 - Pass `tests/mcp/test_core_without_mcp.py` when FastMCP is not
@@ -212,7 +212,7 @@ must:
 A PR that weakens the leaf-node boundary is rejected regardless of
 functionality. If the feature genuinely needs trust-boundary access, put
 it in `src/logiq/` as a public method and expose it through `Logix` — do
-not let `logiq_mcp` reach into the internals.
+not let `execgate_mcp` reach into the internals.
 
 The known limitations of MCP server mode (approval, multi-step plans,
 `context_factory` arity) are documented in `docs/mcp.md §3`. A PR that
@@ -266,8 +266,8 @@ There is no bounty program. There is a commitment to fix real issues
 quickly and publicly credit the reporter (unless anonymity is
 requested).
 
-The threat model — what Logiq does and does not protect against — is in
-`docs/security.md`. Read it before reporting; a claim that Logiq "should
+The threat model — what ExecGate does and does not protect against — is in
+`docs/security.md`. Read it before reporting; a claim that ExecGate "should
 have caught" something may be a documented non-goal.
 
 ---
@@ -361,7 +361,7 @@ If you're looking for a first contribution:
   missing examples are easy wins. Look for `TODO` markers.
 - **Examples.** `examples/` has empty files that need to be filled in
   (F1 in the handoff report).
-- **Tests.** Coverage gaps in `src/logiq_ai/prompt_json_mode.py`
+- **Tests.** Coverage gaps in `src/execgate_ai/prompt_json_mode.py`
   (currently 0%), `src/logiq/_internal/immutability.py` (currently 47%).
 - **Small fixes.** The handoff report lists F6 (test
   `prompt_json_mode`), F7 (fuzz xfail in `parse_plan`), F9 (wire-protocol

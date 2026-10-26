@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq_ai.base import AdapterError
-from logiq_ai.providers.anthropic import AnthropicAdapter
+from execgate_ai.base import AdapterError
+from execgate_ai.providers.anthropic import AnthropicAdapter
 from tests.adapters.contract import AdapterContractMixin
 
 

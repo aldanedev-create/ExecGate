@@ -3,7 +3,7 @@
 Apply the four test-failure fixes after the ruff/mypy cleanup.
 
 Fixes:
-  1. src/logiq_ai/prompt_json_mode.py — whitespace-only system string
+  1. src/execgate_ai/prompt_json_mode.py — whitespace-only system string
      should not be prepended as a bare "\n\n".
   2. tests/core/test_schema_inference.py — restore `int = None` (the
      ruff UP007 autofix rewrote it to `int | None`, which defeats the
@@ -47,7 +47,7 @@ def _write(path: Path, text: str) -> None:
 
 
 def fix_prompt_json_mode(dry_run: bool) -> str:
-    path = ROOT / "src" / "logiq_ai" / "prompt_json_mode.py"
+    path = ROOT / "src" / "execgate_ai" / "prompt_json_mode.py"
     if not path.exists():
         return f"SKIP (missing): {path.relative_to(ROOT)}"
 

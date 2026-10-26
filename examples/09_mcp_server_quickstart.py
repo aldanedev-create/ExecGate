@@ -31,8 +31,8 @@ To use it with an MCP client (Claude Desktop, etc.), configure:
 
 import sys
 
-from logiq import Logix
-from logiq_mcp import LogixMCPServer
+from execgate import Logix
+from execgate_mcp import LogixMCPServer
 
 
 def main() -> None:

@@ -12,14 +12,14 @@ from __future__ import annotations
 
 import pytest
 
-from logiq.capabilities import Registry, build_capability
-from logiq.errors import (
+from execgate.capabilities import Registry, build_capability
+from execgate.errors import (
     approval_required,
     authorization_failed,
     policy_rejected,
 )
-from logiq.semantic import RepairLoop, RepairRefused, RepairState
-from logiq.semantic.repair_loop import assert_repair_allowed
+from execgate.semantic import RepairLoop, RepairRefused, RepairState
+from execgate.semantic.repair_loop import assert_repair_allowed
 
 
 def _registry():
@@ -147,7 +147,7 @@ def test_non_refusal_errors_do_not_record_capability():
 
 
 def test_schema_error_does_not_record_capability():
-    from logiq.errors import schema_validation_failed
+    from execgate.errors import schema_validation_failed
 
     loop = RepairLoop(max_attempts=3)
     loop.record_outcome(

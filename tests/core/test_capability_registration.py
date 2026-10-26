@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from logiq.capabilities import Registry, build_capability
+from execgate.capabilities import Registry, build_capability
 
 # ---------------------------------------------------------------------------
 # Decorator forms

@@ -16,8 +16,8 @@ real model call.
 
 import json
 
-from logiq import Logix
-from logiq_ai import get_adapter
+from execgate import Logix
+from execgate_ai import get_adapter
 
 
 def main() -> None:

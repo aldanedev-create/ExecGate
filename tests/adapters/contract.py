@@ -35,8 +35,8 @@ import json
 
 import pytest
 
-from logiq.tools import ToolSpec
-from logiq_ai import AdapterError, ProviderAdapter
+from execgate.tools import ToolSpec
+from execgate_ai import AdapterError, ProviderAdapter
 
 # ---------------------------------------------------------------------------
 # Shared sample data
@@ -200,7 +200,7 @@ class AdapterContractMixin:
             return
 
         # If it normalized, the result must not be directly executable.
-        from logiq.plans import parse_plan
+        from execgate.plans import parse_plan
 
         # Invariant: a smuggled marker must never reach an *accepted* plan.
         # Fresh-output adapters drop it (no key to reject); passthrough

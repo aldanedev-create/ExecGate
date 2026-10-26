@@ -17,7 +17,7 @@ import json
 
 import pytest
 
-from logiq import ToolSpec
+from execgate import ToolSpec
 
 # ---------------------------------------------------------------------------
 # describe() — neutral catalog
@@ -186,7 +186,7 @@ def test_format_unknown_provider_falls_back_to_neutral(logix):
 
 @pytest.mark.parametrize("provider", ["openai", "anthropic", "gemini", "local"])
 def test_format_known_provider_succeeds(logix, provider):
-    """If logiq_ai is installed (it is, per dev extras), every registered
+    """If execgate_ai is installed (it is, per dev extras), every registered
     provider name resolves to a working adapter."""
 
     @logix.capability

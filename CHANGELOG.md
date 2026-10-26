@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Logiq are documented here.
+All notable changes to ExecGate are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
@@ -80,7 +80,7 @@ First release. Everything below is the initial implementation.
   A crashing check fails closed.
 - `logix.require_approval(capability)` — approval-gated capabilities.
   `ApprovalToken` bound to `(capability, args_hash, principal,
-  context_hash)`. Application-issued via `logiq.approval.issue(...)`.
+  context_hash)`. Application-issued via `execgate.approval.issue(...)`.
 - `logix.grounding(require_ref_for=..., literal_allowlist=...)` —
   sensitive arguments must be `$ref`-sourced (ADR-0005).
 - `ExecutionContext` — trusted caller identity. Frozen; `extra` is a
@@ -98,19 +98,19 @@ First release. Everything below is the initial implementation.
 
 #### Optional adapters — experimental
 
-- **`logiq_pydantic`** — use Pydantic models as capability schemas.
+- **`execgate_pydantic`** — use Pydantic models as capability schemas.
   Requires `pydantic>=2,<3`. Detects models in direct, `Optional`,
   `list`, `dict`, and `Union` positions. `HandlerMode.MODEL` (default)
   passes model instances to handlers; `HandlerMode.VALUES` passes plain
   dicts. Pydantic output normalized to JSON-safe dicts; `$ref` traversal
   into model fields works.
-- **`logiq_ai`** — provider adapters for the AI catalog. Zero runtime
+- **`execgate_ai`** — provider adapters for the AI catalog. Zero runtime
   dependencies (pure data shaping). Built-in adapters: `"openai"`,
   `"anthropic"`, `"gemini"`, `"local"` (Ollama/llama.cpp/vLLM JSON
   mode). `ProviderAdapter` protocol — two methods: `format_tools` and
   `parse_proposal`. Adapters are leaf nodes (ADR-0006).
-- **`logiq_mcp`** — MCP integration. Requires `fastmcp>=4,<5`.
-  - **Server mode** (`LogixMCPServer`): expose Logiq capabilities to any
+- **`execgate_mcp`** — MCP integration. Requires `fastmcp>=4,<5`.
+  - **Server mode** (`LogixMCPServer`): expose ExecGate capabilities to any
     MCP client. Every call runs through the full pipeline.
   - **Proxy mode** (`LogixMCPProxy`): verify every call to an untrusted
     upstream MCP server before forwarding.
@@ -156,7 +156,7 @@ First release. Everything below is the initial implementation.
 
 - Package renamed from `logix` to `logiq` before 0.1.0 (PyPI `logix` and
   `logix-ai` were taken). The class is still `Logix`. The split is
-  permanent; `from logiq import Logix` is the import.
+  permanent; `from execgate import Logix` is the import.
 
 ### Known limitations
 
@@ -202,12 +202,12 @@ Documented in the reference docs; not blockers for 0.1.0.
 - **Core is stdlib-only.** Zero third-party runtime dependencies.
   Enforced by `scripts/check_imports.py` and the
   `test_core_without_*` test files.
-- **Adapters are leaf nodes.** `logiq_mcp`, `logiq_ai`, `logiq_pydantic`
+- **Adapters are leaf nodes.** `execgate_mcp`, `execgate_ai`, `execgate_pydantic`
   cannot import the verifier, executor, or IR (ADR-0006, ADR-0007).
 
 The guarantee, precisely stated:
 
-> A plan that fails Logiq's required verification checks does not reach
+> A plan that fails ExecGate's required verification checks does not reach
 > normal handler execution.
 
 It does **not** claim that a model's natural-language claims are true,
@@ -241,7 +241,7 @@ correct results. See `docs/security.md`.
 - **Major** — breaking changes to stable APIs.
 
 The "works with any AI that emits JSON" guarantee is part of the stable
-contract: `logiq.tools.format("json")` and the neutral adapter may not be
+contract: `execgate.tools.format("json")` and the neutral adapter may not be
 removed or made conditional on an optional dependency in any 0.x or 1.x
 release.
 

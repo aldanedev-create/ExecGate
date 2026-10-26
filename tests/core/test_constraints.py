@@ -11,8 +11,8 @@ from typing import Annotated
 
 import pytest
 
-from logiq.annotation_inspect import inspect_capability
-from logiq.schemas import (
+from execgate.annotation_inspect import inspect_capability
+from execgate.schemas import (
     Ge,
     Gt,
     Le,
@@ -23,7 +23,7 @@ from logiq.schemas import (
     SchemaInferenceError,
     infer_input_schema,
 )
-from logiq.schemas.validate import ConstrainedType
+from execgate.schemas.validate import ConstrainedType
 
 
 def _schema(fn):

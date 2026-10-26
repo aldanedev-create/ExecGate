@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from logiq.plans import DEFAULT_LIMITS, PlanLimits, parse_plan
+from execgate.plans import DEFAULT_LIMITS, PlanLimits, parse_plan
 
 # ---------------------------------------------------------------------------
 # Defaults
@@ -109,7 +109,7 @@ def test_under_limits_succeeds():
         {"call": "x", "with": {"a": 1}},
         limits=PlanLimits(max_bytes=1000, max_steps=5, max_depth=5),
     )
-    from logiq.plans import CanonicalPlan
+    from execgate.plans import CanonicalPlan
 
     assert isinstance(result, CanonicalPlan)
 
@@ -157,7 +157,7 @@ def test_logix_limits_multiple_overrides(logix):
 
 def test_logix_limits_engine_isolation():
     """Two engines with different limits must not interfere."""
-    from logiq import Logix
+    from execgate import Logix
 
     a = Logix()
     b = Logix()

@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
-from logiq.context import ExecutionContext
+from execgate import Logix
+from execgate.context import ExecutionContext
 
 
 @pytest.fixture

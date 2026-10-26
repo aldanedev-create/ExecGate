@@ -16,8 +16,8 @@ is that the AI has no path to the token — it is issued by application
 code, bound to the exact action.
 """
 
-from logiq import Logix, Allow, Deny
-from logiq.approval import issue
+from execgate import Logix, Allow, Deny
+from execgate.approval import issue
 
 
 def ask_human(capability: str, args: dict, principal: str) -> bool:

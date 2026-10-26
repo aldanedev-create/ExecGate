@@ -10,7 +10,7 @@ Requires:
     (with Ollama running in the background)
 
 Demonstrates:
-  - logiq_ai.prompt_json_mode.build(...)  — system prompt for JSON mode
+  - execgate_ai.prompt_json_mode.build(...)  — system prompt for JSON mode
   - LocalAdapter.parse_proposal(...)      — parse a JSON response
   - the same logix.run(plan) as every other example
 
@@ -22,9 +22,9 @@ understanding what the model sees.
 import json
 import sys
 
-from logiq import Logix
-from logiq_ai import get_adapter
-from logiq_ai.prompt_json_mode import build
+from execgate import Logix
+from execgate_ai import get_adapter
+from execgate_ai.prompt_json_mode import build
 
 
 def main() -> None:

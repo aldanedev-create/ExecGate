@@ -15,7 +15,7 @@ comes from the first step's validated output — the model cannot type a
 refund amount.
 """
 
-from logiq import Logix, Deny
+from execgate import Logix, Deny
 
 
 def main() -> None:

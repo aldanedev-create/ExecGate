@@ -17,14 +17,14 @@ from __future__ import annotations
 
 import pytest
 
-from logiq.errors import (
+from execgate.errors import (
     AUTHORIZATION_FAILED,
     POLICY_REJECTED,
     SCHEMA_VALIDATION_FAILED,
     Error,
 )
-from logiq.results import Result
-from logiq.schemas import (
+from execgate.results import Result
+from execgate.schemas import (
     BoolType,
     IntType,
     ListType,
@@ -35,8 +35,8 @@ from logiq.schemas import (
     StrType,
     UnionType,
 )
-from logiq.tools import ToolSpec
-from logiq_mcp.adapter import (
+from execgate.tools import ToolSpec
+from execgate_mcp.adapter import (
     extract_mcp_result_value,
     format_errors_for_mcp,
     from_mcp_call,
@@ -217,7 +217,7 @@ def test_extract_no_content_attribute():
 
 
 def test_schema_errors_to_errors():
-    from logiq.schemas import SchemaError
+    from execgate.schemas import SchemaError
 
     schema_errors = [
         SchemaError(path="$", message="bad"),
@@ -270,7 +270,7 @@ def test_schema_array_without_items_is_any_item():
         "properties": {"xs": {"type": "array"}},
     }
     obj = mcp_schema_to_logix(schema)
-    from logiq.schemas import AnyType
+    from execgate.schemas import AnyType
 
     assert isinstance(obj.fields["xs"], ListType)
     assert isinstance(obj.fields["xs"].item_type, AnyType)

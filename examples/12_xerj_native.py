@@ -31,8 +31,8 @@ except ImportError:
 
 from typing import Annotated, Literal
 
-from logiq import Logix, Deny
-from logiq.schemas import Gt, Le, MaxLength, MinLength
+from execgate import Logix, Deny
+from execgate.schemas import Gt, Le, MaxLength, MinLength
 
 
 XERJ_URL = os.environ.get("XERJ_URL", "http://localhost:7700")

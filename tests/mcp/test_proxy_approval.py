@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import asyncio
 
-from logiq import Logix
-from logiq.approval import issue
-from logiq_mcp.proxy import LogixMCPProxy
+from execgate import Logix
+from execgate.approval import issue
+from execgate_mcp.proxy import LogixMCPProxy
 
 from .mcp_support import FakeMCPClient, mcp_available
 

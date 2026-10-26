@@ -36,7 +36,7 @@ try:
 except ImportError:
     HAS_FASTAPI = False
 
-from logiq import Logix
+from execgate import Logix
 
 
 logix = Logix()

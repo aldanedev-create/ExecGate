@@ -19,8 +19,8 @@ import json
 
 from pydantic import BaseModel, Field
 
-from logiq import Logix
-from logiq_pydantic import HandlerMode, set_handler_mode
+from execgate import Logix
+from execgate_pydantic import HandlerMode, set_handler_mode
 
 
 class CreateOrder(BaseModel):

@@ -21,8 +21,8 @@ import json
 
 import pytest
 
-from logiq.annotation_inspect import find_unsupported_annotations, inspect_capability
-from logiq.schemas import (
+from execgate.annotation_inspect import find_unsupported_annotations, inspect_capability
+from execgate.schemas import (
     DictType,
     FloatType,
     IntType,
@@ -33,8 +33,8 @@ from logiq.schemas import (
     infer_input_schema,
     infer_output_schema,
 )
-from logiq.schemas.types import is_type_instance
-from logiq_pydantic import (
+from execgate.schemas.types import is_type_instance
+from execgate_pydantic import (
     PydanticType,
     is_pydantic_model,
     model_to_json_schema,

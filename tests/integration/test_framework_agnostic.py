@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from logiq import Logix
+from execgate import Logix
 
 # ---------------------------------------------------------------------------
 # Static: no framework imports under src/logiq
@@ -79,7 +79,7 @@ def test_no_web_framework_imports_in_core():
 
 
 # ---------------------------------------------------------------------------
-# Runtime: import logiq with frameworks blocked
+# Runtime: import execgate with frameworks blocked
 # ---------------------------------------------------------------------------
 
 
@@ -97,14 +97,14 @@ def _run_with_blocked_frameworks(code: str) -> subprocess.CompletedProcess[str]:
 
 
 def test_import_logix_with_frameworks_blocked():
-    r = _run_with_blocked_frameworks("import logiq\nprint('ok')")
+    r = _run_with_blocked_frameworks("import execgate\nprint('ok')")
     assert r.returncode == 0, r.stderr
     assert "ok" in r.stdout
 
 
 def test_run_capability_with_frameworks_blocked():
     r = _run_with_blocked_frameworks("""
-from logiq import Logix
+from execgate import Logix
 logix = Logix()
 
 @logix.capability
@@ -215,7 +215,7 @@ def test_engine_isolation_of_policies():
     def op(x: int) -> int:  # noqa: F811
         return x
 
-    from logiq import Deny
+    from execgate import Deny
 
     a.authorize(op, check=lambda args, ctx: Deny("A_BLOCKED", "no"))
 

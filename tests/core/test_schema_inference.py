@@ -16,8 +16,8 @@ import typing
 
 import pytest
 
-from logiq.annotation_inspect import inspect_capability
-from logiq.schemas import (
+from execgate.annotation_inspect import inspect_capability
+from execgate.schemas import (
     BoolType,
     DictType,
     IntType,

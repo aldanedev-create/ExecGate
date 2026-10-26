@@ -8,8 +8,8 @@ AST-walking every .py file under ``src/logiq/`` and asserting every
 top-level import belongs to one of:
 
   - the Python standard library (``sys.stdlib_module_names``)
-  - a ``logiq.*`` submodule (internal)
-  - a ``logix_*`` sibling package (logiq_pydantic, logiq_ai, logiq_mcp —
+  - a ``execgate.*`` submodule (internal)
+  - a ``logix_*`` sibling package (execgate_pydantic, execgate_ai, execgate_mcp —
     optional extras, always imported behind ``try/except ImportError``)
 
 Any other import fails the check. Exit 0 on pass, 1 on any violation.
@@ -22,8 +22,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "src" / "logiq"
-SIBLINGS = frozenset({"logiq_pydantic", "logiq_ai", "logiq_mcp"})
+SRC = ROOT / "src" / "execgate"
+SIBLINGS = frozenset({"execgate_pydantic", "execgate_ai", "execgate_mcp"})
 
 
 def _top_level_imports(path: Path) -> list[tuple[int, str]]:
@@ -52,7 +52,7 @@ def main() -> int:
 
     for path in files:
         for lineno, mod in _top_level_imports(path):
-            if mod in stdlib or mod == "logiq" or mod in SIBLINGS:
+            if mod in stdlib or mod == "execgate" or mod in SIBLINGS:
                 continue
             offenders.append(f"  {path.relative_to(ROOT)}:{lineno}: non-stdlib import {mod!r}")
 

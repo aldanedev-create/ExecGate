@@ -8,8 +8,8 @@ protocol is the contract; this class is the default.
 
 from __future__ import annotations
 
-from logiq import Logix
-from logiq.semantic import (
+from execgate import Logix
+from execgate.semantic import (
     IdempotencyStatus,
     InMemoryIdempotencyStore,
 )

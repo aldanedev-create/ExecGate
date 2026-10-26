@@ -17,8 +17,8 @@ this example shows the shape without requiring a full test suite.
 
 from typing import Any
 
-from logiq import Logix
-from logiq_ai.base import AdapterError, ToolSpec
+from execgate import Logix
+from execgate_ai.base import AdapterError, ToolSpec
 
 
 class ExampleAdapter:

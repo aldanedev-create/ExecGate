@@ -16,8 +16,8 @@ from typing import Annotated
 
 import pytest
 
-from logiq import Allow, Deny
-from logiq.schemas import Gt, Le
+from execgate import Allow, Deny
+from execgate.schemas import Gt, Le
 
 
 @pytest.mark.security

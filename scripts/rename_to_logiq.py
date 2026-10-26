@@ -4,9 +4,9 @@ Rename the Logix package to Logiq.
 
 Renames:
   src/logix/          -> src/logiq/
-  src/logiq_pydantic/ -> src/logiq_pydantic/
-  src/logiq_ai/       -> src/logiq_ai/
-  src/logiq_mcp/      -> src/logiq_mcp/
+  src/execgate_pydantic/ -> src/execgate_pydantic/
+  src/execgate_ai/       -> src/execgate_ai/
+  src/execgate_mcp/      -> src/execgate_mcp/
 
 Rewrites imports and module references across:
   src/, tests/, scripts/, examples/, docs/, pyproject.toml,
@@ -15,7 +15,7 @@ Rewrites imports and module references across:
 Preserves:
   - The class name ``Logix`` (capital L) — the brand survives in user code.
   - Local variables named ``logix`` in tests, examples, and user-facing
-    code. ``from logiq import Logix; logix = Logix()`` still works.
+    code. ``from execgate import Logix; logix = Logix()`` still works.
   - Prose references to "Logix" the product.
   - URLs (e.g. github.com/logix-dev/logix). Repo rename is a separate
     decision.
@@ -51,20 +51,20 @@ ROOT = Path(__file__).resolve().parent.parent
 
 DIR_RENAMES = [
     ("src/logix", "src/logiq"),
-    ("src/logiq_pydantic", "src/logiq_pydantic"),
-    ("src/logiq_ai", "src/logiq_ai"),
-    ("src/logiq_mcp", "src/logiq_mcp"),
+    ("src/execgate_pydantic", "src/execgate_pydantic"),
+    ("src/execgate_ai", "src/execgate_ai"),
+    ("src/execgate_mcp", "src/execgate_mcp"),
 ]
 
 # Conservative, safe replacements — applied to all files.
 IMPORT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
     # Package name with underscore — most specific first
-    (re.compile(r"\blogix_pydantic\b"), "logiq_pydantic"),
-    (re.compile(r"\blogix_ai\b"), "logiq_ai"),
-    (re.compile(r"\blogix_mcp\b"), "logiq_mcp"),
-    # Import statements (matches ``from logiq import`` and ``from logiq.xxx``)
-    (re.compile(r"\bfrom logix\b"), "from logiq"),
-    (re.compile(r"\bimport logix\b"), "import logiq"),
+    (re.compile(r"\blogix_pydantic\b"), "execgate_pydantic"),
+    (re.compile(r"\blogix_ai\b"), "execgate_ai"),
+    (re.compile(r"\blogix_mcp\b"), "execgate_mcp"),
+    # Import statements (matches ``from execgate import`` and ``from execgate.xxx``)
+    (re.compile(r"\bfrom logix\b"), "from execgate"),
+    (re.compile(r"\bimport logix\b"), "import execgate"),
     # pip install commands
     (re.compile(r"\bpip install logix\b"), "pip install logiq"),
     (re.compile(r"""(pip install ["'])logix(\[)"""), r"\1logiq\2"),
@@ -83,9 +83,9 @@ SRC_AGGRESSIVE: list[tuple[re.Pattern[str], str]] = [
 PYPROJECT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r'^name = "logix"$', re.MULTILINE), 'name = "logiq"'),
     (re.compile(r'"src/logix"'), '"src/logiq"'),
-    (re.compile(r'"src/logiq_pydantic"'), '"src/logiq_pydantic"'),
-    (re.compile(r'"src/logiq_ai"'), '"src/logiq_ai"'),
-    (re.compile(r'"src/logiq_mcp"'), '"src/logiq_mcp"'),
+    (re.compile(r'"src/execgate_pydantic"'), '"src/execgate_pydantic"'),
+    (re.compile(r'"src/execgate_ai"'), '"src/execgate_ai"'),
+    (re.compile(r'"src/execgate_mcp"'), '"src/execgate_mcp"'),
     (
         re.compile(r'^Homepage = "https://github\.com/[^/]+/logix"$', re.MULTILINE),
         lambda m: m.group(0).replace("/logix", "/logiq"),
@@ -327,7 +327,7 @@ def main(argv: list[str]) -> int:
     print("  1. Reinstall the editable package:")
     print('       pip install -e ".[dev]"')
     print("  2. Verify import + quick smoke test:")
-    print('       python -c "from logiq import Logix; print(Logix)"')
+    print('       python -c "from execgate import Logix; print(Logix)"')
     print("  3. Review changes:")
     print("       git status")
     print("       git diff --stat")

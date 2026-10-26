@@ -22,8 +22,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Deny, Logix
-from logiq_mcp import LogixMCPServer
+from execgate import Deny, Logix
+from execgate_mcp import LogixMCPServer
 
 from .conftest import mcp_available
 
@@ -308,7 +308,7 @@ async def test_context_factory_sets_principal():
 
     def capture(args, ctx):
         captured.append(ctx.principal)
-        from logiq import Allow
+        from execgate import Allow
 
         return Allow()
 

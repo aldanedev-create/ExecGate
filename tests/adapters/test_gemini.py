@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq_ai.base import AdapterError
-from logiq_ai.providers.gemini import GeminiAdapter
+from execgate_ai.base import AdapterError
+from execgate_ai.providers.gemini import GeminiAdapter
 from tests.adapters.contract import AdapterContractMixin
 
 

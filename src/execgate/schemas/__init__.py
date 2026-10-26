@@ -1,0 +1,99 @@
+"""
+The native schema engine.
+
+Public surface (stable 0.1)::
+
+    from execgate.schemas import (
+        ObjectType, IntType, StrType, BoolType, FloatType,
+        ListType, DictType, LiteralType, UnionType, NoneType, AnyType, NumberType,
+        ConstrainedType, Gt, Ge, Lt, Le, MinLength, MaxLength, Pattern,
+        SchemaError, SchemaInferenceError,
+        infer_input_schema, infer_output_schema,
+        validate_input, validate_output,
+        to_json_schema,
+    )
+
+What this package guarantees:
+
+- The schema validator runs *before* any handler is invoked.
+- Unsupported annotations fail loudly; no silent weakening.
+- ``bool`` is not accepted where ``int`` is required.
+- Unknown fields are rejected by default (``additionalProperties: false``).
+- The same ``Type`` produces both validation and JSON Schema output, so
+  the AI catalog and the verifier cannot disagree.
+"""
+
+from __future__ import annotations
+
+from execgate.schemas.constraints import (
+    Ge,
+    Gt,
+    Le,
+    Lt,
+    MaxLength,
+    MinLength,
+    Pattern,
+)
+from execgate.schemas.infer import (
+    SchemaInferenceError,
+    infer_input_schema,
+    infer_output_schema,
+)
+from execgate.schemas.json_schema import capability_json_schema, to_json_schema
+from execgate.schemas.types import (
+    AnyType,
+    BoolType,
+    DictType,
+    FloatType,
+    IntType,
+    ListType,
+    LiteralType,
+    NoneType,
+    NumberType,
+    ObjectType,
+    SchemaError,
+    StrType,
+    Type,
+    UnionType,
+)
+from execgate.schemas.unsupported import describe_unsupported
+from execgate.schemas.validate import ConstrainedType, validate_input, validate_output
+
+__all__ = [
+    # types
+    "AnyType",
+    "BoolType",
+    # validation
+    "ConstrainedType",
+    "DictType",
+    "FloatType",
+    # constraints
+    "Ge",
+    "Gt",
+    "IntType",
+    "Le",
+    "ListType",
+    "LiteralType",
+    "Lt",
+    "MaxLength",
+    "MinLength",
+    "NoneType",
+    "NumberType",
+    "ObjectType",
+    "Pattern",
+    "SchemaError",
+    "SchemaInferenceError",
+    "StrType",
+    "Type",
+    "UnionType",
+    "capability_json_schema",
+    # diagnostics
+    "describe_unsupported",
+    # inference
+    "infer_input_schema",
+    "infer_output_schema",
+    # json schema
+    "to_json_schema",
+    "validate_input",
+    "validate_output",
+]

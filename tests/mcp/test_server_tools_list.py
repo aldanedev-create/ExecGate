@@ -9,8 +9,8 @@ the strict schema.
 
 from __future__ import annotations
 
-from logiq import Logix
-from logiq_mcp.server import LogixMCPServer
+from execgate import Logix
+from execgate_mcp.server import LogixMCPServer
 
 from .mcp_support import mcp_available
 

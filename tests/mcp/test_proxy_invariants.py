@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import asyncio
 
-from logiq import Allow, Deny, Logix
-from logiq_mcp.proxy import LogixMCPProxy
+from execgate import Allow, Deny, Logix
+from execgate_mcp.proxy import LogixMCPProxy
 
 from .mcp_support import FakeMCPClient, mcp_available
 

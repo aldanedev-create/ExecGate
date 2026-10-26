@@ -19,7 +19,7 @@ import sys
 
 import pytest
 
-from logiq_pydantic import (
+from execgate_pydantic import (
     HandlerMode,
     get_handler_mode,
     install,
@@ -53,7 +53,7 @@ def test_default_is_model_in_subprocess():
     """The module-level default is MODEL. Observed in a fresh interpreter
     so prior tests cannot have mutated it."""
     code = """
-from logiq_pydantic import get_handler_mode, HandlerMode
+from execgate_pydantic import get_handler_mode, HandlerMode
 assert get_handler_mode() == HandlerMode.MODEL
 print('ok')
 """

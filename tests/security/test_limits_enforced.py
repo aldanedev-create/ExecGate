@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq import Logix
-from logiq.plans import DEFAULT_LIMITS, PlanLimits
+from execgate import Logix
+from execgate.plans import DEFAULT_LIMITS, PlanLimits
 
 # ---------------------------------------------------------------------------
 # max_bytes
@@ -39,7 +39,7 @@ def test_max_bytes_enforced(logix):
 
 @pytest.mark.security
 def test_max_bytes_via_parse_directly():
-    from logiq.plans import parse_plan
+    from execgate.plans import parse_plan
 
     plan = {"call": "x", "with": {"data": "a" * 5000}}
     result = parse_plan(plan, limits=PlanLimits(max_bytes=100))

@@ -4,7 +4,7 @@ Inspect a built wheel for the properties Logix promises.
 
 Verifies:
 
-  - expected packages present: logix, logiq_pydantic, logiq_ai, logiq_mcp
+  - expected packages present: logix, execgate_pydantic, execgate_ai, execgate_mcp
   - ``py.typed`` present in each package
   - tests/, scripts/, docs/ NOT in the wheel
   - core declares no unconditional runtime dependency
@@ -24,7 +24,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-EXPECTED_PACKAGES = ("logiq", "logiq_pydantic", "logiq_ai", "logiq_mcp")
+EXPECTED_PACKAGES = ("execgate", "execgate_pydantic", "execgate_ai", "execgate_mcp")
 FORBIDDEN_PREFIXES = ("tests/", "scripts/", "docs/", "examples/")
 
 

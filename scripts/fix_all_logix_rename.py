@@ -16,14 +16,14 @@ Fixes applied:
 
   - Path literals:      "src/logix"            → "src/logiq"
                         ROOT / "src" / "logix" → ROOT / "src" / "logiq"
-  - Module imports:     from logix             → from logiq
-                        import logix           → import logiq
-  - Module strings:     "logix.engine"         → "logiq.engine"
+  - Module imports:     from logix             → from execgate
+                        import logix           → import execgate
+  - Module strings:     "logix.engine"         → "execgate.engine"
   - Package-with-extras:"logix[all]"           → "logiq[all]"
   - pyproject name:     name = "logix"         → name = "logiq"
   - pytest addopts:     add -p no:qt (fixes pytest-qt import error)
   - Deep-fix for files that had bare `import logix` in code strings:
-    inside those files, `logix.X` → `logiq.X` (so code samples don't break)
+    inside those files, `logix.X` → `execgate.X` (so code samples don't break)
 
 Usage:
 
@@ -140,22 +140,22 @@ PATH_RULES = [
 MODULE_RULES = [
     FixRule(
         re.compile(r"\bfrom logix(?=[\s.])"),
-        "from logiq",
+        "from execgate",
         "module",
-        "from logix → from logiq",
+        "from logix → from execgate",
     ),
     FixRule(
         re.compile(r"\bimport logix(?=[\s.,]|$)"),
-        "import logiq",
+        "import execgate",
         "module",
-        "import logix → import logiq",
+        "import logix → import execgate",
     ),
     FixRule(
         # "logix.X" in a quoted string, but NOT "logix.py" (file paths)
         re.compile(r"""(['"])logix\.(?!py\b)"""),
         r"\1logiq.",
         "module",
-        'string "logix.X" → "logiq.X"',
+        'string "logix.X" → "execgate.X"',
     ),
 ]
 
@@ -243,7 +243,7 @@ def has_bare_import(text: str) -> bool:
 def deep_fix_bare_imports(text: str) -> tuple[str, int]:
     """
     In a file that had ``import logix`` (in code or a code string), rename
-    ``logix.X`` → ``logiq.X`` so code samples that use the imported
+    ``logix.X`` → ``execgate.X`` so code samples that use the imported
     module stay correct. Preserves lines that assign or bind ``logix`` as
     a variable.
     """
@@ -375,7 +375,7 @@ def main(argv: list[str]) -> int:
         if had_bare:
             new_text, n_deep = deep_fix_bare_imports(new_text)
             if n_deep:
-                applied.append(f"deep fix: {n_deep} logix.X → logiq.X")
+                applied.append(f"deep fix: {n_deep} logix.X → execgate.X")
 
         if new_text != original:
             fixed_total += len(applied)
@@ -445,7 +445,7 @@ def main(argv: list[str]) -> int:
         print("\n=== Next steps ===")
         print("  pip uninstall -y logix logiq")
         print('  pip install -e ".[dev]"')
-        print('  python -c "from logiq import Logix; print(Logix)"')
+        print('  python -c "from execgate import Logix; print(Logix)"')
         print("  pytest -p no:qt")
 
     if args.check and critical:

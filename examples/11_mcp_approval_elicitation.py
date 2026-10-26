@@ -23,8 +23,8 @@ The "human" in this example is a stub that auto-approves. In a real app
 it's a UI prompt or a separate approval service.
 """
 
-from logiq import Logix, Allow
-from logiq.approval import issue
+from execgate import Logix, Allow
+from execgate.approval import issue
 
 
 def ask_human(capability: str, args: dict, principal: str) -> bool:

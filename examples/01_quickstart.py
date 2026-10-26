@@ -17,7 +17,7 @@ shows that. The rest of the script shows the boundary working.
 
 import json
 
-from logiq import Logix
+from execgate import Logix
 
 
 def main() -> None:

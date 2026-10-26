@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from logiq_ai.base import AdapterError
-from logiq_ai.providers.openai import OpenAIAdapter
+from execgate_ai.base import AdapterError
+from execgate_ai.providers.openai import OpenAIAdapter
 from tests.adapters.contract import AdapterContractMixin
 
 

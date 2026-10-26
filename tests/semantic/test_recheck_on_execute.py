@@ -9,15 +9,15 @@ replay, deny, or escalate to approval.
 
 from __future__ import annotations
 
-from logiq import Allow, Deny, RequireApproval
-from logiq.approval import issue
-from logiq.context import ExecutionContext
-from logiq.semantic import (
+from execgate import Allow, Deny, RequireApproval
+from execgate.approval import issue
+from execgate.context import ExecutionContext
+from execgate.semantic import (
     InMemoryIdempotencyStore,
     RecheckStatus,
     recheck_step,
 )
-from logiq.semantic.invariants import InvariantRegistry
+from execgate.semantic.invariants import InvariantRegistry
 
 
 def _ctx(principal: str = "alice") -> ExecutionContext:

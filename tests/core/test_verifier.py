@@ -13,10 +13,10 @@ import dataclasses
 
 import pytest
 
-from logiq.capabilities import Registry, build_capability
-from logiq.ir import VerifiedPlan
-from logiq.plans import DEFAULT_LIMITS, parse_plan
-from logiq.verifier import verify_plan
+from execgate.capabilities import Registry, build_capability
+from execgate.ir import VerifiedPlan
+from execgate.plans import DEFAULT_LIMITS, parse_plan
+from execgate.verifier import verify_plan
 
 # ---------------------------------------------------------------------------
 # Helpers

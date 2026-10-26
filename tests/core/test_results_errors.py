@@ -13,16 +13,16 @@ import json
 
 import pytest
 
-from logiq import Error, Result, VerificationReport
-from logiq.errors import (
+from execgate import Error, Result, VerificationReport
+from execgate.errors import (
     ALL_CODES,
     INVALID_PLAN,
     OUTPUT_VALIDATION_FAILED,
     POLICY_REJECTED,
     SCHEMA_VALIDATION_FAILED,
 )
-from logiq.ir import VerifiedStep, _construct_verified_plan
-from logiq.results import StepTrace, Trace
+from execgate.ir import VerifiedStep, _construct_verified_plan
+from execgate.results import StepTrace, Trace
 
 
 def _real_verified_plan():

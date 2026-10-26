@@ -12,7 +12,7 @@ from typing import Annotated
 
 import pytest
 
-from logiq.schemas import Gt, Le
+from execgate.schemas import Gt, Le
 
 
 def _spy(logix):
