@@ -72,6 +72,7 @@ def recheck_step(
     idempotency_store: IdempotencyStore | None = None,
     idempotency_key: str | None = None,
     idempotency_args_hash: str | None = None,
+    approval_max_age: float | None = None,
     context_refresher: Callable[[], ExecutionContext] | None = None,
 ) -> RecheckResult:
     """
@@ -125,7 +126,7 @@ def recheck_step(
                 RecheckStatus.APPROVAL_REQUIRED,
                 approval_required(capability),
             )
-        if not approval_token.matches(capability, args, context):
+        if not approval_token.matches(capability, args, context, max_age=approval_max_age):
             return RecheckResult(
                 RecheckStatus.APPROVAL_REQUIRED,
                 approval_required(capability),

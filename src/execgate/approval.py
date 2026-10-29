@@ -106,15 +106,22 @@ class ApprovalToken:
         capability: str,
         args: dict[str, Any],
         context: ExecutionContext,
+        *,
+        max_age: float | None = None,
+        now: float | None = None,
     ) -> bool:
         """
         True iff the token binds to exactly this action.
 
-        Checks capability, args, principal, and context. Does not check
-        expiry — 0.1.0 tokens do not expire; the application is
-        responsible for issuing tokens with a bounded lifetime if it
-        needs one (e.g. by not storing them past a threshold).
+        Checks capability, args, principal, and context. Checks expiry only
+        when ``max_age`` (seconds) is given; the engine passes its
+        ``approval_ttl`` here.
         """
+        if max_age is not None:
+            current = time.time() if now is None else now
+            # Reject expired tokens and tokens dated in the future (clock tamper).
+            if current - self.issued_at > max_age or self.issued_at - current > 5.0:
+                return False
         return (
             self.capability == capability
             and self.args_hash == canonical_args_hash(args)

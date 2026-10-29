@@ -19,6 +19,22 @@ change; renaming or removing one is a major change.
 
 ## [Unreleased]
 
+### Fixed
+- **Packaging:** the `all` extra depended on an unrelated `logiq` distribution; it now references `execgate`. Project URLs and the `__getattr__` error message no longer use the old name.
+- **Idempotency (security):** default keys are now scoped to `tenant|principal|capability`, so one caller can never replay or collide with another's result.
+- **Idempotency (correctness):** new `idempotency_key=` option on capabilities (`"context.request_id"` or an argument name) so legitimate repeated operations with identical arguments are not silently swallowed; reusing a key with different arguments is `IDEMPOTENCY_CONFLICT`.
+- **Approval tokens** now expire (`Logix(approval_ttl=900.0)`; `None` disables) and tokens dated in the future are rejected.
+- **Audit events** now include `principal`, `tenant` and `request_id`.
+
+### Documentation
+- Documented `idempotency_key`, `approval_ttl`, `approval_requests`, `Result.replayed`, new audit fields, and the money-movement pitfall of argument-hash idempotency. Removed stale `logiq` package naming from the README package table, lessons index and scripts.
+
+### Added
+- `Result.replayed` and trace status `"replayed"` make idempotent replays observable.
+- `Logix.approval_requests(verified_plan, context=...)` resolves `$ref`s (running read-only steps) so approvers see the real arguments a token must bind to.
+
+## [Unreleased]
+
 _(no changes yet)_
 
 ---

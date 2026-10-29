@@ -47,6 +47,18 @@ class Capability:
     ``(name, args_hash)`` via the engine's idempotency store. The handler
     is invoked once; subsequent calls with the same args replay the stored
     result without side effects."""
+    idempotency_key: str | None = None
+    """How the dedupe key is derived for an idempotent capability.
+
+    ``None`` (default): hash of the resolved arguments, scoped to the caller's
+    tenant and principal. Two *legitimate* identical calls therefore collapse
+    into one; use one of the modes below for operations that may repeat.
+
+    ``"context.request_id"``: the application-supplied ``ExecutionContext.request_id``
+    (trusted, never model output) plus the step id. Fails closed if absent.
+
+    any other string: the name of an *argument* whose value is the key. Same key
+    with different arguments is an ``IDEMPOTENCY_CONFLICT``, never a silent replay."""
 
     def __repr__(self) -> str:
         return (
@@ -122,6 +134,7 @@ class Registry:
                     "effects": cap.effects,
                     "requires_approval": cap.requires_approval,
                     "idempotent": cap.idempotent,
+                    "idempotency_key": cap.idempotency_key,
                 }
                 for name, cap in self._caps.items()
             }
@@ -137,6 +150,7 @@ def build_capability(
     effects: str | None = None,
     requires_approval: bool = False,
     idempotent: bool = False,
+    idempotency_key: str | None = None,
 ) -> Capability:
     """
     Construct a ``Capability`` from a plain Python function.
@@ -153,6 +167,12 @@ def build_capability(
 
     if effects is not None and effects not in ("read", "write"):
         raise ValueError(f"effects must be 'read', 'write', or None; got {effects!r}")
+
+    if idempotency_key is not None:
+        if not idempotent:
+            raise ValueError("idempotency_key requires idempotent=True")
+        if not isinstance(idempotency_key, str) or not idempotency_key:
+            raise ValueError("idempotency_key must be a non-empty string")
 
     info = inspect_capability(fn)
     info = _maybe_transform_pydantic(info)
@@ -177,6 +197,7 @@ def build_capability(
         effects=effects,
         requires_approval=requires_approval,
         idempotent=idempotent,
+        idempotency_key=idempotency_key,
     )
 
 

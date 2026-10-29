@@ -49,6 +49,7 @@ def execute_verified(
     invariants: InvariantRegistry | None = None,
     idempotency_store: Any = None,
     audit_hook: Any = None,
+    approval_ttl: float | None = None,
 ) -> Result:
     """Execute a ``VerifiedPlan``."""
     if not isinstance(verified_plan, VerifiedPlan):
@@ -56,6 +57,10 @@ def execute_verified(
             "execute() accepts only a VerifiedPlan produced by verify(); "
             f"got {type(verified_plan).__name__}"
         )
+
+    ctx = context if context is not None else ExecutionContext(principal="anonymous")
+    if audit_hook is not None:
+        audit_hook = _ContextualHook(audit_hook, ctx)
 
     recorder = ExecutionRecorder(plan_version=verified_plan.plan_version)
     start = time.monotonic()
@@ -88,8 +93,6 @@ def execute_verified(
     if invariants is None:
         invariants = InvariantRegistry()
 
-    ctx = context if context is not None else ExecutionContext(principal="anonymous")
-
     step_outputs: dict[str, Any] = {}
 
     try:
@@ -120,6 +123,7 @@ def execute_verified(
                     invariants=invariants,
                     idempotency_store=idempotency_store,
                     step_outputs=step_outputs,
+                    approval_ttl=approval_ttl,
                 )
             except _StepFailure as failure:
                 duration_ms = (time.monotonic() - step_start) * 1000
@@ -154,12 +158,15 @@ def execute_verified(
                 )
                 return Result.failure([failure.error], trace=trace)
 
+            replayed = isinstance(outcome, _Replayed)
+            if replayed:
+                outcome = outcome.value
             step_outputs[step_id] = outcome
             duration_ms = (time.monotonic() - step_start) * 1000
             recorder.record_step(
                 step_id=step_id,
                 capability=step.capability,
-                status="ok",
+                status="replayed" if replayed else "ok",
                 duration_ms=duration_ms,
             )
             _fire_step(
@@ -167,7 +174,7 @@ def execute_verified(
                 recorder.execution_id,
                 step_id,
                 step.capability,
-                "ok",
+                "replayed" if replayed else "ok",
                 duration_ms,
                 None,
             )
@@ -218,6 +225,29 @@ def execute_verified(
 # ---------------------------------------------------------------------------
 
 
+class _Replayed:
+    """Marks a step whose result came from the idempotency store (handler not run)."""
+
+    __slots__ = ("value",)
+
+    def __init__(self, value: Any) -> None:
+        self.value = value
+
+
+class _ContextualHook:
+    """Adds caller identity to every audit event so the trail answers *who*."""
+
+    def __init__(self, hook: Any, ctx: ExecutionContext) -> None:
+        self._hook = hook
+        self._who = {"principal": ctx.principal, "tenant": ctx.tenant, "request_id": ctx.request_id}
+
+    def on_step(self, event: dict[str, Any]) -> None:
+        self._hook.on_step({**event, **self._who})
+
+    def on_result(self, event: dict[str, Any]) -> None:
+        self._hook.on_result({**event, **self._who})
+
+
 class _StepFailure(Exception):  # noqa: N818
     def __init__(self, error: Error) -> None:
         super().__init__(error.message)
@@ -234,6 +264,7 @@ def _execute_one_step(
     invariants: InvariantRegistry,
     idempotency_store: Any,
     step_outputs: dict[str, Any],
+    approval_ttl: float | None = None,
 ) -> Any:
     # 1. Resolve references.
     resolved_args: dict[str, Any] = {}
@@ -268,7 +299,32 @@ def _execute_one_step(
         from execgate.approval import canonical_args_hash
 
         idem_hash = canonical_args_hash(resolved_args)
-        idem_key: str | None = f"{cap.name}:{idem_hash}"
+        # Scope every key to the caller so one tenant/principal can never
+        # replay (or collide with) another's result.
+        scope = f"{ctx.tenant or '-'}|{ctx.principal}|{cap.name}"
+        mode = cap.idempotency_key
+        if mode is None:
+            idem_key: str | None = f"{scope}:{idem_hash}"
+        elif mode == "context.request_id":
+            if not ctx.request_id:
+                raise _StepFailure(
+                    Error(
+                        code="AUTHORIZATION_FAILED",
+                        message=f"{cap.name!r} requires ExecutionContext.request_id",
+                        path=step_id,
+                    )
+                )
+            idem_key = f"{scope}:rid={ctx.request_id}:{step_id}"
+        else:
+            if mode not in resolved_args:
+                raise _StepFailure(
+                    Error(
+                        code="AUTHORIZATION_FAILED",
+                        message=f"idempotency key argument {mode!r} missing for {cap.name!r}",
+                        path=step_id,
+                    )
+                )
+            idem_key = f"{scope}:key={resolved_args[mode]!s}"
     else:
         idem_key = None
         idem_hash = None
@@ -284,11 +340,12 @@ def _execute_one_step(
         idempotency_store=idempotency_store,
         idempotency_key=idem_key,
         idempotency_args_hash=idem_hash,
+        approval_max_age=approval_ttl,
         context_refresher=None,
     )
 
     if recheck.status is RecheckStatus.REPLAY:
-        return recheck.cached_value
+        return _Replayed(recheck.cached_value)
     if recheck.status is RecheckStatus.APPROVAL_REQUIRED:
         raise _StepFailure(
             recheck.error

@@ -9,7 +9,7 @@ All scripts are `python -m stdlib_only` — pure standard library except
 
 | Script | Purpose |
 |---|---|
-| `check_imports.py` | Fail if `src/logiq/` imports anything outside stdlib |
+| `check_imports.py` | Fail if `src/execgate/` imports anything outside stdlib |
 | `clean.py` | Remove build artifacts and caches |
 | `verify_wheel.py` | Inspect a built wheel: contents, `py.typed`, no runtime deps |
 | `preflight.py` | Run all checks that must pass before publishing |
@@ -29,7 +29,7 @@ git push origin main --tags
 python scripts/publish.py --test
 
 # 4. Verify install from TestPyPI
-pip install --index-url https://test.pypi.org/simple/ logiq
+pip install --index-url https://test.pypi.org/simple/ execgate
 
 # 5. Publish to real PyPI
 python scripts/publish.py

@@ -222,7 +222,7 @@ Read the [System Design](https://aldanedev-create.github.io/ExecGate-doc/#system
 
 | Package | Purpose | Runtime dependencies |
 |---|---|---|
-| `logiq` | Registry, schema engine, verifier, executor, semantic layer | Python standard library |
+| `execgate` | Registry, schema engine, verifier, executor, semantic layer | Python standard library |
 | `execgate_pydantic` | Pydantic models as capability schemas | `pydantic>=2,<3` |
 | `execgate_ai` | Provider-catalog adapters | None |
 | `execgate_mcp` | MCP server and proxy | `fastmcp>=4,<5` |
@@ -293,6 +293,8 @@ Check each example's imports and requirements before running it; optional integr
 
 - `logix.dry_run()` and `logix.explain()` are reserved names; their behavior is deferred.
 - The default idempotency store is in-memory. Applications needing durable idempotency must implement the `IdempotencyStore` protocol using their own storage.
+- By default an idempotent capability deduplicates on its arguments (scoped to tenant and principal), so two *legitimate* identical calls collapse into one. For operations that may repeat (payments, refunds), set `idempotency_key="context.request_id"` — see the [Semantic Layer](https://aldanedev-create.github.io/ExecGate-doc/#semantic-layer) docs.
+- Approval tokens expire after `approval_ttl` seconds (default 900). Tokens are not revocable or single-use; keep the window short.
 - Plan execution is sequential in version 0.1.0.
 - MCP approval workflows have documented limitations.
 

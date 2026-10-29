@@ -36,7 +36,7 @@ def get_order(order_id: int) -> dict[str, int]:
 Serve the application over your framework of choice, such as FastAPI or Flask.
 
 - Use one `Logix` engine per process.
-- The core `src/logiq/` package has zero third-party runtime dependencies.
+- The core `src/execgate/` package has zero third-party runtime dependencies.
 - Memory footprint is small — a few hundred kilobytes for the engine and its registries.
 
 ### Multiple Workers
@@ -136,20 +136,22 @@ class AuditLog:
     def on_step(self, event):
         # event: {
         #   execution_id, step_id, capability,
-        #   status, duration_ms, error_code
+        #   status, duration_ms, error_code,
+        #   principal, tenant, request_id
         # }
         logger.info("step", extra=event)
 
     def on_result(self, event):
         # event: {
-        #   execution_id, plan_version, ok, error_code
+        #   execution_id, plan_version, ok, error_code,
+        #   principal, tenant, request_id
         # }
         logger.info("result", extra=event)
 
 logix.audit(AuditLog())
 ```
 
-The hook receives safe metadata only — no raw arguments, handler returns, or model prompts.
+The hook receives safe metadata only — no raw arguments, handler returns, or model prompts. Events identify the caller (`principal`, `tenant`, `request_id`) but not *what* was done to which record; if you need "who refunded which order", record that in your own handler.
 
 Exceptions from the hook are swallowed so a broken auditor does not block legitimate actions. Log from within the hook; do not assume the pipeline will log on your behalf.
 
@@ -228,6 +230,9 @@ If you need to log arguments for debugging in a staging environment, do so expli
 ### Recommended
 
 - [ ] **Use idempotency for side-effecting capabilities.** Even if a handler is naturally idempotent, marking it `idempotent=True` can help catch accidental double invocation.
+- [ ] **Give money-moving capabilities an `idempotency_key`.** Use `idempotency_key="context.request_id"` and set `ExecutionContext.request_id` from your own idempotency header. With the default (argument-hash) key, two legitimate identical calls collapse into one and the second silently does nothing.
+- [ ] **Set the approval TTL deliberately.** `Logix(approval_ttl=...)` defaults to 900 s. Tokens are not revocable or single-use, so use a short TTL for high-value actions.
+- [ ] **Show approvers resolved arguments.** Use `logix.approval_requests(...)` so the human approves the real values behind each `$ref`.
 - [ ] **Install an audit hook for every engine.** The trace helps with debugging; the audit log helps with compliance.
 - [ ] **Tune limits to the workload.** Defaults are conservative but may be too generous for a simple capability.
 - [ ] **Use structured logging for `Error.code`.** Codes are stable; messages are not.
@@ -452,7 +457,7 @@ Approval requirements are expected for sensitive operations. If the rate is unex
 
 **Likely causes:**
 
-- A caller is reusing an idempotency key with different arguments.
+- A caller is reusing an idempotency key (a `request_id` or key argument) with different arguments.
 - Two concurrent calls are racing; the second call conflicts.
 - An in-flight call is stuck after a crash before commit or release.
 
@@ -465,6 +470,8 @@ This should not happen within the scope of a correctly configured store. If it d
 - Check that the capability is marked `idempotent=True` in the `@logix.capability` decorator.
 - Check that the store is passed to `Logix(idempotency_store=...)`.
 - Check that the handler does not clear the store.
+
+If a second *legitimate* call appeared to do nothing, the opposite problem applies: with the default argument-hash key it was replayed (`Result.replayed` is `True`). Use `idempotency_key="context.request_id"`.
 
 Double execution can happen across processes when using the default per-process store. Implement a durable store (see [Section 6](#6-durable-idempotency)) or accept that cross-process double execution is possible.
 

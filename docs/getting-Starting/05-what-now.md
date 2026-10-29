@@ -196,7 +196,7 @@ If you want the production guide:
 
 If you want the source:
 
-- [`src/logiq/`](../../src/logiq/) — the code.
+- [`src/execgate/`](../../src/execgate/) — the code.
 - [`tests/security/`](../../tests/security/) — the security guarantees and their tests.
 
 Good luck. If you hit a wall, check the docs first; if the docs don't answer your question, file an issue.

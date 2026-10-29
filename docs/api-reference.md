@@ -102,7 +102,7 @@ a policy set, an invariant registry, a grounding policy, an idempotency
 store, and a tool catalog. It holds no AI provider handle; the
 application owns the model call.
 
-### `Logix(*, limits=None, idempotency_store=None)` — constructor
+### `Logix(*, limits=None, idempotency_store=None, approval_ttl=900.0)` — constructor
 
 Create an isolated engine.
 
@@ -118,6 +118,7 @@ Parameters:
 |---|---|---|---|
 | `limits` | `PlanLimits \| None` | `DEFAULT_LIMITS` | Resource limits for plans |
 | `idempotency_store` | `IdempotencyStore \| None` | `InMemoryIdempotencyStore()` | Store for `idempotent=True` capabilities |
+| `approval_ttl` | `float \| None` | `900.0` | Maximum age in seconds of an `ApprovalToken` at execute time. `None` disables expiry. Tokens dated in the future are always rejected. |
 
 Each `Logix()` instance has its own state. Two engines do not share a
 registry, a policy set, an invariant registry, a grounding policy, or an
@@ -195,7 +196,21 @@ Decorator arguments:
 | `description` | `str \| None` | docstring | Human-readable description |
 | `effects` | `"read" \| "write" \| None` | `None` | Advisory effect class |
 | `requires_approval` | `bool` | `False` | Approval required to execute |
-| `idempotent` | `bool` | `False` | Deduplicate by `(name, args_hash)` |
+| `idempotent` | `bool` | `False` | Deduplicate repeated calls (see `idempotency_key`) |
+| `idempotency_key` | `str \| None` | `None` | How the dedupe key is derived. Requires `idempotent=True`. See below. |
+
+`idempotency_key` modes:
+
+| Value | Key | Use when |
+|---|---|---|
+| `None` | `tenant\|principal\|name` + hash of resolved args | The same arguments can never legitimately repeat |
+| `"context.request_id"` | `tenant\|principal\|name` + `ExecutionContext.request_id` + step id | Payments, refunds, orders. **Recommended.** The request id is supplied by your application, never by the model. Missing id fails closed (`AUTHORIZATION_FAILED`). |
+| any other string | `tenant\|principal\|name` + the value of that *argument* | The caller supplies a key in the plan itself |
+
+Keys are always scoped to the caller's tenant and principal. Reusing a key
+with different arguments returns `IDEMPOTENCY_CONFLICT`; it never silently
+replays. A replay is observable: `Result.replayed` is `True` and the step's
+trace status is `"replayed"`.
 
 ```python
 @logix.capability(name="customer.lookup", effects="read")
@@ -378,6 +393,34 @@ except TypeError as e:
 requires approval) or a `dict` mapping capability names / step IDs to
 tokens (multi-step plans with distinct approvals).
 
+Tokens older than the engine's `approval_ttl` (default 900 s) are treated
+as absent and the step fails with `APPROVAL_REQUIRED`.
+
+### `logix.approval_requests(verified_plan, *, context=None) -> (requests, errors)`
+
+**Experimental.** Approval tokens bind to *resolved* arguments, but a
+`VerifiedPlan` still contains unresolved `$ref` values. This resolves them so
+the human approves what will actually run. It executes only the plan's
+`effects="read"`, non-approval steps (to obtain their outputs) and nothing
+else.
+
+Returns `(requests, errors)`. Each request is
+`{"step_id", "capability", "arguments"}` for a step that
+`requires_approval`; `errors` is empty on success.
+
+```python
+report = logix.verify(plan, context=ctx)
+requests, errors = logix.approval_requests(report.verified_plan, context=ctx)
+tokens = {}
+for r in requests:
+    if ask_human(r["capability"], r["arguments"]):
+        tokens[r["step_id"]] = issue(
+            capability=r["capability"], args=r["arguments"],
+            context=ctx, issuer="human:alice",
+        )
+result = logix.execute(report.verified_plan, context=ctx, approval=tokens)
+```
+
 ---
 
 ## 5. `logix.tools` — AI discovery
@@ -506,7 +549,8 @@ for cap in logix.registry:
 | `output_schema` | `Type \| None` | Derived output schema (or `None`) |
 | `effects` | `"read" \| "write" \| None` | Advisory |
 | `requires_approval` | `bool` | Approval required |
-| `idempotent` | `bool` | Deduplicate by args |
+| `idempotent` | `bool` | Deduplicate repeated calls |
+| `idempotency_key` | `str \| None` | Key derivation mode (see §3 decorator arguments) |
 
 ---
 
@@ -636,10 +680,13 @@ Validation:
 | `issued_at` | `float` | Unix timestamp |
 | `issuer` | `str` | Who issued the approval |
 
-### `ApprovalToken.matches(capability, args, context) -> bool`
+### `ApprovalToken.matches(capability, args, context, *, max_age=None, now=None) -> bool`
 
 Return `True` iff the token binds to exactly this action. All four of
-capability, args, principal, and context must match.
+capability, args, principal, and context must match. If `max_age` (seconds) is
+given, the token must also be no older than that and not dated in the future;
+the engine passes its `approval_ttl` here. Tokens are not revocable and not
+single-use.
 
 ### `ApprovalToken.to_dict() -> dict`
 
@@ -708,11 +755,13 @@ fixtures).
 class MyAudit:
     def on_step(self, event):
         # event: {"execution_id", "step_id", "capability", "status",
-        #         "duration_ms", "error_code"}
+        #         "duration_ms", "error_code",
+        #         "principal", "tenant", "request_id"}
         logger.info("logiq.step", extra=event)
 
     def on_result(self, event):
-        # event: {"execution_id", "plan_version", "ok", "error_code"}
+        # event: {"execution_id", "plan_version", "ok", "error_code",
+        #         "principal", "tenant", "request_id"}
         logger.info("logiq.result", extra=event)
 
 logix.audit(MyAudit())
@@ -751,7 +800,7 @@ Fields:
 |---|---|
 | `step_id` | `str` |
 | `capability` | `str` |
-| `status` | `"ok" \| "failed"` |
+| `status` | `"ok" \| "failed" \| "replayed"` |
 | `duration_ms` | `float` |
 | `error_code` | `str \| None` |
 
@@ -815,9 +864,10 @@ Classmethods:
 - `Result.success(value, *, trace=None)` — factory.
 - `Result.failure(errors, *, trace=None)` — factory.
 
-Methods:
+Methods and properties:
 
 - `Result.to_dict() -> dict` — safe serialization; JSON-safe.
+- `Result.replayed -> bool` — `True` if any step was served from the idempotency store (its handler did not run).
 
 ```python
 result = logix.run({"call": "add", "with": {"a": 1, "b": 2}})

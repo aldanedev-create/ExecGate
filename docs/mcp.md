@@ -459,7 +459,7 @@ every `logiq.*` import is on the documented allowlist.
 
 If you're adding a new feature to `execgate_mcp` and it needs
 verifier-internal access, the answer is almost always "put the feature
-in `src/logiq/` and expose it through a public method" — not "let
+in `src/execgate/` and expose it through a public method" — not "let
 `execgate_mcp` reach into the internals." The trust boundary is not a
 convention; it is a structural property.
 

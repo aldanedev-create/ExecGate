@@ -106,6 +106,11 @@ class Result:
             execution_id=trace.execution_id if trace else "",
         )
 
+    @property
+    def replayed(self) -> bool:
+        """True if any step was served from the idempotency store (handler not run)."""
+        return bool(self.trace and any(s.status == "replayed" for s in self.trace.steps))
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "ok": self.ok,

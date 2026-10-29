@@ -145,7 +145,7 @@ A PR that weakens this rule is rejected regardless of functionality.
 - **Some features naturally want verifier-internal access.** E.g., a
   proxy that wants to display the *verified* dependency graph rather
   than re-deriving it. Those features are deferred. If they become
-  essential, they belong in `src/logiq/` as public methods, not in
+  essential, they belong in `src/execgate/` as public methods, not in
   `execgate_mcp`.
 
 - **Dependency on the exact `logiq` public API surface.** If a future
@@ -156,7 +156,7 @@ A PR that weakens this rule is rejected regardless of functionality.
 - **The rule requires discipline to enforce.** The AST scan catches
   direct imports and calls. It does not catch a dynamic `importlib`
   call or a string-concatenated module name. The point is not to
-  prevent a malicious adapter author (they could edit `src/logiq/`);
+  prevent a malicious adapter author (they could edit `src/execgate/`);
   it is to prevent an honest one from taking a shortcut that quietly
   reopens the trust boundary.
 
@@ -195,7 +195,7 @@ risking a stale-plan vulnerability.
 
 ### Bundle `execgate_mcp` into core
 
-Ship it as part of `src/logiq/` so it can use internals.
+Ship it as part of `src/execgate/` so it can use internals.
 
 **Rejected:** this would force every ExecGate user to install FastMCP,
 breaking the zero-runtime-dependency guarantee (`tests/pydantic/test_core_without_pydantic.py`

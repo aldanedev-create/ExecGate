@@ -58,7 +58,7 @@ def __getattr__(name: str) -> object:
     """
     target = _LAZY_IMPORTS.get(name)
     if target is None:
-        raise AttributeError(f"module 'logiq' has no attribute {name!r}")
+        raise AttributeError(f"module 'execgate' has no attribute {name!r}")
     module_name, attr_name = target
     from importlib import import_module
 

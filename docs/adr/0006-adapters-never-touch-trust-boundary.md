@@ -23,7 +23,7 @@ needs to convert annotations; `execgate_ai` needs to read capabilities;
 `execgate_mcp` needs to run plans and read results.
 
 The obvious shape for an adapter is: "it's a module that lives in
-`src/logiq_*` and does what it needs." The obvious temptation, once an
+`src/execgate_*` and does what it needs." The obvious temptation, once an
 adapter needs something ExecGate exposes only through the verifier or
 executor, is to import from those modules directly.
 
@@ -57,7 +57,7 @@ API.
 
 1. **No import from trust-boundary internals.**
 
-   Source files under `src/logiq_*/` MUST NOT import from:
+   Source files under `src/execgate_*/` MUST NOT import from:
    - `execgate.verifier`
    - `execgate.executor`
    - `execgate.ir`
@@ -113,7 +113,7 @@ A PR that weakens this rule is rejected regardless of functionality.
   if the adapter had access to the verifier's internals. E.g., a proxy
   that wants to show the *verified* dependency graph (rather than
   re-deriving it) would naturally want to reach into `ir`. That feature
-  is deferred; if it becomes essential, it belongs in `src/logiq/` as a
+  is deferred; if it becomes essential, it belongs in `src/execgate/` as a
   public method, not in an adapter.
 
 - **Dependency on the public API surface.** If `logiq` renames a public
@@ -132,7 +132,7 @@ A PR that weakens this rule is rejected regardless of functionality.
   direct imports and calls. It does not catch a dynamic `importlib` call
   or a string-concatenated module name. An adapter that *tried* to
   bypass the rule could do so. The point is not to prevent a malicious
-  adapter author (they could just edit `src/logiq/`); it is to prevent
+  adapter author (they could just edit `src/execgate/`); it is to prevent
   an honest one from taking a shortcut that quietly reopens the trust
   boundary.
 

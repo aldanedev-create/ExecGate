@@ -47,12 +47,12 @@ dev = [
 
            # for tests/pydantic + tests/adapters
 ]
-all = ["logiq[pydantic,mcp,dev]"]
+all = ["execgate[pydantic,mcp,dev]"]
 
 [project.urls]
-Homepage = "https://github.com/aldanedev-create/Logiq"
-Documentation = "https://github.com/aldanedev-create/Logiq/blob/main/docs/"
-Changelog = "https://github.com/aldanedev-create/Logiq/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/aldanedev-create/ExecGate"
+Documentation = "https://github.com/aldanedev-create/ExecGate/blob/main/docs/"
+Changelog = "https://github.com/aldanedev-create/ExecGate/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/execgate", "src/execgate_pydantic", "src/execgate_ai",    "src/execgate_mcp",]
@@ -76,6 +76,7 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
+asyncio_default_fixture_loop_scope = "function"
 addopts = "-ra --strict-markers --strict-config -p no:pytestqt"
 markers = [
     "security: security-boundary test (docs/system-design.md §3)",

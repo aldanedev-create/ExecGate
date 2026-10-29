@@ -7,7 +7,7 @@ Steps:
   1. Read current version from pyproject.toml.
   2. Compute new version (--major / --minor / --patch, or --version X.Y.Z).
   3. Update pyproject.toml ``version = "..."``.
-  4. Update src/logiq/__init__.py ``__version__ = "..."``.
+  4. Update src/execgate/__init__.py ``__version__ = "..."``.
   5. Rename ``## [Unreleased]`` in CHANGELOG.md to
      ``## [X.Y.Z] - YYYY-MM-DD`` and insert a fresh ``## [Unreleased]``.
   6. git add the three files, git commit, git tag.

@@ -39,7 +39,9 @@ class Logix:
         *,
         limits: PlanLimits | None = None,
         idempotency_store: Any = None,
+        approval_ttl: float | None = 900.0,
     ) -> None:
+        self._approval_ttl = approval_ttl
         self._registry = Registry()
         self._limits = limits if limits is not None else DEFAULT_LIMITS
         self._policies = PolicySet()
@@ -189,6 +191,7 @@ class Logix:
             invariants=self._invariants,
             idempotency_store=self._idempotency_store,
             audit_hook=self._audit_hook,  # ADDED
+            approval_ttl=self._approval_ttl,
             # policies= removed — not in execute_verified signature
         )
 
@@ -203,6 +206,52 @@ class Logix:
             return Result.failure(report.errors)
         # report.ok guarantees verified_plan is not None
         return self.execute(report.verified_plan, context=context)  # type: ignore[arg-type]
+
+    def approval_requests(
+        self,
+        verified_plan: Any,
+        *,
+        context: ExecutionContext | None = None,
+    ) -> tuple[list[dict[str, Any]], list[Any]]:
+        """
+        Resolve what a human would actually be approving.
+
+        Approval tokens bind to *resolved* arguments, but a ``VerifiedPlan``
+        still holds unresolved ``$ref`` values. This runs the plan's read-only,
+        non-approval steps (so their outputs exist), resolves every ``$ref``,
+        and returns ``(requests, errors)`` where each request is
+        ``{"step_id", "capability", "arguments"}`` for a step that
+        ``requires_approval``. Pass each through ``approval.issue(...)`` and
+        give ``execute(approval={step_id: token})``.
+
+        Only ``effects="read"`` steps are executed here; nothing else runs.
+        """
+        from execgate.plans.references import is_reference, parse_reference, resolve_reference
+
+        by_id = {s.id: s for s in verified_plan.steps}
+        outputs: dict[str, Any] = {}
+        requests: list[dict[str, Any]] = []
+        for sid in verified_plan.dependency_order:
+            step = by_id[sid]
+            cap = self._registry.get(step.capability)
+            args: dict[str, Any] = {}
+            for name, value in step.arguments.items():
+                if is_reference(value):
+                    parsed = parse_reference(value)
+                    resolved = parsed if hasattr(parsed, "code") else resolve_reference(parsed, outputs)
+                    if hasattr(resolved, "code"):
+                        return requests, [resolved]
+                    args[name] = resolved
+                else:
+                    args[name] = value
+            if cap.requires_approval:
+                requests.append({"step_id": sid, "capability": cap.name, "arguments": args})
+            elif cap.effects == "read":
+                res = self.run({"call": cap.name, "with": args}, context=context)
+                if not res.ok:
+                    return requests, list(res.errors)
+                outputs[sid] = res.value
+        return requests, []
 
     # ------------------------------------------------------------------
     # Reserved APIs
@@ -258,6 +307,7 @@ class _CapabilityRegistrar:
         effects: str | None = None,
         requires_approval: bool = False,
         idempotent: bool = False,  # ADDED
+        idempotency_key: str | None = None,
     ) -> Any:
         def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
             cap = build_capability(
@@ -267,6 +317,7 @@ class _CapabilityRegistrar:
                 effects=effects,
                 requires_approval=requires_approval,
                 idempotent=idempotent,  # ADDED
+                idempotency_key=idempotency_key,
             )
             self._engine._registry.add(cap)
             return f
@@ -284,6 +335,7 @@ class _CapabilityRegistrar:
         effects: str | None = None,
         requires_approval: bool = False,
         idempotent: bool = False,  # ADDED
+        idempotency_key: str | None = None,
     ) -> Callable[..., Any]:
         cap = build_capability(
             fn,
@@ -292,6 +344,7 @@ class _CapabilityRegistrar:
             effects=effects,
             requires_approval=requires_approval,
             idempotent=idempotent,  # ADDED
+            idempotency_key=idempotency_key,
         )
         self._engine._registry.add(cap)
         return fn

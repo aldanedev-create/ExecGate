@@ -126,7 +126,7 @@ mkdir 01-refund && cd 01-refund
 ```
 
 You'll copy code into files as you go. Nothing is installed beyond
-`logiq` (plus the extras a specific lesson names — Pydantic for Lesson
+`execgate` (plus the extras a specific lesson names — Pydantic for Lesson
 05, FastMCP for Lesson 04, `openai` and `execgate_ai` for Lesson 06).
 
 ---
@@ -165,7 +165,7 @@ Lesson 01's hand-written plans (which are exactly the same shape).
 
 Same as `docs/getting-started/`:
 
-- **`logiq`** (lowercase) is the package.
+- **`execgate`** (lowercase) is the package.
 - **`Logix`** (capital L) is the class.
 - **`logix`** (lowercase) as a variable is your engine instance.
 - Shell commands start with `$`.

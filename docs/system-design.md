@@ -307,7 +307,7 @@ Every execution produces a Trace:
 - plan_version
 - verification_duration_ms
 - per-step StepTrace: step_id, capability, status (ok /
-  failed), duration_ms, error_code
+  failed / replayed), duration_ms, error_code
 Never present in the trace: raw argument values, handler return
 values, model prompts, exceptions, or stack frames. This is by
 construction — StepTrace has no field for any of those.

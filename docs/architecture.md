@@ -18,7 +18,7 @@ flowchart TD
 
     H["Optional adapters<br/>execgate_pydantic · execgate_ai · execgate_mcp"] -. "translate data in or out" .-> B
 ```
-The core (src/logiq/) owns the trust boundary. Optional adapters translate data in or out; they must not call the verifier or executor or construct a VerifiedPlan (ADR-0006 and ADR-0007).
+The core (src/execgate/) owns the trust boundary. Optional adapters translate data in or out; they must not call the verifier or executor or construct a VerifiedPlan (ADR-0006 and ADR-0007).
 Core components
 engine.py — coordinates the pipeline
 Logix connects the registry, policies, invariants, grounding rules, idempotency store, and tool catalog.

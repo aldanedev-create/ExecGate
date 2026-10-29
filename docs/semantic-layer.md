@@ -12,7 +12,7 @@ Five concerns, each opt-in:
 - **Repair loop** — bounded retry with reroute refusal.
 - **Idempotency** — per-key deduplication of side effects.
 
-This document is the design rationale and usage guide for each. The code lives in `src/logiq/semantic/`.
+This document is the design rationale and usage guide for each. The code lives in `src/execgate/semantic/`.
 
 ---
 
@@ -287,6 +287,12 @@ result = logix.execute(
 
 A token matches only if all four are equal at execute time. A change in any of them produces `APPROVAL_REQUIRED`.
 
+A token also **expires**: it is rejected if older than the engine's `approval_ttl` (default 900 seconds; `Logix(approval_ttl=None)` disables this) or dated in the future. Tokens are neither revocable nor single-use, so keep the TTL short for high-value actions.
+
+### Showing the human the real arguments
+
+The token binds to *resolved* arguments, but a verified plan still holds `$ref`s such as `{"$ref": "order.id"}`. A token issued over the unresolved form will not match. Use `logix.approval_requests(verified_plan, context=ctx)` to get the resolved arguments for every approval-gated step; it runs only read-only steps. See the API reference.
+
 ### Why issue-time binding matters
 
 Suppose a model proposes a $50 refund. A human approves it. The token is bound to `{"order_id": 502, "amount": 50.0}`. If the model then re-proposes a $9999 refund with the same `order_id` and the same token, the `args_hash` mismatch rejects it. The human approved $50, not $9999. The token enforces that.
@@ -338,7 +344,9 @@ assert result.ok
 
 ### What it is
 
-Idempotency deduplicates side effects across retries. A capability that charges a card, sends an email, or submits an order can be marked `idempotent=True`. Two calls with the same arguments return the first call's result without invoking the handler a second time.
+Idempotency deduplicates side effects across retries. A capability that charges a card, sends an email, or submits an order can be marked `idempotent=True`. Two calls with the same key return the first call's result without invoking the handler a second time.
+
+> **Read this before using it for money.** By default the key is a hash of the arguments, so two *legitimate* calls with identical arguments (two separate $10 refunds on one order) are treated as one: the second returns `ok` with the first call's result and **does not run**. Use `idempotency_key="context.request_id"` for operations that can legitimately repeat.
 
 ```python
 @logix.capability(idempotent=True)
@@ -348,16 +356,36 @@ def charge(order_id: int, amount: float) -> dict[str, int]:
 
 ### How it works
 
-The executor derives a key from `(capability_name, canonical_args_hash)`:
+The executor derives a key according to the capability's `idempotency_key` option. Every key is first scoped to the caller, so one tenant or principal can never replay or collide with another's result:
 
 ```python
-key = f"{cap.name}:{canonical_args_hash(resolved_args)}"
+scope = f"{ctx.tenant}|{ctx.principal}|{cap.name}"
+
+# idempotency_key=None (default): same arguments => same key
+key = f"{scope}:{canonical_args_hash(resolved_args)}"
+
+# idempotency_key="context.request_id": your application's request id, per step
+key = f"{scope}:rid={ctx.request_id}:{step_id}"     # fails closed if request_id is unset
+
+# idempotency_key="<argument name>": a key carried in the plan
+key = f"{scope}:key={resolved_args[name]}"
 ```
+
+```python
+@logix.capability(effects="write", requires_approval=True,
+                  idempotent=True, idempotency_key="context.request_id")
+def issue_refund(order_id: int, amount_cents: int) -> dict[str, int]:
+    ...
+
+ctx = ExecutionContext(principal="agent-1", tenant="acme", request_id="req-7f3a")
+```
+
+A client retry reuses `req-7f3a` and gets the stored result (`result.replayed` is `True`). A new refund gets a new request id and runs. Reusing a key with different arguments is rejected with `IDEMPOTENCY_CONFLICT`. Generate the request id in your own code (for example from an `Idempotency-Key` header); never take it from model output.
 
 The recheck window calls `store.check_and_reserve(key, args_hash)`, which returns one of:
 
 - **`RESERVED`** — fresh key; proceed with handler invocation.
-- **`REPLAY`** — key was committed with the same args; return the cached value without invoking the handler.
+- **`REPLAY`** — key was committed with the same args; return the cached value without invoking the handler. The step's trace and audit status is `"replayed"` and `Result.replayed` is `True`.
 - **`CONFLICT`** — key was committed with different args, or is reserved by an in-flight call; reject with `IDEMPOTENCY_CONFLICT`.
 
 After successful handler invocation, the executor calls `store.commit(key, output)`. On failure, it calls `store.release(key)` so a retry can reuse the key.

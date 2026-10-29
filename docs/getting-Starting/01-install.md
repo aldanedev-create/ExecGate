@@ -100,7 +100,7 @@ The test simulates the absence of Pydantic (and FastMCP) and asserts that:
 - Capabilities register and run.
 - Importing `execgate_pydantic` raises `ImportError` with a helpful message.
 
-If someone ever adds a `pip install requests` to the core, this test fails and the release is blocked. The `scripts/check_imports.py` script enforces the same property by AST-scanning `src/logiq/` for non-stdlib imports.
+If someone ever adds a `pip install requests` to the core, this test fails and the release is blocked. The `scripts/check_imports.py` script enforces the same property by AST-scanning `src/execgate/` for non-stdlib imports.
 
 Why does this matter? Because:
 

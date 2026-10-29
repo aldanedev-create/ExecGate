@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Verify that ``src/logiq/`` imports only stdlib.
+Verify that ``src/execgate/`` imports only stdlib.
 
 The core package has zero third-party runtime dependencies
 (docs/system-design.md §3). This script enforces that structurally by
-AST-walking every .py file under ``src/logiq/`` and asserting every
+AST-walking every .py file under ``src/execgate/`` and asserting every
 top-level import belongs to one of:
 
   - the Python standard library (``sys.stdlib_module_names``)
   - a ``execgate.*`` submodule (internal)
-  - a ``logix_*`` sibling package (execgate_pydantic, execgate_ai, execgate_mcp —
+  - an ``execgate_*`` sibling package (execgate_pydantic, execgate_ai, execgate_mcp —
     optional extras, always imported behind ``try/except ImportError``)
 
 Any other import fails the check. Exit 0 on pass, 1 on any violation.
@@ -58,7 +58,7 @@ def main() -> int:
 
     if offenders:
         print(
-            "FAIL: src/logiq/ imports non-stdlib modules:",
+            "FAIL: src/execgate/ imports non-stdlib modules:",
             file=sys.stderr,
         )
         for line in offenders:
@@ -69,7 +69,7 @@ def main() -> int:
         )
         return 1
 
-    print(f"OK: {len(files)} files under src/logiq/ import only stdlib.")
+    print(f"OK: {len(files)} files under src/execgate/ import only stdlib.")
     return 0
 
 

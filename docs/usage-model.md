@@ -333,6 +333,9 @@ human decision between verification and execution:
   App ──► logix.verify(plan, context=alice)
           → VerificationReport.ok, verified_plan
 
+  App ──► logix.approval_requests(verified_plan, context=alice)
+          → [{step_id, capability, arguments}]  (refs resolved)
+
   App ──► ask_human("Approve refund of $50 on order 502?")
           → true (human approves)
 
