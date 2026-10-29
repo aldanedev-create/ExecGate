@@ -41,11 +41,14 @@ def _run_py(label: str, script: Path, *args: str) -> None:
 
 def main() -> int:
     try:
-        _run("ruff check", ["ruff", "check", "src", "tests", "scripts"])
-        _run("ruff format", ["ruff", "format", "--check", "src", "tests", "scripts"])
-        _run("mypy", ["mypy", "src"])
+        _run("ruff check", [sys.executable, "-m", "ruff", "check", "src", "tests", "scripts"])
+        _run(
+            "ruff format",
+            [sys.executable, "-m", "ruff", "format", "--check", "src", "tests", "scripts"],
+        )
+        _run("mypy", [sys.executable, "-m", "mypy", "src"])
         _run_py("check_imports", SCRIPTS / "check_imports.py")
-        _run("pytest", ["pytest"])
+        _run("pytest", [sys.executable, "-m", "pytest"])
         _run("build", [sys.executable, "-m", "build"])
 
         wheels = sorted((ROOT / "dist").glob("*.whl"))
