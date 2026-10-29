@@ -76,7 +76,7 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
-addopts = "-ra --strict-markers --strict-config -p no:qt"
+addopts = "-ra --strict-markers --strict-config -p no:pytestqt"
 markers = [
     "security: security-boundary test (docs/system-design.md §3)",
     "conformance: adapter conformance kit (tests/adapters/contract.py)",
