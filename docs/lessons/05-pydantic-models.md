@@ -184,10 +184,12 @@ The same schema is used by the verifier and shown in the catalog, so they cannot
 ```python
 import json
 
-result = logix.run({
-    "call": "prepare_order",
-    "with": {"order": {"product_id": 1, "quantity": 5}},
-})
+result = logix.run(
+    {
+        "call": "prepare_order",
+        "with": {"order": {"product_id": 1, "quantity": 5}},
+    }
+)
 
 print("Valid:", result.ok)
 print("Value:", json.dumps(result.value, indent=2))
@@ -217,10 +219,12 @@ Two things to notice:
 Try a quantity greater than the model's `le=100` constraint:
 
 ```python
-result = logix.run({
-    "call": "prepare_order",
-    "with": {"order": {"product_id": 1, "quantity": 500}},
-})
+result = logix.run(
+    {
+        "call": "prepare_order",
+        "with": {"order": {"product_id": 1, "quantity": 500}},
+    }
+)
 
 print("Invalid:", result.ok)
 print("Error:", result.errors[0].code, result.errors[0].message)
@@ -240,10 +244,12 @@ The path in `result.errors[0].path` identifies the field; for this example, it i
 Try omitting a required field:
 
 ```python
-result = logix.run({
-    "call": "prepare_order",
-    "with": {"order": {"product_id": 1}},
-})
+result = logix.run(
+    {
+        "call": "prepare_order",
+        "with": {"order": {"product_id": 1}},
+    }
+)
 
 print(result.errors[0].code, result.errors[0].message)
 ```
@@ -428,10 +434,12 @@ def handle_order_model(order: CreateOrder) -> dict[str, int]:
     return {"quantity": order.quantity}
 
 
-logix.run({
-    "call": "handle_order_model",
-    "with": {"order": {"product_id": 1, "quantity": 5}},
-})
+logix.run(
+    {
+        "call": "handle_order_model",
+        "with": {"order": {"product_id": 1, "quantity": 5}},
+    }
+)
 # Output: Type: CreateOrder, Quantity: 5
 
 
@@ -447,10 +455,12 @@ def handle_order_values(order: CreateOrder) -> dict[str, int]:
     return {"quantity": order["quantity"]}
 
 
-logix.run({
-    "call": "handle_order_values",
-    "with": {"order": {"product_id": 1, "quantity": 5}},
-})
+logix.run(
+    {
+        "call": "handle_order_values",
+        "with": {"order": {"product_id": 1, "quantity": 5}},
+    }
+)
 # Output: Type: dict, Quantity: 5
 ```
 
@@ -521,17 +531,21 @@ def need_item(amount: float) -> dict[str, float]:
 
 if __name__ == "__main__":
     print("=== Valid call ===")
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
     print(json.dumps(result.value, indent=2))
 
     print("\n=== Constraint violation ===")
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 500}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 500}},
+        }
+    )
     print(result.errors[0].code, "->", result.errors[0].message)
 
     print("\n=== $ref into model output ===")
@@ -618,29 +632,35 @@ def reset_handler_mode():
 
 
 def test_valid_call_returns_dict():
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
     assert result.ok
     assert isinstance(result.value, dict)
     assert result.value["total"] == 50.0
 
 
 def test_constraint_violation_rejected():
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 500}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 500}},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
 
 
 def test_missing_field_rejected():
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1}},
+        }
+    )
     assert not result.ok
     assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
 
@@ -711,10 +731,12 @@ def test_handler_mode_model_receives_instance():
         return {"quantity": order.quantity}
 
     set_handler_mode(HandlerMode.MODEL)
-    result = logix.run({
-        "call": "handler_model",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "handler_model",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
     assert result.ok
     assert isinstance(received[0], CreateOrder)
 
@@ -728,10 +750,12 @@ def test_handler_mode_values_receives_dict():
         return {"quantity": order["quantity"]}  # type: ignore[index]
 
     set_handler_mode(HandlerMode.VALUES)
-    result = logix.run({
-        "call": "handler_values",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "handler_values",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
     assert result.ok
     assert isinstance(received[0], dict)
     assert received[0]["quantity"] == 5

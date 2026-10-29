@@ -74,12 +74,12 @@ Constraints attach to a base type via `typing.Annotated`:
 from typing import Annotated
 from execgate.schemas import Gt, Le, MinLength, MaxLength, Pattern
 
+
 def issue_refund(
     amount: Annotated[float, Gt(0), Le(10_000)],
     note: Annotated[str, MinLength(1), MaxLength(200)],
     tracking: Annotated[str, Pattern(r"^[A-Z0-9]{8,}$")],
-) -> dict[str, int]:
-    ...
+) -> dict[str, int]: ...
 ```
 
 Supported constraints:
@@ -148,7 +148,7 @@ In Python, `isinstance(True, int) == True`. In ExecGate, `IntType` explicitly re
 
 ```python
 IntType().validate(True)  # error: expected int, got bool
-IntType().validate(1)     # ok
+IntType().validate(1)  # ok
 ```
 
 This matters because a model that says `{"x": true}` should not be accepted by a handler that declares `x: int`. Booleans are not integers here.
@@ -158,7 +158,7 @@ This matters because a model that says `{"x": true}` should not be accepted by a
 There is no implicit widening:
 
 ```python
-FloatType().validate(5)    # error: expected float, got int
+FloatType().validate(5)  # error: expected float, got int
 FloatType().validate(5.0)  # ok
 ```
 
@@ -170,8 +170,8 @@ If a handler declares `amount: float` and the plan says `{"amount": 5}`, it is r
 
 ```python
 LiteralType(("a", "b")).validate("a")  # ok
-LiteralType(("a", "b")).validate(1)    # error
-LiteralType((1, 2)).validate(True)     # error (bool != int)
+LiteralType(("a", "b")).validate(1)  # error
+LiteralType((1, 2)).validate(True)  # error (bool != int)
 ```
 
 `True == 1` in Python, so `Literal[1, 2]` explicitly rejects `True`. Use `Literal[True, False]` if you want booleans.
@@ -236,8 +236,7 @@ Example:
 def issue_refund(
     order_id: Annotated[int, Gt(0)],
     amount: Annotated[float, Gt(0), Le(10_000)],
-) -> dict[str, float]:
-    ...
+) -> dict[str, float]: ...
 ```
 
 `execgate.schemas.for_capability("issue_refund").input`:

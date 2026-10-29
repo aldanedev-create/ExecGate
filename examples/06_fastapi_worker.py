@@ -32,6 +32,7 @@ import json
 try:
     from fastapi import FastAPI, HTTPException
     from pydantic import BaseModel
+
     HAS_FASTAPI = True
 except ImportError:
     HAS_FASTAPI = False
@@ -100,4 +101,5 @@ if __name__ == "__main__":
         print(json.dumps(result.to_dict(), indent=2))
     else:
         import uvicorn
+
         uvicorn.run(app, host="127.0.0.1", port=8000)

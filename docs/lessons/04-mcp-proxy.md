@@ -100,11 +100,7 @@ class FakeMCPClient:
         self.calls.append((name, dict(arguments)))
 
         return FakeCallToolResult(
-            content=[
-                FakeTextContent(
-                    text=json.dumps({"called": name, "args": arguments})
-                )
-            ]
+            content=[FakeTextContent(text=json.dumps({"called": name, "args": arguments}))]
         )
 ```
 

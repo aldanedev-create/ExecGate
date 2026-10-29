@@ -37,10 +37,12 @@ def add(a: int, b: int) -> int:
     return a + b
 
 
-result = logix.run({
-    "call": "add",
-    "with": {"a": 10, "b": 20},
-})
+result = logix.run(
+    {
+        "call": "add",
+        "with": {"a": 10, "b": 20},
+    }
+)
 
 if result.ok:
     print(result.value)  # 30
@@ -95,10 +97,12 @@ The core package has zero third-party runtime dependencies. Optional integration
 You don't need an AI model to benefit from schema-checked capability execution.
 
 ```python
-result = logix.run({
-    "call": "add",
-    "with": {"a": 1, "b": 2},
-})
+result = logix.run(
+    {
+        "call": "add",
+        "with": {"a": 1, "b": 2},
+    }
+)
 ```
 
 This can be useful in scripts, tests, command-line tools, and webhook handlers.
@@ -141,7 +145,7 @@ Start with the [Getting Started Guide](https://aldanedev-create.github.io/ExecGa
 ExecGate's core is provider-neutral. It can process plans from hosted models, local models, scripts, or other sources.
 
 ```python
-catalog = logix.tools.format("json")    # Provider-neutral format
+catalog = logix.tools.format("json")  # Provider-neutral format
 catalog = logix.tools.format("openai")  # Optional provider format
 ```
 

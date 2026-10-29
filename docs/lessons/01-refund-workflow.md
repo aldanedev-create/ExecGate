@@ -376,10 +376,7 @@ class PrintAudit:
         )
 
     def on_result(self, event):
-        print(
-            f"[audit] result ok={event['ok']} "
-            f"execution_id={event['execution_id'][:8]}"
-        )
+        print(f"[audit] result ok={event['ok']} execution_id={event['execution_id'][:8]}")
 
 
 logix.audit(PrintAudit())
@@ -780,10 +777,7 @@ class PrintAudit:
         )
 
     def on_result(self, event):
-        print(
-            f"[audit] result ok={event['ok']} "
-            f"execution_id={event['execution_id'][:8]}"
-        )
+        print(f"[audit] result ok={event['ok']} execution_id={event['execution_id'][:8]}")
 
 
 logix.audit(PrintAudit())

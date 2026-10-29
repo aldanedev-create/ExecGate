@@ -29,7 +29,7 @@ logix = Logix()
 
 ORDERS = {
     502: {"id": 502, "owner": "alice", "state": "delivered", "total": 50.0},
-    777: {"id": 777, "owner": "bob",   "state": "shipped",   "total": 900.0},
+    777: {"id": 777, "owner": "bob", "state": "shipped", "total": 900.0},
 }
 REFUNDED: set[int] = set()
 
@@ -62,6 +62,7 @@ def refund_policy(args, ctx):
     if order["state"] != "delivered":
         return Deny("NOT_DELIVERED", "order is not refundable")
     return Allow()
+
 
 logix.authorize(refund_order, check=refund_policy)
 
@@ -107,25 +108,33 @@ def chat_turn(messages: list[dict], user_message: str, principal: str = "alice")
         result = logix.run(plan, context=ctx)
         print(f"[logiq result]: ok={result.ok}")
 
-        messages.append({
-            "role": "assistant",
-            "content": msg.content,
-            "tool_calls": [
-                {"id": tc.id, "type": "function",
-                 "function": {"name": tc.function.name, "arguments": tc.function.arguments}}
-                for tc in msg.tool_calls
-            ],
-        })
+        messages.append(
+            {
+                "role": "assistant",
+                "content": msg.content,
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                    }
+                    for tc in msg.tool_calls
+                ],
+            }
+        )
 
         tool_result = (
-            {"ok": True, "value": result.value} if result.ok
+            {"ok": True, "value": result.value}
+            if result.ok
             else {"ok": False, "errors": [e.to_dict() for e in result.errors]}
         )
-        messages.append({
-            "role": "tool",
-            "tool_call_id": msg.tool_calls[0].id,
-            "content": json.dumps(tool_result),
-        })
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": msg.tool_calls[0].id,
+                "content": json.dumps(tool_result),
+            }
+        )
 
 
 if __name__ == "__main__":

@@ -121,8 +121,7 @@ def make_engine(tenant: TenantConfig) -> Logix:
             if args["amount"] > tenant.max_refund_amount:
                 return Deny(
                     "EXCEEDS_LIMIT",
-                    f"refund amount exceeds {tenant.name}'s limit of "
-                    f"${tenant.max_refund_amount}",
+                    f"refund amount exceeds {tenant.name}'s limit of ${tenant.max_refund_amount}",
                 )
             return Allow()
 
@@ -148,10 +147,7 @@ class TenantRouter:
     """Route requests to the right engine based on tenant."""
 
     def __init__(self, tenants: dict[str, TenantConfig]):
-        self._engines = {
-            name: make_engine(config)
-            for name, config in tenants.items()
-        }
+        self._engines = {name: make_engine(config) for name, config in tenants.items()}
 
     def run(self, tenant: str, plan: dict, *, principal: str):
         """Run a plan against the selected tenant's engine."""
@@ -430,8 +426,7 @@ def make_engine(tenant: TenantConfig) -> Logix:
             if args["amount"] > tenant.max_refund_amount:
                 return Deny(
                     "EXCEEDS_LIMIT",
-                    f"refund amount exceeds {tenant.name}'s limit of "
-                    f"${tenant.max_refund_amount}",
+                    f"refund amount exceeds {tenant.name}'s limit of ${tenant.max_refund_amount}",
                 )
             return Allow()
 
@@ -444,10 +439,7 @@ class TenantRouter:
     """Route requests to the right tenant engine."""
 
     def __init__(self, tenants: dict[str, TenantConfig]):
-        self._engines = {
-            name: make_engine(config)
-            for name, config in tenants.items()
-        }
+        self._engines = {name: make_engine(config) for name, config in tenants.items()}
 
     def run(self, tenant: str, plan: dict, *, principal: str):
         if tenant not in self._engines:

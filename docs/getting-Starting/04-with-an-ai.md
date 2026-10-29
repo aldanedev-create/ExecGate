@@ -250,10 +250,7 @@ def format_result_for_model(result):
 
     return {
         "ok": False,
-        "errors": [
-            {"code": e.code, "message": e.message, "path": e.path}
-            for e in result.errors
-        ],
+        "errors": [{"code": e.code, "message": e.message, "path": e.path} for e in result.errors],
     }
 ```
 

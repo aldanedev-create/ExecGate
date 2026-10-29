@@ -57,10 +57,12 @@ ExecGate is designed so that a simple integration stays simple, while production
 ### Level 1 — ExecGate as a Dispatcher
 
 ```python
-result = logix.run({
-    "call": "add",
-    "with": {"a": 1, "b": 2},
-})
+result = logix.run(
+    {
+        "call": "add",
+        "with": {"a": 1, "b": 2},
+    }
+)
 ```
 
 No AI is involved. ExecGate is a schema-enforcing dispatcher. This is useful on its own — in scripts, tests, CLI tools, and webhook handlers.
@@ -150,7 +152,7 @@ For example:
 ```python
 from execgate import Logix  # Package: logiq; class: Logix
 
-logix = Logix()          # Variable: logix
+logix = Logix()  # Variable: logix
 ```
 
 You'll see all three spellings in the same code block. That's correct.

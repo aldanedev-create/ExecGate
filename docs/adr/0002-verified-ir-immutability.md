@@ -19,11 +19,13 @@ If `execute()` accepted a plain dictionary, a caller could attempt to bypass ver
 
 ```python
 # This must never be accepted as a verified plan.
-logix.execute({
-    "call": "delete_all_users",
-    "with": {},
-    "verified": True,
-})
+logix.execute(
+    {
+        "call": "delete_all_users",
+        "with": {},
+        "verified": True,
+    }
+)
 ```
 
 The `"verified": True` marker proves nothing. Any model or caller could add it.

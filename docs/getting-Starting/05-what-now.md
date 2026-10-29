@@ -123,8 +123,8 @@ A bare `dict` is not a schema. Use `dict[str, int]` or a Pydantic model.
 
 ```python
 @logix.capability
-def f(x: float) -> int:
-    ...
+def f(x: float) -> int: ...
+
 
 logix.run({"call": "f", "with": {"x": 5}}).errors
 # SCHEMA_VALIDATION_FAILED: expected float, got int

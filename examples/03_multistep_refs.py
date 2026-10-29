@@ -44,9 +44,11 @@ def main() -> None:
         "version": "1",
         "steps": [
             {"id": "o", "call": "get_order", "with": {"order_id": 502}},
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+            },
         ],
     }
     result = logix.run(plan)
@@ -58,9 +60,11 @@ def main() -> None:
         "version": "1",
         "steps": [
             {"id": "o", "call": "get_order", "with": {"order_id": 502}},
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": 9999.0}},   # ← literal
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {"order_id": {"$ref": "o.id"}, "amount": 9999.0},
+            },  # ← literal
         ],
     }
     result = logix.run(bad_plan)
@@ -71,9 +75,11 @@ def main() -> None:
     forward_plan = {
         "version": "1",
         "steps": [
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+            },
             {"id": "o", "call": "get_order", "with": {"order_id": 502}},
         ],
     }
@@ -90,9 +96,14 @@ def main() -> None:
         "version": "1",
         "steps": [
             {"id": "c", "call": "get_count", "with": {}},
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "c.count"},  # int → float
-                      "amount": 5.0}},                 # literal (would fail grounding too)
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {
+                    "order_id": {"$ref": "c.count"},  # int → float
+                    "amount": 5.0,
+                },
+            },  # literal (would fail grounding too)
         ],
     }
     result = logix.run(mismatch_plan)

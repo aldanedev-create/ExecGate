@@ -180,11 +180,13 @@ def answer(user_msg: str, principal: str) -> str:
         }
 
     messages.append(msg)
-    messages.append({
-        "role": "tool",
-        "tool_call_id": msg.tool_calls[0].id,
-        "content": json.dumps(tool_result),
-    })
+    messages.append(
+        {
+            "role": "tool",
+            "tool_call_id": msg.tool_calls[0].id,
+            "content": json.dumps(tool_result),
+        }
+    )
 
     final = client.chat.completions.create(
         model="gpt-4o",
@@ -329,10 +331,12 @@ for attempt in range(loop.max_attempts):
         return result.value
 
     # Bounded retry with structured errors.
-    messages.append({
-        "role": "tool",
-        "content": json.dumps([e.to_dict() for e in result.errors]),
-    })
+    messages.append(
+        {
+            "role": "tool",
+            "content": json.dumps([e.to_dict() for e in result.errors]),
+        }
+    )
 
 return "I couldn't complete that after several attempts."
 ```
@@ -375,22 +379,30 @@ def test_handwritten_plan_gets_same_guarantees(logix):
     plans = [
         {"call": "add", "with": {"a": 3, "b": 4}},
         '{"call": "add", "with": {"a": 3, "b": 4}}',
-        NeutralJSONAdapter().parse_proposal({
-            "call": "add",
-            "with": {"a": 3, "b": 4},
-        }),
-        OpenAIAdapter().parse_proposal({
-            "choices": [{
-                "message": {
-                    "tool_calls": [{
-                        "function": {
-                            "name": "add",
-                            "arguments": '{"a": 3, "b": 4}',
+        NeutralJSONAdapter().parse_proposal(
+            {
+                "call": "add",
+                "with": {"a": 3, "b": 4},
+            }
+        ),
+        OpenAIAdapter().parse_proposal(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "tool_calls": [
+                                {
+                                    "function": {
+                                        "name": "add",
+                                        "arguments": '{"a": 3, "b": 4}',
+                                    }
+                                }
+                            ]
                         }
-                    }]
-                }
-            }]
-        }),
+                    }
+                ]
+            }
+        ),
     ]
 
     for plan in plans:

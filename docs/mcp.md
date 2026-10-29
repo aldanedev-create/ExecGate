@@ -139,8 +139,8 @@ def context_from_mcp_session():
         roles=frozenset(session.roles),
     )
 
-server = LogixMCPServer(logix, name="order-service",
-                        context_factory=context_from_mcp_session)
+
+server = LogixMCPServer(logix, name="order-service", context_factory=context_from_mcp_session)
 ```
 
 **Current limitation:** `context_factory` takes **zero arguments**. Per-request
@@ -224,6 +224,7 @@ no earlier step. Every call returns `GROUNDING_REQUIRED`.
       "Issue a full refund for an order (fetches total internally)."
       order = db.orders.get(order_id)
       return payments.refund(order_id, order["total"])
+
 
   # This one has no grounding rule — it doesn't need one.
   # The model can call it with just the order_id.
@@ -311,6 +312,7 @@ from execgate_mcp import LogixMCPProxy
 
 logix = Logix()
 
+
 # Optionally pre-configure policies that apply to wrapped tools.
 def refund_policy(args, ctx):
     order = db.orders.get(args["order_id"])
@@ -318,7 +320,9 @@ def refund_policy(args, ctx):
         return Deny("ORDER_NOT_DELIVERED", "order is still in transit")
     return None
 
+
 proxy = LogixMCPProxy(logix, "http://upstream-service/mcp")
+
 
 async def main():
     await proxy.startup()
@@ -330,6 +334,7 @@ async def main():
         await proxy.run_async()
     finally:
         await proxy.shutdown()
+
 
 asyncio.run(main())
 ```

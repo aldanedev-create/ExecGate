@@ -66,10 +66,12 @@ The AI sees the model's JSON Schema in the catalog:
 At call time:
 
 ```python
-result = logix.run({
-    "call": "prepare_order",
-    "with": {"order": {"product_id": 1, "quantity": 5}},
-})
+result = logix.run(
+    {
+        "call": "prepare_order",
+        "with": {"order": {"product_id": 1, "quantity": 5}},
+    }
+)
 
 assert result.ok
 assert result.value == {"id": 1, "status": "pending"}
@@ -170,10 +172,12 @@ class Order(BaseModel):
     total: float
 
 
-result = logix.run({
-    "call": "get_order",
-    "with": {"id": "not-an-int", "total": -1.0},
-})
+result = logix.run(
+    {
+        "call": "get_order",
+        "with": {"id": "not-an-int", "total": -1.0},
+    }
+)
 
 assert not result.ok
 assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
@@ -237,24 +241,26 @@ def refund(order_id: int, amount: float) -> dict[str, int]:
     return {"ok": 1}
 
 
-result = logix.run({
-    "version": "1",
-    "steps": [
-        {
-            "id": "o",
-            "call": "get_order",
-            "with": {"order_id": 502},
-        },
-        {
-            "id": "r",
-            "call": "refund",
-            "with": {
-                "order_id": {"$ref": "o.id"},
-                "amount": {"$ref": "o.total"},
+result = logix.run(
+    {
+        "version": "1",
+        "steps": [
+            {
+                "id": "o",
+                "call": "get_order",
+                "with": {"order_id": 502},
             },
-        },
-    ],
-})
+            {
+                "id": "r",
+                "call": "refund",
+                "with": {
+                    "order_id": {"$ref": "o.id"},
+                    "amount": {"$ref": "o.total"},
+                },
+            },
+        ],
+    }
+)
 
 assert result.ok
 ```
@@ -291,8 +297,7 @@ A user who writes:
 
 ```python
 @logix.capability
-def f(order: Order) -> None:
-    ...
+def f(order: Order) -> None: ...
 ```
 
 without `execgate_pydantic` installed gets:
@@ -326,19 +331,23 @@ def test_prepare_order(logix):
     def prepare_order(order: CreateOrder) -> Order:
         return Order(id=1, status="pending")
 
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
 
     assert result.ok
     assert result.value == {"id": 1, "status": "pending"}
 
     # Invalid input: rejected by Pydantic validation.
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 200}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 200}},
+        }
+    )
 
     assert not result.ok
     assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"

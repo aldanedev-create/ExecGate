@@ -31,7 +31,7 @@ def main() -> None:
 
     ORDERS = {
         502: {"id": 502, "owner": "alice", "state": "delivered", "total": 50.0},
-        777: {"id": 777, "owner": "bob",   "state": "shipped",   "total": 900.0},
+        777: {"id": 777, "owner": "bob", "state": "shipped", "total": 900.0},
     }
     REFUNDED: set[int] = set()
 
@@ -65,9 +65,11 @@ def main() -> None:
         "version": "1",
         "steps": [
             {"id": "o", "call": "get_order", "with": {"order_id": 502}},
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+            },
         ],
     }
 
@@ -93,9 +95,11 @@ def main() -> None:
         "version": "1",
         "steps": [
             {"id": "o", "call": "get_order", "with": {"order_id": 777}},
-            {"id": "r", "call": "issue_refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+            },
         ],
     }
     report = logix.verify(plan_bob, context=alice)

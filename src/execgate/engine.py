@@ -238,7 +238,9 @@ class Logix:
             for name, value in step.arguments.items():
                 if is_reference(value):
                     parsed = parse_reference(value)
-                    resolved = parsed if hasattr(parsed, "code") else resolve_reference(parsed, outputs)
+                    resolved = (
+                        parsed if hasattr(parsed, "code") else resolve_reference(parsed, outputs)
+                    )
                     if hasattr(resolved, "code"):
                         return requests, [resolved]
                     args[name] = resolved

@@ -25,6 +25,7 @@ import sys
 
 try:
     import httpx
+
     HAS_HTTPX = True
 except ImportError:
     HAS_HTTPX = False
@@ -90,18 +91,22 @@ def main() -> None:
 
     # --- Behavior: unknown index rejected by schema ---
     print("\n=== Unknown index rejected by schema ===")
-    result = logix.run({
-        "call": "xerj_search",
-        "with": {"query": "merge_segments", "index": "_memory"},
-    })
+    result = logix.run(
+        {
+            "call": "xerj_search",
+            "with": {"query": "merge_segments", "index": "_memory"},
+        }
+    )
     print(f"code={result.errors[0].code}")
 
     # --- Behavior: oversized size rejected by schema ---
     print("\n=== Oversized size rejected by schema ===")
-    result = logix.run({
-        "call": "xerj_search",
-        "with": {"query": "merge_segments", "size": 1000},
-    })
+    result = logix.run(
+        {
+            "call": "xerj_search",
+            "with": {"query": "merge_segments", "size": 1000},
+        }
+    )
     print(f"code={result.errors[0].code}")
 
     # --- Behavior: tenant scoping ---

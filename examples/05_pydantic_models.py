@@ -68,10 +68,12 @@ def main() -> None:
             "quantity": str(order.quantity),
         }
 
-    result = logix.run({
-        "call": "inspect_model",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "inspect_model",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
     print(f"\nMODEL mode: handler got {result.value}")
 
     # --- VALUES mode: handler receives a dict ---
@@ -85,19 +87,23 @@ def main() -> None:
             "quantity": str(order["quantity"]),  # dict access
         }
 
-    result = logix.run({
-        "call": "inspect_values",
-        "with": {"order": {"product_id": 1, "quantity": 5}},
-    })
+    result = logix.run(
+        {
+            "call": "inspect_values",
+            "with": {"order": {"product_id": 1, "quantity": 5}},
+        }
+    )
     print(f"VALUES mode: handler got {result.value}")
 
     set_handler_mode(HandlerMode.MODEL)  # restore
 
     # --- Constraint violation: quantity > le=100 ---
-    result = logix.run({
-        "call": "prepare_order",
-        "with": {"order": {"product_id": 1, "quantity": 500}},
-    })
+    result = logix.run(
+        {
+            "call": "prepare_order",
+            "with": {"order": {"product_id": 1, "quantity": 500}},
+        }
+    )
     print(f"\nConstraint violation: code={result.errors[0].code}")
     print(f"  message: {result.errors[0].message}")
 
@@ -106,9 +112,11 @@ def main() -> None:
         "version": "1",
         "steps": [
             {"id": "o", "call": "get_order", "with": {"order_id": 1}},
-            {"id": "r", "call": "refund",
-             "with": {"order_id": {"$ref": "o.id"},
-                      "amount": {"$ref": "o.total"}}},
+            {
+                "id": "r",
+                "call": "refund",
+                "with": {"order_id": {"$ref": "o.id"}, "amount": {"$ref": "o.total"}},
+            },
         ],
     }
     result = logix.run(plan)

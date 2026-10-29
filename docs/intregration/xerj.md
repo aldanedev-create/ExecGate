@@ -73,9 +73,7 @@ def xerj_search(
         {
             "path": hit.get("_source", {}).get("ax_path", ""),
             "language": hit.get("_source", {}).get("language", ""),
-            "symbols": ",".join(
-                hit.get("_source", {}).get("symbols", [])
-            ),
+            "symbols": ",".join(hit.get("_source", {}).get("symbols", [])),
         }
         for hit in hits
     ]
@@ -83,11 +81,7 @@ def xerj_search(
 
 # Per-caller scoping — XERJ has no per-caller authorization.
 def tenant_scope(args, ctx):
-    allowed = (
-        {"code", "docs"}
-        if ctx.tenant == "internal"
-        else {"docs"}
-    )
+    allowed = {"code", "docs"} if ctx.tenant == "internal" else {"docs"}
 
     if args["index"] not in allowed:
         return Deny(
@@ -330,25 +324,29 @@ def test_xerj_capability_scope():
         return []  # Unused in this test.
 
     # Unknown index → SCHEMA_VALIDATION_FAILED.
-    result = logix.run({
-        "call": "xerj_search",
-        "with": {
-            "query": "merge_segments",
-            "index": "_memory",
-        },
-    })
+    result = logix.run(
+        {
+            "call": "xerj_search",
+            "with": {
+                "query": "merge_segments",
+                "index": "_memory",
+            },
+        }
+    )
 
     assert not result.ok
     assert result.errors[0].code == "SCHEMA_VALIDATION_FAILED"
 
     # Known index → accepted.
-    result = logix.run({
-        "call": "xerj_search",
-        "with": {
-            "query": "merge_segments",
-            "index": "code",
-        },
-    })
+    result = logix.run(
+        {
+            "call": "xerj_search",
+            "with": {
+                "query": "merge_segments",
+                "index": "code",
+            },
+        }
+    )
 
     assert result.ok
 ```

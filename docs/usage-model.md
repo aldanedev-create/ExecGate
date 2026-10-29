@@ -40,10 +40,12 @@ from execgate import Logix
 
 logix = Logix()
 
+
 @logix.capability
 def get_order(order_id: int) -> dict[str, int]:
     "Retrieve an order by its ID."
     return db.orders.get(order_id)
+
 
 @logix.capability(effects="write")
 def issue_refund(order_id: int, amount: float) -> dict[str, int]:
@@ -69,6 +71,7 @@ Live-state authorization:
 ```python
 from execgate import Allow, Deny
 
+
 def refund_policy(args, ctx):
     order = db.orders.get(args["order_id"])
     if order["owner"] != ctx.principal:
@@ -76,6 +79,7 @@ def refund_policy(args, ctx):
     if order["state"] != "delivered":
         return Deny("NOT_DELIVERED", "order is still in transit")
     return Allow()
+
 
 logix.authorize(issue_refund, check=refund_policy)
 ```
@@ -98,7 +102,7 @@ permitted; ExecGate enforces it at execute time.
 ### Step 3 — Get the catalog for the AI
 
 ```python
-catalog = logix.tools.format("json")   # or "openai", "anthropic", "gemini", "local"
+catalog = logix.tools.format("json")  # or "openai", "anthropic", "gemini", "local"
 ```
 
 The catalog is what the AI sees. It contains:
@@ -439,9 +443,11 @@ the core programming model.
 ```python
 logix = Logix()
 
+
 @logix.capability
 def add(a: int, b: int) -> int:
     return a + b
+
 
 result = logix.run({"call": "add", "with": {"a": 1, "b": 2}})
 ```

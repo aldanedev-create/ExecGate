@@ -28,9 +28,9 @@ from execgate import Logix
 
 logix = Logix()
 
+
 @logix.capability
-def get_order(order_id: int) -> dict[str, int]:
-    ...
+def get_order(order_id: int) -> dict[str, int]: ...
 ```
 
 Serve the application over your framework of choice, such as FastAPI or Flask.
@@ -50,10 +50,7 @@ The default `InMemoryIdempotencyStore` is per-worker. Two workers processing the
 Create one engine per tenant when registries or policies differ:
 
 ```python
-tenants: dict[str, Logix] = {
-    tenant_id: make_engine(tenant_id)
-    for tenant_id in load_tenants()
-}
+tenants: dict[str, Logix] = {tenant_id: make_engine(tenant_id) for tenant_id in load_tenants()}
 ```
 
 Each engine has isolated state. A policy attached to one engine does not affect another. A `VerifiedPlan` from one engine is not accepted by another because the snapshot hashes differ.
@@ -105,8 +102,8 @@ Do not raise the limits without reviewing the invariant checks accordingly. A bi
 Configure policies and approval requirements once, at engine construction or during startup:
 
 ```python
-def refund_policy(args, ctx):
-    ...
+def refund_policy(args, ctx): ...
+
 
 logix.authorize(issue_refund, check=refund_policy)
 logix.require_approval(issue_refund)
@@ -147,6 +144,7 @@ class AuditLog:
         #   principal, tenant, request_id
         # }
         logger.info("result", extra=event)
+
 
 logix.audit(AuditLog())
 ```
@@ -337,9 +335,7 @@ class PostgresIdempotencyStore:
 Configure the engine with the durable store:
 
 ```python
-logix = Logix(
-    idempotency_store=PostgresIdempotencyStore(db_conn)
-)
+logix = Logix(idempotency_store=PostgresIdempotencyStore(db_conn))
 ```
 
 **Exactly-once execution still requires cooperation from the external service.**

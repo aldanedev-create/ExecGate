@@ -46,19 +46,21 @@ logix.grounding(require_ref_for=["issue_refund.amount"])
 With this rule, a plan whose `issue_refund.amount` argument is a literal is rejected:
 
 ```python
-result = logix.run({
-    "steps": [
-        {"id": "o", "call": "get_order", "with": {"order_id": 502}},
-        {
-            "id": "r",
-            "call": "issue_refund",
-            "with": {
-                "order_id": 502,
-                "amount": 50.0,  # Literal; grounding rejects this
+result = logix.run(
+    {
+        "steps": [
+            {"id": "o", "call": "get_order", "with": {"order_id": 502}},
+            {
+                "id": "r",
+                "call": "issue_refund",
+                "with": {
+                    "order_id": 502,
+                    "amount": 50.0,  # Literal; grounding rejects this
+                },
             },
-        },
-    ],
-})
+        ],
+    }
+)
 
 # result.errors[0].code == "GROUNDING_REQUIRED"
 ```
@@ -240,8 +242,7 @@ Approval is a token issued by the application, bound to `(capability, args_hash,
 ```python
 # 1. Register the capability and mark it approval-gated.
 @logix.capability
-def issue_refund(order_id: int, amount: float) -> dict[str, int]:
-    ...
+def issue_refund(order_id: int, amount: float) -> dict[str, int]: ...
 
 
 logix.require_approval(issue_refund)
@@ -256,9 +257,7 @@ if not report.ok:
 # 3. THE APPROVAL GATE.
 #    The AI has no path here. A human (or a system the application
 #    trusts) decides to approve this exact action.
-approval = ask_human(
-    f"Approve {report.verified_plan.steps[0].capability}?"
-)
+approval = ask_human(f"Approve {report.verified_plan.steps[0].capability}?")
 
 if not approval:
     return "Operation cancelled."
@@ -350,8 +349,7 @@ Idempotency deduplicates side effects across retries. A capability that charges 
 
 ```python
 @logix.capability(idempotent=True)
-def charge(order_id: int, amount: float) -> dict[str, int]:
-    ...
+def charge(order_id: int, amount: float) -> dict[str, int]: ...
 ```
 
 ### How it works
@@ -365,17 +363,18 @@ scope = f"{ctx.tenant}|{ctx.principal}|{cap.name}"
 key = f"{scope}:{canonical_args_hash(resolved_args)}"
 
 # idempotency_key="context.request_id": your application's request id, per step
-key = f"{scope}:rid={ctx.request_id}:{step_id}"     # fails closed if request_id is unset
+key = f"{scope}:rid={ctx.request_id}:{step_id}"  # fails closed if request_id is unset
 
 # idempotency_key="<argument name>": a key carried in the plan
 key = f"{scope}:key={resolved_args[name]}"
 ```
 
 ```python
-@logix.capability(effects="write", requires_approval=True,
-                  idempotent=True, idempotency_key="context.request_id")
-def issue_refund(order_id: int, amount_cents: int) -> dict[str, int]:
-    ...
+@logix.capability(
+    effects="write", requires_approval=True, idempotent=True, idempotency_key="context.request_id"
+)
+def issue_refund(order_id: int, amount_cents: int) -> dict[str, int]: ...
+
 
 ctx = ExecutionContext(principal="agent-1", tenant="acme", request_id="req-7f3a")
 ```
@@ -400,14 +399,11 @@ class IdempotencyStore(Protocol):
         self,
         key: str,
         args_hash: str,
-    ) -> IdempotencyResult:
-        ...
+    ) -> IdempotencyResult: ...
 
-    def commit(self, key: str, result: Any) -> None:
-        ...
+    def commit(self, key: str, result: Any) -> None: ...
 
-    def release(self, key: str) -> None:
-        ...
+    def release(self, key: str) -> None: ...
 ```
 
 `InMemoryIdempotencyStore` is the default; it is thread-safe, single-process, and does not survive restarts. Applications that need durable idempotency implement the protocol against their own store (Redis, Postgres, DynamoDB).
@@ -466,9 +462,7 @@ for attempt in range(loop.max_attempts):
     proposal = ai_client.propose(user_msg, tools=catalog)
 
     # Check the proposal before running it.
-    capabilities = [
-        step["call"] for step in _extract_calls(proposal)
-    ]
+    capabilities = [step["call"] for step in _extract_calls(proposal)]
 
     try:
         loop.assert_proposal(capabilities)
@@ -482,12 +476,12 @@ for attempt in range(loop.max_attempts):
         return result.value
 
     # Feed structured errors back to the model.
-    messages.append({
-        "role": "tool",
-        "content": json.dumps(
-            [e.to_dict() for e in result.errors]
-        ),
-    })
+    messages.append(
+        {
+            "role": "tool",
+            "content": json.dumps([e.to_dict() for e in result.errors]),
+        }
+    )
 
 return "I couldn't complete that after several attempts."
 ```

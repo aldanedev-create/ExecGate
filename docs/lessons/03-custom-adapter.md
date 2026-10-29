@@ -131,9 +131,7 @@ class HubAdapter:
     def parse_proposal(self, raw: Any) -> dict[str, Any]:
         """Convert a Hub response into a neutral plan dictionary."""
         if not isinstance(raw, dict):
-            raise AdapterError(
-                f"hub response must be a dict, got {type(raw).__name__}"
-            )
+            raise AdapterError(f"hub response must be a dict, got {type(raw).__name__}")
 
         action = raw.get("action")
         if not isinstance(action, dict):
@@ -197,9 +195,7 @@ Expected output, formatted for readability:
             "summary": "Retrieve an order.",
             "params": {
                 "type": "object",
-                "properties": {
-                    "order_id": {"type": "integer"}
-                },
+                "properties": {"order_id": {"type": "integer"}},
                 "required": ["order_id"],
                 "additionalProperties": False,
             },
@@ -469,9 +465,7 @@ class TestHubAdapter:
         )
 
         for name in forbidden:
-            assert not hasattr(adapter, name), (
-                f"adapter exposes forbidden attribute {name!r}"
-            )
+            assert not hasattr(adapter, name), f"adapter exposes forbidden attribute {name!r}"
 
     def test_parse_cannot_smuggle_verified(self):
         from execgate.plans import parse_plan

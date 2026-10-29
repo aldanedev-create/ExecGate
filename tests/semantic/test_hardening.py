@@ -1,5 +1,6 @@
 """Regression tests for the production-hardening fixes (idempotency scope/keys, token expiry,
 audit identity, approval preview, packaging)."""
+
 import pathlib
 import time
 import tomllib
@@ -12,7 +13,9 @@ from execgate import approval as approvals
 
 
 def ctx(principal="p1", tenant="t1", rid=None):
-    return ExecutionContext(principal=principal, tenant=tenant, roles=frozenset({"r"}), request_id=rid)
+    return ExecutionContext(
+        principal=principal, tenant=tenant, roles=frozenset({"r"}), request_id=rid
+    )
 
 
 def make(**cap_kw):
@@ -77,6 +80,7 @@ def test_context_request_id_mode_and_fail_closed():
 def test_idempotency_key_requires_idempotent():
     lx = Logix()
     with pytest.raises(ValueError):
+
         @lx.capability(idempotency_key="request_id")
         def f(request_id: str) -> int:
             """x"""
@@ -121,12 +125,18 @@ def test_audit_events_carry_principal_tenant_request_id():
     seen = []
 
     class H:
-        def on_step(self, e): seen.append(e)
-        def on_result(self, e): seen.append(e)
+        def on_step(self, e):
+            seen.append(e)
+
+        def on_result(self, e):
+            seen.append(e)
 
     lx.audit(H())
     lx.run({"call": "pay", "with": {"order_id": 1}}, context=ctx("alice", "acme", "req-9"))
-    assert seen and all(e["principal"] == "alice" and e["tenant"] == "acme" and e["request_id"] == "req-9" for e in seen)
+    assert seen and all(
+        e["principal"] == "alice" and e["tenant"] == "acme" and e["request_id"] == "req-9"
+        for e in seen
+    )
 
 
 # -- approval preview + multi-step approval ----------------------------------------------------
@@ -145,16 +155,27 @@ def test_approval_requests_resolves_refs_and_multi_token_works():
         log.append((order_id, cents))
         return cents
 
-    plan = {"version": "1", "steps": [
-        {"id": "o", "call": "look", "with": {"order_id": 7}},
-        {"id": "r1", "call": "refund", "with": {"order_id": {"$ref": "o.id"}, "cents": 10}},
-        {"id": "r2", "call": "refund", "with": {"order_id": {"$ref": "o.id"}, "cents": 20}},
-    ]}
+    plan = {
+        "version": "1",
+        "steps": [
+            {"id": "o", "call": "look", "with": {"order_id": 7}},
+            {"id": "r1", "call": "refund", "with": {"order_id": {"$ref": "o.id"}, "cents": 10}},
+            {"id": "r2", "call": "refund", "with": {"order_id": {"$ref": "o.id"}, "cents": 20}},
+        ],
+    }
     c = ctx()
     vp = lx.verify(plan, context=c).verified_plan
     reqs, errs = lx.approval_requests(vp, context=c)
-    assert not errs and [r["arguments"] for r in reqs] == [{"order_id": 7, "cents": 10}, {"order_id": 7, "cents": 20}]
-    toks = {r["step_id"]: approvals.issue(capability=r["capability"], args=r["arguments"], context=c, issuer="h") for r in reqs}
+    assert not errs and [r["arguments"] for r in reqs] == [
+        {"order_id": 7, "cents": 10},
+        {"order_id": 7, "cents": 20},
+    ]
+    toks = {
+        r["step_id"]: approvals.issue(
+            capability=r["capability"], args=r["arguments"], context=c, issuer="h"
+        )
+        for r in reqs
+    }
     assert lx.execute(vp, context=c, approval=toks).ok and log == [(7, 10), (7, 20)]
 
 

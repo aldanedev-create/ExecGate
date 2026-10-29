@@ -30,6 +30,7 @@ from execgate_mcp import LogixMCPProxy
 
 # --- Upstream stub ---
 
+
 @dataclass
 class FakeMCPTool:
     name: str
@@ -121,7 +122,9 @@ async def main() -> None:
 
     print("\n=== Unknown tool ===")
     result = await asyncio.to_thread(
-        logix.run, {"call": "nonexistent", "with": {}}, context=admin,
+        logix.run,
+        {"call": "nonexistent", "with": {}},
+        context=admin,
     )
     print(f"code={result.errors[0].code}, upstream_calls={client.calls}")
 

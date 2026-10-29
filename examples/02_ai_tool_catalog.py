@@ -40,15 +40,23 @@ def main() -> None:
     # --- Provider-shaped forms (require logiq[ai]) ---
     print("\n=== tools.format('openai') ===")
     openai_adapter = get_adapter("openai")
-    print(json.dumps(
-        openai_adapter.format_tools(logix.tools.describe()), indent=2,
-    )[:400] + "\n...")
+    print(
+        json.dumps(
+            openai_adapter.format_tools(logix.tools.describe()),
+            indent=2,
+        )[:400]
+        + "\n..."
+    )
 
     print("\n=== tools.format('anthropic') ===")
     anthropic_adapter = get_adapter("anthropic")
-    print(json.dumps(
-        anthropic_adapter.format_tools(logix.tools.describe()), indent=2,
-    )[:400] + "\n...")
+    print(
+        json.dumps(
+            anthropic_adapter.format_tools(logix.tools.describe()),
+            indent=2,
+        )[:400]
+        + "\n..."
+    )
 
     # --- Unknown provider falls back to neutral ---
     print("\n=== tools.format('some-new-provider') ===")

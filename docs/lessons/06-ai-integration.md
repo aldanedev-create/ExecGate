@@ -83,7 +83,7 @@ logix = Logix()
 
 ORDERS: dict[int, dict] = {
     502: {"id": 502, "owner": "alice", "state": "delivered", "total": 50.0},
-    777: {"id": 777, "owner": "bob",   "state": "shipped",   "total": 900.0},
+    777: {"id": 777, "owner": "bob", "state": "shipped", "total": 900.0},
 }
 REFUNDED: set[int] = set()
 
@@ -116,6 +116,7 @@ def refund_policy(args, ctx):
     if order["state"] != "delivered":
         return Deny("NOT_DELIVERED", "order is not refundable")
     return Allow()
+
 
 logix.authorize(refund_order, check=refund_policy)
 ```
@@ -163,13 +164,13 @@ client = openai.OpenAI(
 ```python
 from execgate_ai import get_adapter
 
-adapter = get_adapter("openai")   # OpenRouter uses OpenAI's tool shape
+adapter = get_adapter("openai")  # OpenRouter uses OpenAI's tool shape
 
 # Pick a model that supports tool calling. Examples:
-MODEL = "openai/gpt-4o"                    # paid, reliable
+MODEL = "openai/gpt-4o"  # paid, reliable
 # MODEL = "anthropic/claude-sonnet-4.5"    # paid, different provider
-# MODEL = "qwen/qwen3.6-plus:free"         # free tier, tool calling 
-# MODEL = "meta-llama/llama-3.3-70b-instruct:free"  # free tier 
+# MODEL = "qwen/qwen3.6-plus:free"         # free tier, tool calling
+# MODEL = "meta-llama/llama-3.3-70b-instruct:free"  # free tier
 
 catalog = adapter.format_tools(logix.tools.describe())
 print(json.dumps(catalog, indent=2)[:500])
@@ -189,15 +190,19 @@ models listed above support it; `qwen/qwen3.6-plus:free` and
 import json
 import os
 
+
 def ask(user_message: str) -> dict:
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
-            {"role": "system", "content": (
-                "You are a support agent. Use the available tools to "
-                "answer questions and take actions. Always call a tool "
-                "when you need information — do not guess."
-            )},
+            {
+                "role": "system",
+                "content": (
+                    "You are a support agent. Use the available tools to "
+                    "answer questions and take actions. Always call a tool "
+                    "when you need information — do not guess."
+                ),
+            },
             {"role": "user", "content": user_message},
         ],
         tools=adapter.format_tools(logix.tools.describe()),
@@ -267,32 +272,36 @@ def chat_turn(messages: list[dict], user_message: str, principal: str = "alice")
         result = logix.run(plan, context=ctx)
         print(f"[logiq result]: {result.ok}")
 
-        messages.append({
-            "role": "assistant",
-            "content": msg.content,
-            "tool_calls": [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {
-                        "name": tc.function.name,
-                        "arguments": tc.function.arguments,
-                    },
-                }
-                for tc in msg.tool_calls
-            ],
-        })
+        messages.append(
+            {
+                "role": "assistant",
+                "content": msg.content,
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.function.name,
+                            "arguments": tc.function.arguments,
+                        },
+                    }
+                    for tc in msg.tool_calls
+                ],
+            }
+        )
 
         if result.ok:
             tool_result = {"ok": True, "value": result.value}
         else:
             tool_result = {"ok": False, "errors": [e.to_dict() for e in result.errors]}
 
-        messages.append({
-            "role": "tool",
-            "tool_call_id": msg.tool_calls[0].id,
-            "content": json.dumps(tool_result),
-        })
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": msg.tool_calls[0].id,
+                "content": json.dumps(tool_result),
+            }
+        )
 ```
 
 Try:
@@ -357,6 +366,7 @@ the sensitive value never appears in the plan.
 ```python
 from execgate.semantic import RepairLoop, RepairRefused
 
+
 def agent_turn(messages, user_message, principal="alice"):
     messages = messages + [{"role": "user", "content": user_message}]
     ctx = logix.context(principal=principal)
@@ -387,27 +397,37 @@ def agent_turn(messages, user_message, principal="alice"):
         result = logix.run(plan, context=ctx)
         loop.record_outcome(result.errors)
 
-        messages.append({
-            "role": "assistant",
-            "content": msg.content,
-            "tool_calls": [
-                {"id": tc.id, "type": "function",
-                 "function": {"name": tc.function.name, "arguments": tc.function.arguments}}
-                for tc in msg.tool_calls
-            ],
-        })
+        messages.append(
+            {
+                "role": "assistant",
+                "content": msg.content,
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                    }
+                    for tc in msg.tool_calls
+                ],
+            }
+        )
 
         tool_result = (
-            {"ok": True, "value": result.value} if result.ok
+            {"ok": True, "value": result.value}
+            if result.ok
             else {"ok": False, "errors": [e.to_dict() for e in result.errors]}
         )
-        messages.append({
-            "role": "tool",
-            "tool_call_id": msg.tool_calls[0].id,
-            "content": json.dumps(tool_result),
-        })
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": msg.tool_calls[0].id,
+                "content": json.dumps(tool_result),
+            }
+        )
 
-    messages.append({"role": "assistant", "content": "I wasn't able to complete that after several attempts."})
+    messages.append(
+        {"role": "assistant", "content": "I wasn't able to complete that after several attempts."}
+    )
     return messages
 ```
 
@@ -440,7 +460,7 @@ else changes.
 **Direct OpenAI** — remove `base_url`, use `OPENAI_API_KEY`:
 
 ```python
-client = openai.OpenAI()   # uses OPENAI_API_KEY
+client = openai.OpenAI()  # uses OPENAI_API_KEY
 MODEL = "gpt-4o"
 ```
 
@@ -475,7 +495,7 @@ logix = Logix()
 
 ORDERS = {
     502: {"id": 502, "owner": "alice", "state": "delivered", "total": 50.0},
-    777: {"id": 777, "owner": "bob",   "state": "shipped",   "total": 900.0},
+    777: {"id": 777, "owner": "bob", "state": "shipped", "total": 900.0},
 }
 REFUNDED = set()
 
@@ -508,6 +528,7 @@ def refund_policy(args, ctx):
     if order["state"] != "delivered":
         return Deny("NOT_DELIVERED", "order is not refundable")
     return Allow()
+
 
 logix.authorize(refund_order, check=refund_policy)
 
@@ -550,25 +571,35 @@ def chat_turn(messages, user_message, principal="alice"):
         result = logix.run(plan, context=ctx)
         loop.record_outcome(result.errors)
 
-        messages.append({
-            "role": "assistant",
-            "content": msg.content,
-            "tool_calls": [
-                {"id": tc.id, "type": "function",
-                 "function": {"name": tc.function.name, "arguments": tc.function.arguments}}
-                for tc in msg.tool_calls
-            ],
-        })
-        messages.append({
-            "role": "tool",
-            "tool_call_id": msg.tool_calls[0].id,
-            "content": json.dumps(
-                {"ok": True, "value": result.value} if result.ok
-                else {"ok": False, "errors": [e.to_dict() for e in result.errors]}
-            ),
-        })
+        messages.append(
+            {
+                "role": "assistant",
+                "content": msg.content,
+                "tool_calls": [
+                    {
+                        "id": tc.id,
+                        "type": "function",
+                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                    }
+                    for tc in msg.tool_calls
+                ],
+            }
+        )
+        messages.append(
+            {
+                "role": "tool",
+                "tool_call_id": msg.tool_calls[0].id,
+                "content": json.dumps(
+                    {"ok": True, "value": result.value}
+                    if result.ok
+                    else {"ok": False, "errors": [e.to_dict() for e in result.errors]}
+                ),
+            }
+        )
 
-    messages.append({"role": "assistant", "content": "I wasn't able to complete that after several attempts."})
+    messages.append(
+        {"role": "assistant", "content": "I wasn't able to complete that after several attempts."}
+    )
     return messages
 
 

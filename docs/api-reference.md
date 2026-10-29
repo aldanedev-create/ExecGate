@@ -82,9 +82,9 @@ These are all **stable 0.1** unless otherwise noted below.
 Optional adapters:
 
 ```python
-from execgate_pydantic import (PydanticType, HandlerMode, set_handler_mode)
-from execgate_ai import (ProviderAdapter, AdapterError, ToolSpec, get_adapter)
-from execgate_mcp import (LogixMCPServer, LogixMCPProxy, LogixMCPProxy)
+from execgate_pydantic import PydanticType, HandlerMode, set_handler_mode
+from execgate_ai import ProviderAdapter, AdapterError, ToolSpec, get_adapter
+from execgate_mcp import LogixMCPServer, LogixMCPProxy, LogixMCPProxy
 ```
 
 The core never imports these. `import execgate` works with none of them
@@ -160,16 +160,18 @@ def add(a: int, b: int) -> int:
     "Add two integers."
     return a + b
 
+
 @logix.capability(name="math.add", effects="read")
 def add(a: int, b: int) -> int:
     "Add two integers."
     return a + b
 
+
 logix.capability.register(add, name="math.add")
 
-logix.capability.get("add")           # inspect a registered capability
-logix.capability.names()              # list all registered names
-logix.capability.unregister("add")    # remove a capability
+logix.capability.get("add")  # inspect a registered capability
+logix.capability.names()  # list all registered names
+logix.capability.unregister("add")  # remove a capability
 ```
 
 ### `@logix.capability` — decorator form
@@ -184,7 +186,8 @@ def add(a: int, b: int) -> int:
     "Add two integers."
     return a + b
 
-assert add(2, 3) == 5    # still callable as a normal function
+
+assert add(2, 3) == 5  # still callable as a normal function
 assert "add" in logix.registry
 ```
 
@@ -218,6 +221,7 @@ def get_customer(customer_id: int) -> dict[str, int]:
     "Retrieve an authorized customer record."
     return {"id": customer_id}
 
+
 @logix.capability(effects="write", requires_approval=True, idempotent=True)
 def issue_refund(order_id: int, amount: float) -> dict[str, int]:
     "Issue a refund."
@@ -240,6 +244,8 @@ Error message aggregates all annotation problems at once:
 @logix.capability
 def bad(x, y: set) -> dict:
     return {}
+
+
 # TypeError: cannot register capability 'bad':
 #   parameter 'x': missing annotation
 #   parameter 'y': unsupported annotation: set
@@ -254,6 +260,7 @@ Returns the original function.
 ```python
 def add(a: int, b: int) -> int:
     return a + b
+
 
 logix.capability.register(add, name="math.add")
 ```
@@ -296,9 +303,11 @@ from execgate import Logix
 
 logix = Logix()
 
+
 @logix.capability
 def add(a: int, b: int) -> int:
     return a + b
+
 
 result = logix.run({"call": "add", "with": {"a": 10, "b": 20}})
 assert result.ok
@@ -415,8 +424,10 @@ tokens = {}
 for r in requests:
     if ask_human(r["capability"], r["arguments"]):
         tokens[r["step_id"]] = issue(
-            capability=r["capability"], args=r["arguments"],
-            context=ctx, issuer="human:alice",
+            capability=r["capability"],
+            args=r["arguments"],
+            context=ctx,
+            issuer="human:alice",
         )
 result = logix.execute(report.verified_plan, context=ctx, approval=tokens)
 ```
@@ -462,9 +473,9 @@ catalog and the validator cannot disagree.
 | Anything else | Neutral form (never raises) |
 
 ```python
-neutral = logix.tools.format("json")             # always available
-openai = logix.tools.format("openai")            # optional adapter
-unknown = logix.tools.format("some-new-provider") # falls back to json
+neutral = logix.tools.format("json")  # always available
+openai = logix.tools.format("openai")  # optional adapter
+unknown = logix.tools.format("some-new-provider")  # falls back to json
 ```
 
 The `"json"` path requires no optional package and is the guarantee
@@ -564,11 +575,13 @@ immediately before the handler is invoked.
 ```python
 from execgate import Allow, Deny
 
+
 def refund_policy(args, ctx):
     order = db.orders.get(args["order_id"])
     if order["owner"] != ctx.principal:
         return Deny("NOT_OWNER", "caller does not own this order")
     return Allow()
+
 
 logix.authorize(issue_refund, check=refund_policy)
 logix.authorize("issue_refund", check=refund_policy)  # same, by name
@@ -624,8 +637,8 @@ A literal for a `require_ref_for` path (not allowlisted) produces
 rules.
 
 ```python
-def tenant_guard(plan, ctx):
-    ...
+def tenant_guard(plan, ctx): ...
+
 
 logix.policy("tenant_isolation", rule=tenant_guard)
 ```
@@ -764,6 +777,7 @@ class MyAudit:
         #         "principal", "tenant", "request_id"}
         logger.info("logiq.result", extra=event)
 
+
 logix.audit(MyAudit())
 ```
 
@@ -872,7 +886,7 @@ Methods and properties:
 ```python
 result = logix.run({"call": "add", "with": {"a": 1, "b": 2}})
 if result.ok:
-    print(result.value)            # 3
+    print(result.value)  # 3
 else:
     for e in result.errors:
         print(e.code, e.message)
@@ -911,8 +925,8 @@ Methods:
 ```python
 @dataclass(frozen=True)
 class Error:
-    code: str                # one of the stable codes (§14)
-    message: str             # human-readable, redacted
+    code: str  # one of the stable codes (§14)
+    message: str  # human-readable, redacted
     path: str | None = None  # e.g. "arguments.customer_id"
     details: dict = {}
 ```
@@ -966,11 +980,11 @@ Fields: `id: str`, `capability: str`, `arguments: Mapping[str, Any]`
 class ToolSpec:
     name: str
     description: str
-    input_schema: dict            # JSON Schema
+    input_schema: dict  # JSON Schema
     output_schema: dict | None
     effects: "read" | "write" | None
     approval: "required" | "principal_bound" | None
-    schema_version: str           # "1"
+    schema_version: str  # "1"
 ```
 
 Methods: `ToolSpec.to_neutral_dict() -> dict`.
@@ -1013,11 +1027,20 @@ Codes are defined as module constants in `execgate.errors`:
 
 ```python
 from execgate.errors import (
-    INVALID_PLAN, UNKNOWN_CAPABILITY, SCHEMA_VALIDATION_FAILED,
-    INVALID_REFERENCE, DEPENDENCY_CYCLE, POLICY_REJECTED,
-    AUTHORIZATION_FAILED, APPROVAL_REQUIRED, RESOURCE_LIMIT_EXCEEDED,
-    HANDLER_FAILED, OUTPUT_VALIDATION_FAILED, EXECUTION_CANCELLED,
-    IDEMPOTENCY_CONFLICT, GROUNDING_REQUIRED,
+    INVALID_PLAN,
+    UNKNOWN_CAPABILITY,
+    SCHEMA_VALIDATION_FAILED,
+    INVALID_REFERENCE,
+    DEPENDENCY_CYCLE,
+    POLICY_REJECTED,
+    AUTHORIZATION_FAILED,
+    APPROVAL_REQUIRED,
+    RESOURCE_LIMIT_EXCEEDED,
+    HANDLER_FAILED,
+    OUTPUT_VALIDATION_FAILED,
+    EXECUTION_CANCELLED,
+    IDEMPOTENCY_CONFLICT,
+    GROUNDING_REQUIRED,
     ALL_CODES,
 )
 ```
@@ -1045,19 +1068,24 @@ them. No user action required.
 ```python
 from pydantic import BaseModel, Field
 
+
 class CreateOrder(BaseModel):
     product_id: int = Field(ge=0)
     quantity: int = Field(ge=1, le=100)
+
 
 @logix.capability
 def prepare_order(order: CreateOrder) -> dict[str, int]:
     "Prepare an order for review."
     return {"ok": 1}
 
-result = logix.run({
-    "call": "prepare_order",
-    "with": {"order": {"product_id": 1, "quantity": 5}},
-})
+
+result = logix.run(
+    {
+        "call": "prepare_order",
+        "with": {"order": {"product_id": 1, "quantity": 5}},
+    }
+)
 ```
 
 ### `execgate_pydantic.HandlerMode`
@@ -1107,8 +1135,8 @@ adapter = get_adapter("openai")
 adapter = get_adapter("anthropic")
 adapter = get_adapter("gemini")
 adapter = get_adapter("local")
-adapter = get_adapter("json")                 # neutral
-adapter = get_adapter("some-new-provider")    # also neutral
+adapter = get_adapter("json")  # neutral
+adapter = get_adapter("some-new-provider")  # also neutral
 ```
 
 ### `execgate_ai.ProviderAdapter`
@@ -1118,6 +1146,7 @@ adapter = get_adapter("some-new-provider")    # also neutral
 ```python
 class ProviderAdapter(Protocol):
     name: str
+
     def format_tools(self, specs: list[ToolSpec]) -> Any: ...
     def parse_proposal(self, raw: Any) -> dict[str, Any]: ...
 ```
@@ -1180,7 +1209,7 @@ pip install "execgate[mcp]"
 from execgate_mcp import LogixMCPServer
 
 server = LogixMCPServer(logix, name="order-service")
-server.run()   # stdio by default
+server.run()  # stdio by default
 ```
 
 The engine's registry must be fully populated before constructing the
@@ -1218,12 +1247,14 @@ from execgate_mcp import LogixMCPProxy
 
 proxy = LogixMCPProxy(logix, "http://upstream-service/mcp")
 
+
 async def main():
-    await proxy.startup()   # fetch upstream tools, register wrapper capabilities
+    await proxy.startup()  # fetch upstream tools, register wrapper capabilities
     try:
         await proxy.run_async()
     finally:
         await proxy.shutdown()
+
 
 asyncio.run(main())
 ```
