@@ -48,7 +48,7 @@ def main() -> int:
         )
         _run("mypy", [sys.executable, "-m", "mypy", "src"])
         _run_py("check_imports", SCRIPTS / "check_imports.py")
-        _run("pytest", [sys.executable, "-m", "pytest"])
+        _run("pytest", [sys.executable, "-m", "pytest", "-p", "no:qt"])
         _run("build", [sys.executable, "-m", "build"])
 
         wheels = sorted((ROOT / "dist").glob("*.whl"))

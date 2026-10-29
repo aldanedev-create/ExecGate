@@ -1,0 +1,100 @@
+# ===========================================================================
+# Python
+# ===========================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# ===========================================================================
+# Logiq / ExecGate specific
+# ===========================================================================
+
+# Built documentation bundle (generated from docs/ by build_bundle.py)
+docs-bundle.json
+# If you generate the bundle into the docs site folder, also ignore:
+# logiq-doc/docs-bundle.json
+
+# PyPI credentials (if you drop one here by accident)
+.pypirc
+.pypirc.bak
+.twine-credentials
+
+# Local release artifacts
+*.whl
+*.tar.gz
+
+# MkDocs / Sphinx build output (if added later)
+site/
+docs/_build/
+
+# ===========================================================================
+# Patch scripts (one-off rename/fix scripts; do not commit)
+# ===========================================================================
+# Uncomment if you keep patch_*.py files around while publishing:
+# patch_*.py
+# apply_fixes.py
+# fix.py
+# rename_*.py
